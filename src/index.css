@@ -1,68 +1,51 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
+@plugin "daisyui";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* Use our green palette everywhere */
+html, body, #root { height: 100%; margin: 0; }
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* DaisyUI theme variables (HSL triplets recommended) */
+:root[data-theme="arcaneDark"]{
+  /* primary (buttons/links) */
+  --p: 146 38% 35%;
+  --pc: 146 100% 92%;
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+  /* secondary (alt buttons) */
+  --s: 162 28% 22%;
+  --sc: 162 100% 88%;
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
+  /* accent (highlights) */
+  --a: 145 65% 60%;
+  --ac: 145 100% 12%;
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+  /* neutral surfaces (cards) */
+  --n: 210 33% 12%;
+  --nc: 220 14% 92%;
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  /* base surfaces (page background) */
+  --b1: 160 12% 7%;
+  --b2: 160 12% 9%;
+  --b3: 160 12% 11%;
+  --bc: 0 0% 98%;
+
+
+  /* status */
+  --in: 201 94% 86%;
+  --su: 142 72% 45%;
+  --wa: 43 96% 56%;
+  --er: 0 72% 50%;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* Optional: subtle glow on primary circular buttons */
+.btn.btn-circle {
+  box-shadow: 0 0 40px rgba(34, 197, 94, 0.25);
+}
+
+.navbar a, .navbar span, .navbar p {
+  color: hsl(0 0% 90%) !important;
+}
+
+/* Force lighter text color globally */
+body, .text-base-content {
+  color: hsl(0 0% 95%) !important;
 }
