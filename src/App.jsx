@@ -10,8 +10,19 @@ import Room from "./pages/Room";
 import Leaderboard from "./pages/Leaderboard";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import React, { useEffect } from "react";
+import { socket } from "./state/socket";
 
 export default function App() {
+    useEffect(() => {
+            const onWelcome = (msg) => console.log("server welcome:", msg);
+            socket.on("welcome", onWelcome);
+
+            return () => {
+              socket.off("welcome", onWelcome);
+            };
+          }, []);
+
   return (
     <div className="relative min-h-screen">
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-green-950 via-green-900 to-black" />
