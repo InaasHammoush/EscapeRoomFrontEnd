@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Page from "../components/Layout/Page";
 
 export default function Room() {

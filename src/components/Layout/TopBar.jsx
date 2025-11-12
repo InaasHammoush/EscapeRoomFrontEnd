@@ -4,7 +4,7 @@ import { useGameMode } from "../../state/gameMode.jsx";
 export default function TopBar() {
   const linkClass = ({ isActive }) =>
     `btn btn-ghost rounded-2xl normal-case text-base ${
-      isActive ? "font-semibold" : "opacity-80 hover:opacity-100"
+      isActive ? "font-semibold" : "opacity-80 hover:opacity-100 hover:bg-white hover:text-black"
     }`;
 
   return (

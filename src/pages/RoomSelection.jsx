@@ -6,7 +6,7 @@ export default function RoomSelection() {
     <Page>
       <h2 className="text-2xl font-bold mb-4">Choose a Room</h2>
       <div className="grid sm:grid-cols-2 gap-6">
-        {["Wizard’s Library","Alchemist’s Laboratory"].map((name,i)=>(
+        {["Wizard’s Library & Alchemist’s Laboratory"].map((name,i)=>(
           <div key={i} className="bg-base-100/10 rounded-2xl p-6 shadow flex items-center justify-between">
             <div>
               <h3 className="font-semibold">{name}</h3>
