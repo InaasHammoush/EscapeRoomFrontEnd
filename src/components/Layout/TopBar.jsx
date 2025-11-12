@@ -19,7 +19,6 @@ export default function TopBar() {
 
           <nav className="flex items-center gap-2">
             <NavLink to="/" className={linkClass} end>Home</NavLink>
-            <NavLink to="/start" className={linkClass}>Start</NavLink>
             <NavLink to="/leaderboard" className={linkClass}>Leaderboard</NavLink>
             <NavLink to="/settings" className={linkClass}>Settings</NavLink>
           </nav>

@@ -6,22 +6,24 @@ import StartPage from "./pages/StartPage";
 import Join from "./pages/Join";
 import RoomSelection from "./pages/RoomSelection";
 import Waiting from "./pages/Waiting";
-import Room from "./pages/Room";
 import Leaderboard from "./pages/Leaderboard";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import React, { useEffect } from "react";
-import { socket } from "./state/socket";
+import { getSocket } from "./state/socket";
+import SoloRound from "./pages/SoloRound";
+import RoomPage from "./pages/RoomPage";
+import SoloSelect from "./pages/SoloSelect";
 
 export default function App() {
     useEffect(() => {
-            const onWelcome = (msg) => console.log("server welcome:", msg);
-            socket.on("welcome", onWelcome);
+      const s = getSocket();
+      if (!s) return; // RoomPage/Waiting will connect
+      const onWelcome = (msg) => console.log("server welcome:", msg);
+      s.on("welcome", onWelcome);
+      return () => s.off("welcome", onWelcome);
+    }, []);
 
-            return () => {
-              socket.off("welcome", onWelcome);
-            };
-          }, []);
 
   return (
     <div className="relative min-h-screen">
@@ -29,16 +31,24 @@ export default function App() {
       <TopBar />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/start" element={<StartPage />} />
         <Route path="/join" element={<Join />} />
         <Route path="/rooms" element={<RoomSelection />} />
         <Route path="/waiting/:lobbyId" element={<Waiting />} />
-        <Route path="/room/:id" element={<Room />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/404" element={<NotFound />} />
-        <Route path="*" element={<Navigate to="/404" replace />} />
+
+
+        {/* Single Player Mode */}
+        <Route path="/solo/select" element={<SoloSelect />} />
+        <Route path="/solo" element={<SoloRound />} />
+        <Route path="/solo/:sessionId/room/:roomId" element={<RoomPage mode="solo" />} />
+
+        {/* Multiplayer Mode */}
+        <Route path="/coop/:sessionId/room/:roomId/role/:role" element={<RoomPage mode="coop" />} />
       </Routes>
     </div>
   );

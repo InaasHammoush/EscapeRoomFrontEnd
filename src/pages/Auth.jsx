@@ -27,11 +27,11 @@ export default function Auth() {
           <form onSubmit={submit} className="space-y-3">
             <label className="form-control">
               <span className="label label-text">Username</span>
-              <input className="input input-bordered rounded-2xl w-full mt-2" value={username} onChange={e=>setUsername(e.target.value)} />
+              <input className="input input-bordered rounded-2xl w-full mt-2 text-black" value={username} onChange={e=>setUsername(e.target.value)} />
             </label>
             <label className="form-control">
               <span className="label label-text">Password</span>
-              <input type="password" className="input input-bordered rounded-2xl w-full mt-2" value={password} onChange={e=>setPassword(e.target.value)} />
+              <input type="password" className="input input-bordered rounded-2xl w-full mt-2 text-black" value={password} onChange={e=>setPassword(e.target.value)} />
             </label>
             <button type="submit" className="btn btn-outline rounded-2xl w-full mt-4">
               {mode === "login" ? "Sign in" : "Create account"}

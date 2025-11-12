@@ -12,7 +12,7 @@ export default function RoomSelection() {
               <h3 className="font-semibold">{name}</h3>
               <p className="opacity-70 text-sm">Co-op: communicate to solve.</p>
             </div>
-            <Link to="/waiting/ABC123" className="btn btn-outline rounded-2xl">Select</Link>
+            <Link to="/coop" className="btn btn-outline rounded-2xl">Select</Link>
           </div>
         ))}
       </div>

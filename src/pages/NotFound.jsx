@@ -8,7 +8,7 @@ export default function NotFound() {
         <div>
           <h1 className="text-3xl font-bold mb-2">Page not found</h1>
           <p className="opacity-70 mb-4">Let’s return to the entrance.</p>
-          <Link to="/" className="btn btn-primary rounded-2xl">Go Home</Link>
+          <Link to="/" className="btn btn-outline rounded-2xl">Go Home</Link>
         </div>
       </div>
     </Page>
