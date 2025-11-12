@@ -1,35 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route, Navigate } from "react-router-dom";
+import TopBar from "./components/Layout/TopBar";
+import Home from "./pages/Home";
+import Auth from "./pages/Auth";
+import StartPage from "./pages/StartPage";
+import Join from "./pages/Join";
+import RoomSelection from "./pages/RoomSelection";
+import Waiting from "./pages/Waiting";
+import Leaderboard from "./pages/Leaderboard";
+import Settings from "./pages/Settings";
+import NotFound from "./pages/NotFound";
+import React, { useEffect } from "react";
+import { getSocket } from "./state/socket";
+import SoloRound from "./pages/SoloRound";
+import RoomPage from "./pages/RoomPage";
+import SoloSelect from "./pages/SoloSelect";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+    useEffect(() => {
+      const s = getSocket();
+      if (!s) return; // RoomPage/Waiting will connect
+      const onWelcome = (msg) => console.log("server welcome:", msg);
+      s.on("welcome", onWelcome);
+      return () => s.off("welcome", onWelcome);
+    }, []);
+
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="relative min-h-screen">
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-green-950 via-green-900 to-black" />
+      <TopBar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/start" element={<StartPage />} />
+        <Route path="/join" element={<Join />} />
+        <Route path="/rooms" element={<RoomSelection />} />
+        <Route path="/waiting/:lobbyId" element={<Waiting />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/404" element={<NotFound />} />
 
-export default App
+
+        {/* Single Player Mode */}
+        <Route path="/solo/select" element={<SoloSelect />} />
+        <Route path="/solo" element={<SoloRound />} />
+        <Route path="/solo/:sessionId/room/:roomId" element={<RoomPage mode="solo" />} />
+
+        {/* Multiplayer Mode */}
+        <Route path="/coop/:sessionId/room/:roomId/role/:role" element={<RoomPage mode="coop" />} />
+      </Routes>
+    </div>
+  );
+}
