@@ -1,17 +1,20 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Page from "../components/Layout/Page";
 import { api } from "../state/api";
 import { setToken } from "../state/token";
 
 export default function Auth() {
-  const [mode, setMode] = useState("login"); // "login" | "register"
-  const [username, setUsername] = useState(""); // used only for register
-  const [email, setEmail] = useState("");       // used for both login + register
-  const [password, setPassword] = useState("");
-  const [err, setErr] = useState("");
-  const [busy, setBusy] = useState(false);
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const initialMode = location.state?.mode === "register" ? "register" : "login";
+    const [mode, setMode] = useState(initialMode); // "login" | "register"
+    const [username, setUsername] = useState(""); // used only for register
+    const [email, setEmail] = useState("");       // used for both login + register
+    const [password, setPassword] = useState("");
+    const [err, setErr] = useState("");
+    const [busy, setBusy] = useState(false);
+
 
   const submit = async (e) => {
     e.preventDefault();

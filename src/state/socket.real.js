@@ -1,4 +1,3 @@
-// src/state/socket.real.js
 import { io } from "socket.io-client";
 
 const BASE = import.meta.env.VITE_BACKEND_URL || window.location.origin;

@@ -17,7 +17,7 @@ export default function Waiting() {
   const { lobbyId } = useParams();          // sessionId
   const nav = useNavigate();
   const queryRole = useQueryRole();         // A | B | null
-  const { mode, sessionId } = useGameMode(); // NEW: read current mode
+  const { mode, sessionId } = useGameMode(); // read current mode
 
   const [players, setPlayers] = useState([]);   // [{id, role}]
   const [status, setStatus] = useState("waiting"); // 'waiting' | 'ready'
