@@ -14,6 +14,7 @@ import { getSocket } from "./state/socket";
 import SoloRound from "./pages/SoloRound";
 import RoomPage from "./pages/RoomPage";
 import SoloSelect from "./pages/SoloSelect";
+import VerifyEmail from "./pages/VerifyEmail";
 
 export default function App() {
     useEffect(() => {
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/email-verified" element={<VerifyEmail />} />
         <Route path="/start" element={<StartPage />} />
         <Route path="/join" element={<Join />} />
         <Route path="/rooms" element={<RoomSelection />} />
