@@ -1,14 +1,59 @@
 import { useState } from "react";
 import Page from "../components/Layout/Page";
 import { Link } from "react-router-dom";
+import { api } from "../state/api";
+import { useAuthUser } from "../state/authUser";
 
 export default function Settings() {
   const applyTheme = (name) =>
     document.documentElement.setAttribute("data-theme", name);
 
+  const { user } = useAuthUser();
+
   const [hintsEnabled, setHintsEnabled] = useState(true);
   const [brightness, setBrightness] = useState(100);
   const [colorIntensity, setColorIntensity] = useState(100);
+
+  // change-password form state
+  const [showChangePwd, setShowChangePwd] = useState(false);
+  const [oldPwd, setOldPwd] = useState("");
+  const [newPwd, setNewPwd] = useState("");
+  const [confirmPwd, setConfirmPwd] = useState("");
+  const [pwdBusy, setPwdBusy] = useState(false);
+  const [pwdMsg, setPwdMsg] = useState("");
+  const [pwdErr, setPwdErr] = useState("");
+
+  const submitChangePassword = async (e) => {
+    e.preventDefault();
+    if (pwdBusy) return;
+
+    setPwdErr("");
+    setPwdMsg("");
+
+    if (newPwd !== confirmPwd) {
+      setPwdErr("New passwords do not match.");
+      return;
+    }
+
+    setPwdBusy(true);
+    try {
+      await api.patch("/auth/change-password", {
+        oldPassword: oldPwd,
+        newPassword: newPwd,
+      });
+
+      setPwdMsg("Password changed successfully.");
+      setOldPwd("");
+      setNewPwd("");
+      setConfirmPwd("");
+      setShowChangePwd(false);
+
+    } catch (e) {
+      setPwdErr(e.message || "Password change failed.");
+    } finally {
+      setPwdBusy(false);
+    }
+  };
 
   return (
     <Page>
@@ -18,20 +63,98 @@ export default function Settings() {
       <section className="mb-12 space-y-3">
         <h3 className="text-xl font-semibold mb-3">User Settings</h3>
 
-        <div className="flex flex-col gap-3">
-          <Link to="/forgot-password" className="btn btn-outline rounded-2xl w-fit">
-            Reset Password
-          </Link>
+        {user ? (
+          <div className="flex flex-col gap-3">
 
-          {/* Future feature are here */}
-          <button className="btn btn-outline rounded-2xl w-fit" >
-            Change Email
-          </button>
+            {/* EMAIL RESET FLOW */}
+            <Link
+              to="/forgot-password"
+              className="btn btn-outline rounded-2xl w-fit"
+            >
+              Reset Password
+            </Link>
 
-          <button className="btn btn-outline btn-error rounded-2xl w-fit" >
-            Delete Account
-          </button>
-        </div>
+            {/* CHANGE PASSWORD */}
+            <button
+              className="btn btn-outline rounded-2xl w-fit"
+              type="button"
+              onClick={() => {
+                setShowChangePwd((v) => !v);
+                setPwdErr("");
+                setPwdMsg("");
+              }}
+            >
+              Change Password
+            </button>
+
+            {showChangePwd && (
+              <form onSubmit={submitChangePassword} className="mt-2 space-y-3 max-w-md">
+                <label className="form-control">
+                  <span className="label label-text">Current password</span>
+                  <input
+                    type="password"
+                    className="input input-bordered rounded-2xl w-full mt-2 text-black"
+                    value={oldPwd}
+                    onChange={(e) => setOldPwd(e.target.value)}
+                    required
+                    disabled={pwdBusy}
+                  />
+                </label>
+
+                <label className="form-control">
+                  <span className="label label-text">New password</span>
+                  <input
+                    type="password"
+                    className="input input-bordered rounded-2xl w-full mt-2 text-black"
+                    value={newPwd}
+                    onChange={(e) => setNewPwd(e.target.value)}
+                    required
+                    disabled={pwdBusy}
+                  />
+                </label>
+
+                <label className="form-control">
+                  <span className="label label-text">Confirm new password</span>
+                  <input
+                    type="password"
+                    className="input input-bordered rounded-2xl w-full mt-2 text-black"
+                    value={confirmPwd}
+                    onChange={(e) => setConfirmPwd(e.target.value)}
+                    required
+                    disabled={pwdBusy}
+                  />
+                </label>
+
+                {pwdMsg && <p className="text-success text-sm">{pwdMsg}</p>}
+                {pwdErr && <p className="text-error text-sm">{pwdErr}</p>}
+
+                <button
+                  type="submit"
+                  className="btn btn-outline rounded-2xl mt-2"
+                  disabled={
+                    pwdBusy || !oldPwd || !newPwd || !confirmPwd
+                  }
+                >
+                  {pwdBusy ? "Please wait…" : "Save new password"}
+                </button>
+              </form>
+            )}
+
+            {/* Future features */}
+            <button className="btn btn-outline rounded-2xl w-fit">
+              Change Email
+            </button>
+
+            <button className="btn btn-outline btn-error rounded-2xl w-fit">
+              Delete Account
+            </button>
+
+          </div>
+        ) : (
+          <p className="text-sm opacity-70">
+            Log in to change your password and manage user settings.
+          </p>
+        )}
       </section>
 
       {/* === GENERAL SETTINGS === */}
@@ -46,21 +169,12 @@ export default function Settings() {
             Light
           </button>
         </div>
-
-        {/* Optional future item */}
-        <div className="mt-4">
-          <select className="select select-bordered rounded-2xl w-fit text-black">
-            <option>English</option>
-            <option>Deutsch</option>
-          </select>
-        </div>
       </section>
 
       {/* === GAME SETTINGS === */}
       <section className="mb-12 space-y-3">
         <h3 className="text-xl font-semibold mb-3">Game Settings</h3>
 
-        {/* Hints toggle */}
         <label className="label cursor-pointer w-fit">
           <span className="label-text mr-3">Hints</span>
           <input
@@ -71,7 +185,6 @@ export default function Settings() {
           />
         </label>
 
-        {/* Object brightness */}
         <div className="mt-3 mb-6">
           <label className="label-text">Object Lighting</label>
           <input
@@ -79,13 +192,11 @@ export default function Settings() {
             min="30"
             max="150"
             value={brightness}
-            className="range"
             className="range ml-3"
             onChange={(e) => setBrightness(e.target.value)}
           />
         </div>
 
-        {/* Color intensity */}
         <div className="mt-3">
           <label className="label-text">Object Color Intensity</label>
           <input
@@ -97,7 +208,6 @@ export default function Settings() {
             onChange={(e) => setColorIntensity(e.target.value)}
           />
         </div>
-
       </section>
     </Page>
   );

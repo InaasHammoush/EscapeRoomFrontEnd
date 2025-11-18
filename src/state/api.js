@@ -42,7 +42,7 @@ async function request(path, opts) {
   try {
     return await doFetch(path, opts);
   } catch (err) {
-    if (err.status === 401) {
+    if (err.status === 401 || err.status === 403) {
       try {
         await refreshAccessToken();
         return await doFetch(path, opts); // retry once
@@ -59,6 +59,6 @@ export const api = {
   post: (p, body, opts)  => request(p, { method: "POST", body, ...opts }),
   put:  (p, body, opts)  => request(p, { method: "PUT",  body, ...opts }),
   del:  (p, opts)        => request(p, { method: "DELETE", ...opts }),
-
+  patch:(p, body, opts)  => request(p, { method: "PATCH", body, ...opts })
 
 };
