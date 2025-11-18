@@ -90,14 +90,6 @@ export default function RoomPage({ mode: modeProp }) {
             <button className="btn btn-sm" onClick={() => navigate(buildPath("Laboratory"))}>Laboratory</button>
           </div>
         </div>
-
-        {/* RIGHT: Inventory */}
-        <aside className="bg-base-100/80 rounded-2xl p-5 shadow">
-          <h3 className="font-semibold mb-3">Inventory</h3>
-          <ul className="space-y-2 opacity-70">
-            <li>—</li><li>—</li><li>—</li>
-          </ul>
-        </aside>
       </div>
     </Page>
   );

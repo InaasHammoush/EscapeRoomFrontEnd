@@ -3,18 +3,19 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import Page from "../components/Layout/Page";
 import { api } from "../state/api";
 import { setToken } from "../state/token";
+import { useAuthUser } from "../state/authUser";
 
 export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setUser } = useAuthUser();
 
-  // if we came from <Link to="/auth" state={{ mode: "register" }}>
   const initialMode =
     location.state?.mode === "register" ? "register" : "login";
 
-  const [mode, setMode] = useState(initialMode); // "login" | "register"
-  const [username, setUsername] = useState("");  // only for register
-  const [email, setEmail] = useState("");        // for both
+  const [mode, setMode] = useState(initialMode);
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
@@ -22,33 +23,31 @@ export default function Auth() {
   const submit = async (e) => {
     e.preventDefault();
     if (busy) return;
-
     setErr("");
     setBusy(true);
 
     try {
       if (mode === "login") {
-        // 🔐 LOGIN FLOW
-        const { accessToken } = await api.post("/auth/login", {
+        // 🔐 LOGIN
+        const { accessToken, user } = await api.post("/auth/login", {
           email,
           password,
         });
         setToken(accessToken);
-        navigate("/home"); // or "/start" if you prefer
+        setUser(user);            // <-- save user in context + localStorage
+        navigate("/home");
       } else {
-        // 📨 REGISTER FLOW – backend sends verification email
+        // 📨 REGISTER
         await api.post("/auth/register", {
           username,
           email,
           password,
         });
 
-        // Inform the user – email has the verify link
         setErr(
           "Account created. Please check your email and click the verification link to activate your account."
         );
 
-        // Optional: switch to login view after successful register
         setMode("login");
         setPassword("");
       }
@@ -139,7 +138,7 @@ export default function Auth() {
               {busy
                 ? "Please wait…"
                 : mode === "login"
-                ? "Sign in"
+                ? "Log in"
                 : "Create account"}
             </button>
           </form>
