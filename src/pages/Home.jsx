@@ -28,7 +28,7 @@ export default function Home() {
     <Page center>
       <section className="relative min-h-[calc(100vh-7rem)] flex items-center justify-center">
 
-        {/* centered hero */}
+
         <div className="text-center space-y-6">
           <button
             className="btn btn-circle btn-outline w-32 h-32 text-4xl shadow-lg"

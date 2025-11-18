@@ -111,7 +111,7 @@ export default function Waiting() {
     };
   }, [lobbyId, queryRole, nav, myRole, mode]);
 
-  // Allow choosing/changing role in UI if server hasn’t locked it yet
+
   const chooseRole = (role) => {
     const s = getSocket();
     if (!s) return;

@@ -1,8 +1,7 @@
-// src/components/Layout/Page.jsx
 import { Link } from "react-router-dom";
 import { useAuthUser } from "../../state/authUser";
 
-// --- Auth Bar ---
+// Auth Bar
 function AuthStatusBar() {
   const { user, logout } = useAuthUser();
 
@@ -37,7 +36,7 @@ function AuthStatusBar() {
   );
 }
 
-// --- Page Layout ---
+// Page Layout
 export default function Page({ children, center = false }) {
   return (
     <div className="min-h-screen flex flex-col">
@@ -46,7 +45,7 @@ export default function Page({ children, center = false }) {
       <main
         className={
           center
-            ? // centered layout (Home page)
+            ? // centered layout, needed for home page
               "flex-1 px-6 md:px-10 lg:px-20 max-w-5xl mx-auto py-6"
             : // default layout: small padding, full width
               "flex-1 px-10 py-6"

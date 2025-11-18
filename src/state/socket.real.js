@@ -25,11 +25,11 @@ export function connectSocket({ mode, sessionId, role }) {
   current = { ns, sessionId, role };
 
   socket.on("connect", () => {
-    console.log(`✅ connected ${ns} id=${socket.id}`);
-    //console.log(`✅ connected ${ns} session=${sessionId} role=${role || "-"} id=${socket.id}`)
+    console.log(` connected ${ns} id=${socket.id}`);
+    //console.log(` connected ${ns} session=${sessionId} role=${role || "-"} id=${socket.id}`)
   });
-  socket.on("disconnect", (reason) => console.log("ℹ️ disconnected:", reason));
-  socket.on("connect_error", (e) => console.error("❌ socket error:", e.message));
+  socket.on("disconnect", (reason) => console.log(":) disconnected:", reason));
+  socket.on("connect_error", (e) => console.error(":( socket error:", e.message));
 
   return socket;
 }

@@ -45,8 +45,6 @@ export default function StartPage() {
           </Link>
         </div>
       </div>
-
-      <div className="mt-6">{/* keep spacer / future content */}</div>
     </Page>
   );
 }

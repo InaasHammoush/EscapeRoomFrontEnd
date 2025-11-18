@@ -37,7 +37,7 @@ export default function CoopLobby() {
 
       <div className="divider">or</div>
 
-      {/* Use the dedicated Join page instead of duplicating the form here */}
+
       <div className="space-y-2">
         <p className="opacity-80 text-sm">Already have a code?</p>
         <Link to="/join" className="btn">

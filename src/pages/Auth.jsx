@@ -141,7 +141,15 @@ export default function Auth() {
                 ? "Log in"
                 : "Create account"}
             </button>
-          </form>
+
+                {mode === "login" && (
+                <div className="mt-2 text-center">
+                    <Link to="/forgot-password" className="link text-sm">
+                        Forgot your password?
+                    </Link>
+                    </div>
+                )}
+            </form>
 
           <div className="mt-4 text-center">
             <Link to="/start" className="link">

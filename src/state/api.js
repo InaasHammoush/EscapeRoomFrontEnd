@@ -14,7 +14,7 @@ async function doFetch(path, { method = "GET", body, headers, credentials } = {}
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  // Some endpoints might return 204 No Content
+
   const isJson = res.headers.get("content-type")?.includes("application/json");
   const data = isJson ? await res.json().catch(() => ({})) : {};
 
