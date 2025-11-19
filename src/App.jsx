@@ -15,6 +15,8 @@ import SoloRound from "./pages/SoloRound";
 import RoomPage from "./pages/RoomPage";
 import SoloSelect from "./pages/SoloSelect";
 import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 export default function App() {
     useEffect(() => {
@@ -34,7 +36,9 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/email-verified" element={<VerifyEmail />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/start" element={<StartPage />} />
         <Route path="/join" element={<Join />} />
         <Route path="/rooms" element={<RoomSelection />} />
