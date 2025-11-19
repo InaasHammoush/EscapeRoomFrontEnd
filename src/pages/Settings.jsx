@@ -66,13 +66,6 @@ export default function Settings() {
         {user ? (
           <div className="flex flex-col gap-3">
 
-            {/* EMAIL RESET FLOW */}
-            <Link
-              to="/forgot-password"
-              className="btn btn-outline rounded-2xl w-fit"
-            >
-              Reset Password
-            </Link>
 
             {/* CHANGE PASSWORD */}
             <button
