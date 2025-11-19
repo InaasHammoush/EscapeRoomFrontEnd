@@ -25,7 +25,7 @@ export default function Join() {
 
         <form onSubmit={join} className="space-y-6">
           <label className="form-control">
-            <span className="label label-text">Lobby ID</span>
+            <span className="label label-text ">Lobby ID</span>
             <input
               className="input input-bordered rounded-2xl w-xs m-4 text-black"
               value={code}
@@ -35,7 +35,7 @@ export default function Join() {
           </label>
 
           <label className="form-control">
-            <span className="label label-text">Role</span>
+            <span className="label label-text indent-1">Role</span>
             <select
               className="select select-bordered rounded-2xl w-xs m-4 text-black"
               value={role}
@@ -52,7 +52,7 @@ export default function Join() {
         </form>
 
         <div className="mt-3">
-          <Link to="/home" className="link">Back</Link>
+          <Link to="/start" className="link">Back</Link>
         </div>
       </div>
     </Page>
