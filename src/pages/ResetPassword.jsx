@@ -27,7 +27,7 @@ export default function ResetPassword() {
 
     setBusy(true);
     try {
-      await api.post(`/auth/reset-password/${token}`, {
+      await api.post(`/auth/password/reset/${token}`, {
         newPassword: newPwd,
       });
 
