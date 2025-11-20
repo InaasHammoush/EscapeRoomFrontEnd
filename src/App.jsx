@@ -30,7 +30,17 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen">
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-green-950 via-green-900 to-black" />
+        <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="fixed inset-0 w-full h-full object-cover -z-10"
+              >
+                <source src="/Loop door.mp4" type="video/mp4" />
+        </video>
+
+
       <TopBar />
       <Routes>
         <Route path="/" element={<Home />} />

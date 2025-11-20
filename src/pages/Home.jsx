@@ -31,7 +31,7 @@ export default function Home() {
 
         <div className="text-center space-y-6">
           <button
-            className="btn btn-circle btn-outline w-32 h-32 text-4xl shadow-lg"
+            className="btn btn-circle btn-outline w-32 h-32 text-4xl shadow-lg backdrop-blur"
             aria-label="Play Solo"
             onClick={handleSolo}
           >
@@ -40,14 +40,14 @@ export default function Home() {
 
           <div className="flex items-center justify-center gap-4">
             <button
-              className="btn btn-outline rounded-2xl"
+              className="btn btn-outline rounded-2xl backdrop-blur"
               onClick={handleCoop}
             >
               Play Co-op
             </button>
 
             <button
-              className="btn btn-outline rounded-2xl"
+              className="btn btn-outline rounded-2xl backdrop-blur"
               onClick={handleSolo}
             >
               Play Solo

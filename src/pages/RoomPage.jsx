@@ -5,9 +5,9 @@ import { useGameMode } from "../state/gameMode";
 import { connectSocket, getSocket } from "../state/socket";
 
 //placeholders real scenes to be replaced here
-function LibraryScene({ role }) { return <div className="opacity-80">Library ({role}) — N/E/S/W here</div>; }
+function LibraryScene({ role }) { return <div className="opacity-80">Library ({role})</div>; }
 function CorridorScene() { return <div className="opacity-80">Corridor — final door here</div>; }
-function LaboratoryScene({ role }) { return <div className="opacity-80">Laboratory ({role}) — N/E/S/W here</div>; }
+function LaboratoryScene({ role }) { return <div className="opacity-80">Laboratory ({role})</div>; }
 
 export default function RoomPage({ mode: modeProp }) {
   const { sessionId, roomId, role } = useParams();
@@ -79,8 +79,8 @@ export default function RoomPage({ mode: modeProp }) {
       </div>
 
       <div className="grid lg:grid-cols-[1fr,300px] gap-6">
-        <div className="bg-base-100/80 rounded-2xl p-5 shadow min-h-[50vh]">
-          {/* LEFT: the actual scene */}
+        <div className="bg-base-100/10 rounded-2xl p-5 shadow min-h-[50vh]">
+
           {scene}
 
           {/* Scene navigation buttons */}
