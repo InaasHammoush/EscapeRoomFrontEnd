@@ -39,7 +39,7 @@ export default function App() {
               >
                 <source src="/Loop door.mp4" type="video/mp4" />
         </video>
-
+        <div className="fixed inset-0 bg-black/50 -z-10"></div>
 
       <TopBar />
       <Routes>
