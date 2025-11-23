@@ -17,7 +17,7 @@ export default function Waiting() {
   const { lobbyId } = useParams();          // sessionId
   const nav = useNavigate();
   const queryRole = useQueryRole();         // A | B | null
-  const { mode, sessionId } = useGameMode(); // NEW: read current mode
+  const { mode, sessionId } = useGameMode(); // read current mode
 
   const [players, setPlayers] = useState([]);   // [{id, role}]
   const [status, setStatus] = useState("waiting"); // 'waiting' | 'ready'
@@ -111,7 +111,7 @@ export default function Waiting() {
     };
   }, [lobbyId, queryRole, nav, myRole, mode]);
 
-  // Allow choosing/changing role in UI if server hasn’t locked it yet
+
   const chooseRole = (role) => {
     const s = getSocket();
     if (!s) return;

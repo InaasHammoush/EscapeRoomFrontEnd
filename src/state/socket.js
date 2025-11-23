@@ -1,4 +1,3 @@
-// src/state/socket.js
 let api;
 if (import.meta.env.VITE_SOCKET_MOCK === "true") {
   api = await import("./socket.mock");

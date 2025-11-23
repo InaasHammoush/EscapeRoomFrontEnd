@@ -1,5 +1,3 @@
-// Cross-tab mock Socket.IO using BroadcastChannel + localStorage
-
 class Emitter {
   constructor(){ this.m = new Map(); }
   on(e, fn){ (this.m.get(e) || this.m.set(e,[]).get(e)).push(fn); }
@@ -74,7 +72,6 @@ export function connectSocket({ mode, sessionId, role }) {
 export function getSocket(){ return socket; }
 export function disconnectSocket(){ if (socket) socket.disconnect(); socket = null; current = {ns:null, sessionId:null, role:null}; }
 
-// ----- "server" logic -----
 
 function handleClient(ns, sessionId, sock, evt, payload){
   const sess = readSess(ns, sessionId);

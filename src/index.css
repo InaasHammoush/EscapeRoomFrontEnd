@@ -36,7 +36,6 @@ html, body, #root { height: 100%; margin: 0; }
   --er: 0 72% 50%;
 }
 
-/* Optional: subtle glow on primary circular buttons */
 .btn.btn-circle {
   box-shadow: 0 0 40px rgba(34, 197, 94, 0.25);
 }
@@ -45,7 +44,6 @@ html, body, #root { height: 100%; margin: 0; }
   color: hsl(0 0% 90%) !important;
 }
 
-/* Force lighter text color globally */
 body, .text-base-content {
   color: hsl(0 0% 95%) !important;
 }

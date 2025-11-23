@@ -14,6 +14,9 @@ import { getSocket } from "./state/socket";
 import SoloRound from "./pages/SoloRound";
 import RoomPage from "./pages/RoomPage";
 import SoloSelect from "./pages/SoloSelect";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 export default function App() {
     useEffect(() => {
@@ -27,12 +30,25 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen">
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-green-950 via-green-900 to-black" />
+        <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="fixed inset-0 w-full h-full object-cover -z-10"
+              >
+                <source src="/Loop door.mp4" type="video/mp4" />
+        </video>
+        <div className="fixed inset-0 bg-black/50 -z-10"></div>
+
       <TopBar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/start" element={<StartPage />} />
         <Route path="/join" element={<Join />} />
         <Route path="/rooms" element={<RoomSelection />} />

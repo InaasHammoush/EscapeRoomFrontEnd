@@ -2,12 +2,12 @@ import { useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Page from "../components/Layout/Page";
 import { useGameMode } from "../state/gameMode";
-import { connectSocket, getSocket } from "../state/socket"; // <-- using the namespace-aware connector
+import { connectSocket, getSocket } from "../state/socket";
 
-// Very small placeholders: plug your real scenes later
-function LibraryScene({ role }) { return <div className="opacity-80">Library ({role}) — N/E/S/W here</div>; }
+//placeholders real scenes to be replaced here
+function LibraryScene({ role }) { return <div className="opacity-80">Library ({role})</div>; }
 function CorridorScene() { return <div className="opacity-80">Corridor — final door here</div>; }
-function LaboratoryScene({ role }) { return <div className="opacity-80">Laboratory ({role}) — N/E/S/W here</div>; }
+function LaboratoryScene({ role }) { return <div className="opacity-80">Laboratory ({role})</div>; }
 
 export default function RoomPage({ mode: modeProp }) {
   const { sessionId, roomId, role } = useParams();
@@ -15,26 +15,26 @@ export default function RoomPage({ mode: modeProp }) {
   const location = useLocation();
   const { setMode, setSessionId } = useGameMode();
 
-  // --- Derive mode safely: prefer prop, else infer from URL
+
   const mode = useMemo(() => {
     if (modeProp) return modeProp; // "solo" | "coop"
     return location.pathname.startsWith("/solo") ? "solo" : "coop";
   }, [modeProp, location.pathname]);
 
-  // --- Sync context from URL
+  // Sync context from URL
   useEffect(() => {
     if (mode) setMode(mode);
     if (sessionId) setSessionId(sessionId);
   }, [mode, sessionId, setMode, setSessionId]);
 
-  // --- Ensure we connect to the right namespace with current params
+  // Ensure connection to the right namespace with current params
   useEffect(() => {
     if (!sessionId) return;
     // role is only meaningful for coop; undefined in solo is fine
     connectSocket({ mode, sessionId, role });
   }, [mode, sessionId, role]);
 
-  // --- Attach listeners to the current socket (handle reconnects)
+  // Attach listeners to the current socket (handle reconnects)
   useEffect(() => {
     const s = getSocket();
     if (!s) return;
@@ -47,7 +47,7 @@ export default function RoomPage({ mode: modeProp }) {
     };
   }, [mode, sessionId, role]); // re-bind if connection context changes
 
-  // --- Choose scene from :roomId
+  // Choose scene from roomId
   const scene = useMemo(() => {
     switch (roomId) {
       case "Library":    return <LibraryScene role={role || (mode === "coop" ? "A" : "A")} />;
@@ -57,7 +57,7 @@ export default function RoomPage({ mode: modeProp }) {
     }
   }, [roomId, role, mode]);
 
-  // --- Helper to build paths consistently
+
   const buildPath = (targetRoomId) => {
     if (mode === "solo") return `/solo/${sessionId}/room/${targetRoomId}`;
     // coop
@@ -79,8 +79,8 @@ export default function RoomPage({ mode: modeProp }) {
       </div>
 
       <div className="grid lg:grid-cols-[1fr,300px] gap-6">
-        <div className="bg-base-100/80 rounded-2xl p-5 shadow min-h-[50vh]">
-          {/* LEFT: the actual scene */}
+        <div className="bg-base-100/10 rounded-2xl p-5 shadow min-h-[50vh]">
+
           {scene}
 
           {/* Scene navigation buttons */}
@@ -90,14 +90,6 @@ export default function RoomPage({ mode: modeProp }) {
             <button className="btn btn-sm" onClick={() => navigate(buildPath("Laboratory"))}>Laboratory</button>
           </div>
         </div>
-
-        {/* RIGHT: Inventory */}
-        <aside className="bg-base-100/80 rounded-2xl p-5 shadow">
-          <h3 className="font-semibold mb-3">Inventory</h3>
-          <ul className="space-y-2 opacity-70">
-            <li>—</li><li>—</li><li>—</li>
-          </ul>
-        </aside>
       </div>
     </Page>
   );
