@@ -37,7 +37,7 @@ export default function Auth() {
         setUser(user);            // <-- save user in context + localStorage
         navigate("/home");
       } else {
-        // 📨 REGISTER
+        //  REGISTER
         await api.post("/auth/register", {
           username,
           email,
