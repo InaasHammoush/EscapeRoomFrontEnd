@@ -5,21 +5,35 @@ import { useGameMode } from "../state/gameMode";
 import { connectSocket } from "../state/socket";
 
 const SOLO_CHOICES = [
-  { id: "WizardLibrary", title: "Wizard’s Library", firstRoom: "Library", note: "Spellbooks and runes" },
-  { id: "AlchemistLab",  title: "Alchemist’s Laboratory", firstRoom: "Laboratory", note: "Potions and crystals" },
+  { id: "wizard_library", title: "Wizard’s Library", firstRoom: "Library", note: "Spellbooks and runes" },
+  { id: "alchemist_lab",  title: "Alchemist’s Laboratory", firstRoom: "Laboratory", note: "Potions and crystals" },
 ];
 
 export default function SoloSelect() {
   const nav = useNavigate();
   const { setMode, setSessionId } = useGameMode();
 
-  const startSolo = (choice) => {
+  const createRoom = (roomName) => {
+    return new Promise((resolve, reject) => {
+      connectSocket.emit("create_room", { roomName }, (res) => {
+        if (!res.ok) {
+          console.error("Failed creating room:", res.error);
+          reject(res.error);
+          return;
+        }
+
+        resolve(res.roomId);
+      });
+    });
+  };
+
+  const startSolo = async (choice) => {
     setMode("solo");
     const id = ("SOLO-" + nanoid(6)).toUpperCase();
     setSessionId(id);
     sessionStorage.setItem("soloChoice", choice.id);
-    connectSocket({ mode: "solo", sessionId: id }); // optional
-    nav(`/solo/${id}/room/${choice.firstRoom}`, { replace: true });
+    const roomId = await createRoom(choice.id);
+    nav(`/solo/${id}/room/${roomId}`, { replace: true });
   };
 
   return (

@@ -17,6 +17,7 @@ import SoloSelect from "./pages/SoloSelect";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import RoomView from "./pages/RoomView";
 
 export default function App() {
     useEffect(() => {
@@ -61,7 +62,8 @@ export default function App() {
         {/* Single Player Mode */}
         <Route path="/solo/select" element={<SoloSelect />} />
         <Route path="/solo" element={<SoloRound />} />
-        <Route path="/solo/:sessionId/room/:roomId" element={<RoomPage mode="solo" />} />
+        <Route path="/solo/:sessionId/room/:roomId" element={<RoomView mode="solo" />} />
+        {/* <Route path="/solo/:sessionId/room/:roomId/view" element={<RoomView />} /> */}
 
         {/* Multiplayer Mode */}
         <Route path="/coop/:sessionId/room/:roomId/role/:role" element={<RoomPage mode="coop" />} />
