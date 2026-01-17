@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { clearToken } from "./token";
+import { api } from "./api";
+import { disconnectSocket } from "./socket";
 
 const AuthUserContext = createContext(null);
 
@@ -21,9 +23,17 @@ export function AuthUserProvider({ children }) {
     }
   }, [user]);
 
-  const logout = () => {
-    clearToken();
-    setUser(null);
+  const logout = async () => {
+    try {
+      // backend löscht httpOnly refreshToken-Cookie
+      await api.post("/auth/logout", {});
+    } catch (e) {
+      console.warn("Logout request failed (ignored):", e);
+    } finally {
+      clearToken();       // Access-Token aus sessionStorage entfernen
+      disconnectSocket(); // Realtime-Verbindung schließen
+      setUser(null);      // UI-Zustand zurücksetzen
+    }
   };
 
   return (
@@ -32,6 +42,7 @@ export function AuthUserProvider({ children }) {
     </AuthUserContext.Provider>
   );
 }
+
 
 export function useAuthUser() {
   const ctx = useContext(AuthUserContext);
