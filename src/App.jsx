@@ -18,6 +18,8 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import RoomView from "./pages/RoomView";
+import DeleteAccount from "./pages/DeleteAccount";
+import RecoverAccount from "./pages/RecoverAccount";
 
 export default function App() {
     useEffect(() => {
@@ -50,6 +52,8 @@ export default function App() {
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/delete-account" element={<DeleteAccount />} />
+        <Route path="/recover-account" element={<RecoverAccount />} />
         <Route path="/start" element={<StartPage />} />
         <Route path="/join" element={<Join />} />
         <Route path="/rooms" element={<RoomSelection />} />
