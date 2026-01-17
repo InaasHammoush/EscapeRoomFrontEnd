@@ -1,14 +1,15 @@
 import { useState } from "react";
 import Page from "../components/Layout/Page";
-import { Link } from "react-router-dom";
 import { api } from "../state/api";
 import { useAuthUser } from "../state/authUser";
+import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
   const applyTheme = (name) =>
     document.documentElement.setAttribute("data-theme", name);
 
   const { user } = useAuthUser();
+  const navigate = useNavigate();
 
   const [hintsEnabled, setHintsEnabled] = useState(true);
   const [brightness, setBrightness] = useState(100);
@@ -22,6 +23,13 @@ export default function Settings() {
   const [pwdBusy, setPwdBusy] = useState(false);
   const [pwdMsg, setPwdMsg] = useState("");
   const [pwdErr, setPwdErr] = useState("");
+
+  // change-email form state
+  const [showChangeEmail, setShowChangeEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailMsg, setEmailMsg] = useState("");
+  const [emailErr, setEmailErr] = useState("");
 
   const submitChangePassword = async (e) => {
     e.preventDefault();
@@ -47,11 +55,33 @@ export default function Settings() {
       setNewPwd("");
       setConfirmPwd("");
       setShowChangePwd(false);
-
     } catch (e) {
       setPwdErr(e.message || "Password change failed.");
     } finally {
       setPwdBusy(false);
+    }
+  };
+
+  const submitChangeEmail = async (e) => {
+    e.preventDefault();
+    if (emailBusy) return;
+
+    setEmailErr("");
+    setEmailMsg("");
+
+    setEmailBusy(true);
+    try {
+      const res = await api.patch("/auth/change-email", { newEmail });
+      setEmailMsg(
+        res?.message ||
+          "Email change initiated. Please verify your new email address."
+      );
+      setNewEmail("");
+      setShowChangeEmail(false);
+    } catch (e) {
+      setEmailErr(e.message || "Email change failed.");
+    } finally {
+      setEmailBusy(false);
     }
   };
 
@@ -65,8 +95,6 @@ export default function Settings() {
 
         {user ? (
           <div className="flex flex-col gap-3">
-
-
             {/* CHANGE PASSWORD */}
             <button
               className="btn btn-outline rounded-2xl w-fit"
@@ -81,7 +109,10 @@ export default function Settings() {
             </button>
 
             {showChangePwd && (
-              <form onSubmit={submitChangePassword} className="mt-2 space-y-3 max-w-md">
+              <form
+                onSubmit={submitChangePassword}
+                className="mt-2 space-y-3 max-w-md"
+              >
                 <label className="form-control">
                   <span className="label label-text">Current password</span>
                   <input
@@ -124,24 +155,64 @@ export default function Settings() {
                 <button
                   type="submit"
                   className="btn btn-outline rounded-2xl mt-2"
-                  disabled={
-                    pwdBusy || !oldPwd || !newPwd || !confirmPwd
-                  }
+                  disabled={pwdBusy || !oldPwd || !newPwd || !confirmPwd}
                 >
                   {pwdBusy ? "Please wait…" : "Save new password"}
                 </button>
               </form>
             )}
 
-            {/* Future features */}
-            <button className="btn btn-outline rounded-2xl w-fit">
+            {/* CHANGE EMAIL */}
+            <button
+              className="btn btn-outline rounded-2xl w-fit"
+              type="button"
+              onClick={() => {
+                setShowChangeEmail((v) => !v);
+                setEmailErr("");
+                setEmailMsg("");
+              }}
+            >
               Change Email
             </button>
 
-            <button className="btn btn-outline btn-error rounded-2xl w-fit">
+            {showChangeEmail && (
+              <form
+                onSubmit={submitChangeEmail}
+                className="mt-2 space-y-3 max-w-md"
+              >
+                <label className="form-control">
+                  <span className="label label-text">New email address</span>
+                  <input
+                    type="email"
+                    className="input input-bordered rounded-2xl w-full mt-2 text-black"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    required
+                    disabled={emailBusy}
+                  />
+                </label>
+
+                {emailMsg && <p className="text-success text-sm">{emailMsg}</p>}
+                {emailErr && <p className="text-error text-sm">{emailErr}</p>}
+
+                <button
+                  type="submit"
+                  className="btn btn-outline rounded-2xl mt-2"
+                  disabled={emailBusy || !newEmail}
+                >
+                  {emailBusy ? "Please wait…" : "Send verification email"}
+                </button>
+              </form>
+            )}
+
+            {/* DELETE ACCOUNT -> go to dedicated page */}
+            <button
+              className="btn btn-outline btn-error rounded-2xl w-fit"
+              type="button"
+              onClick={() => navigate("/delete-account")}
+            >
               Delete Account
             </button>
-
           </div>
         ) : (
           <p className="text-sm opacity-70">

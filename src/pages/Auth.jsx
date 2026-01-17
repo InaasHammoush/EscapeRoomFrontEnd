@@ -28,13 +28,12 @@ export default function Auth() {
 
     try {
       if (mode === "login") {
-        // 🔐 LOGIN
         const { accessToken, user } = await api.post("/auth/login", {
           email,
           password,
         });
         setToken(accessToken);
-        setUser(user);            // <-- save user in context + localStorage
+        setUser(user);
         navigate("/home");
       } else {
         //  REGISTER
