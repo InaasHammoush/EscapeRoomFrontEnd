@@ -6,7 +6,7 @@
 */ 
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getSocket, connectSocket } from "../state/socket";
 import InteractionLayer from "../components/InteractionLayer.jsx";
 import "../components/svelte/Keypad.svelte"; // Import the Svelte Web Component
@@ -16,7 +16,14 @@ const initialSoloChoice = sessionStorage.getItem("soloChoice");
 
 export default function RoomView({ mode = "solo" }) {
  const { sessionId, roomId } = useParams();
+const navigate = useNavigate();
 
+const exitToHome = () => {
+
+  if (!confirm("Leave the room and return to home?")) return;
+
+  navigate("/");
+};
  const [socketReady, setSocketReady] = useState(false);
 
  // Room state
@@ -230,7 +237,17 @@ export default function RoomView({ mode = "solo" }) {
 
  return (
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
-      
+
+<button
+  onClick={exitToHome}
+  className="absolute top-4 left-4 z-30 btn btn-circle btn-sm bg-black/60 text-white border-white/30 hover:bg-white hover:text-black pointer-events-auto"
+  title="Back to Home"
+>
+  <span className="text-3xl leading-none -translate-y-1 inline-block">⌂</span>
+
+</button>
+
+
       {/* 1. THE FULLSCREEN WALL IMAGE */}
       {images[viewIndex] ? (
         <img
@@ -245,24 +262,24 @@ export default function RoomView({ mode = "solo" }) {
       {/* 2. OVERLAY INTERACTION LAYER (Placeholder for your next step) */}
       <div className="absolute inset-0 z-10 pointer-events-none">
         {/* We will build the point-and-click hotspots here later */}
-        <InteractionLayer 
-          viewIndex={viewIndex} 
-          roomId={roomId} 
-          socket={getSocket()} 
+        <InteractionLayer
+          viewIndex={viewIndex}
+          roomId={roomId}
+          socket={getSocket()}
         />
       </div>
 
       {/* 3. NAVIGATION BUTTONS (Laid on top) */}
       <div className="absolute inset-x-0 bottom-10 flex justify-between px-10 z-20 pointer-events-none">
-        <button 
-          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white border-white/50 hover:bg-white/20 pointer-events-auto" 
+        <button
+          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white border-white/50 hover:bg-white/20 pointer-events-auto"
           onClick={() => turn("LEFT")}
         >
           <span className="text-2xl">⟲</span>
         </button>
 
-        <button 
-          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white border-white/50 hover:bg-white/20 pointer-events-auto" 
+        <button
+          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white border-white/50 hover:bg-white/20 pointer-events-auto"
           onClick={() => turn("RIGHT")}
         >
           <span className="text-2xl">⟳</span>
@@ -279,16 +296,16 @@ export default function RoomView({ mode = "solo" }) {
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
           <div className="bg-neutral p-8 rounded-2xl shadow-2xl border border-white/20">
             <keypad-widget roomid={roomId}></keypad-widget>
-            
+
             {/* Optional: Add a manual close button in case the server doesn't close it */}
-            <button 
-              className="btn btn-sm btn-circle absolute top-2 right-2" 
+            <button
+              className="btn btn-sm btn-circle absolute top-2 right-2"
               onClick={() => setActiveWidget(null)}
             >✕</button>
           </div>
         </div>
       )}
-      
+
     </div>
   );
 }
