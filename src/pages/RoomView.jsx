@@ -1,15 +1,29 @@
-// RoomView.jsx
+/** 
+ * RoomView.jsx
+ * The main room view component for solo escape room gameplay
+ * Handles socket connection , room joining, state synchronization, and rendering
+ * of room images and controls. 
+*/ 
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getSocket, connectSocket } from "../state/socket";
+import InteractionLayer from "../components/InteractionLayer.jsx";
+import "../components/svelte/Keypad.svelte"; // Import the Svelte Web Component
 
 // Get soloChoice from session storage if it exists (e.g., "wizard_library")
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
 
 export default function RoomView({ mode = "solo" }) {
  const { sessionId, roomId } = useParams();
+const navigate = useNavigate();
 
+const exitToHome = () => {
+
+  if (!confirm("Leave the room and return to home?")) return;
+
+  navigate("/");
+};
  const [socketReady, setSocketReady] = useState(false);
 
  // Room state
@@ -27,7 +41,7 @@ export default function RoomView({ mode = "solo" }) {
     console.warn("Received empty or invalid views array.");
     return;
   }
-  console.log("📷 Loaded images:", files);
+  console.log("Loaded images:", files);
   setImages(files);
   setLoading(false);
  }, []);
@@ -37,7 +51,7 @@ export default function RoomView({ mode = "solo" }) {
  // SNAPSHOT Processor (Handles state changes from listeners or callbacks)
  // ------------------------------------------------------------
  const onSnapshot = useCallback((msg) => {
-  console.log("🔥 SNAPSHOT RECEIVED:", msg);
+  console.log("SNAPSHOT RECEIVED:", msg);
 
   // Snapshot can come from socket.on("state:snapshot") { roomState: { ... } }
   // OR from the socket.emit("join_room") callback { snapshot: { state: { ... } } }
@@ -93,7 +107,7 @@ export default function RoomView({ mode = "solo" }) {
   const s = getSocket();
   if (!s) return;
 
-  console.log("🔵 Sending join_room", roomId);
+  console.log("Sending join_room", roomId);
   
   // Use the callback to ensure we process the initial snapshot immediately
   s.emit("join_room", { roomId, name: "Solo Player" }, (res) => {
@@ -118,11 +132,11 @@ export default function RoomView({ mode = "solo" }) {
       const s = getSocket();
       if (!s) return;
 
-      console.log("🟢 Emitting 'ready' event to start room", roomId);
+      console.log("Emitting 'ready' event to start room", roomId);
       // Send the ready signal to trigger the room start logic on the server
       s.emit("ready", { roomId }, (res) => {
           if (res?.ok) {
-              console.log("✅ Room ready signal acknowledged by server.");
+              console.log("Room ready signal acknowledged by server.");
           } else {
               console.error("Failed to set ready state:", res?.error);
           }
@@ -136,24 +150,66 @@ export default function RoomView({ mode = "solo" }) {
  // ------------------------------------------------------------
  // STEP 3 — Handle SNAPSHOT LISTENERS (for state changes)
  // ------------------------------------------------------------
+ const [activeWidget, setActiveWidget] = useState(null); // e.g., 'keypad', 'letter_safe', null
+ 
  useEffect(() => {
   if (!socketReady) return;
   const s = getSocket();
   if (!s) return;
 
   const onViewChanged = (msg) => {
-   console.log("🔥 VIEW CHANGED:", msg);
+   console.log("VIEW CHANGED:", msg);
    if (msg.viewIndex !== undefined) setViewIndex(msg.viewIndex);
   };
 
+  const onPuzzleUpdate = (msg) => {
+    console.log("Delta received:", msg);
+    
+    // 1. Check if the server explicitly closed the widget
+    if (msg.diff && msg.diff.activeWidget === null) {
+      console.log("Server commanded: Close Widget");
+      setActiveWidget(null);
+    }
+
+    // 2. Check if the server opened a widget
+    if (msg.diff?.test_box_01?.showWidget) {
+      setActiveWidget(msg.diff.test_box_01.showWidget);
+    }
+  };
+
+  
+
   s.on("state:snapshot", onSnapshot); // Listener for subsequent full snapshots
   s.on("state:viewChanged", onViewChanged);
+  s.on("puzzle_update", onPuzzleUpdate);
 
   return () => {
    s.off("state:snapshot", onSnapshot);
    s.off("state:viewChanged", onViewChanged);
+   s.off("puzzle_update", onPuzzleUpdate);
   };
  }, [socketReady, onSnapshot]);
+
+ useEffect(() => {
+  const handleSvelteIntent = (e) => {
+    const { objectId, verb, data } = e.detail;
+    const s = getSocket();
+    
+    if (s) {
+      s.emit("interact", {
+        roomId,
+        actionId: crypto.randomUUID(), 
+        objectId,
+        verb,
+        data
+      });
+    }
+  };
+
+  // Listen for the custom event from the Web Component 
+  window.addEventListener('intent', handleSvelteIntent);
+  return () => window.removeEventListener('intent', handleSvelteIntent);
+}, [roomId]);
 
 
  // ------------------------------------------------------------
@@ -162,7 +218,7 @@ export default function RoomView({ mode = "solo" }) {
  const turn = (direction) => {
   const s = getSocket();
   if (!s) return;
-  console.log("🌀 Turn:", direction);
+  console.log("Turn:", direction);
   // The server expects the format { roomId, direction }
   s.emit("intent:turn", { roomId, direction }); 
  };
@@ -180,36 +236,76 @@ export default function RoomView({ mode = "solo" }) {
  }
 
  return (
-  <div className="relative w-full h-full flex flex-col items-center justify-center text-white">
+    <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
 
-   {/* ROOM IMAGE */}
-   <div className="relative max-w-2xl w-full flex items-center justify-center">
-    {images[viewIndex] ? (
-     <img
-      src={images[viewIndex]}
-      alt="Room"
-      className="rounded-lg shadow-lg max-h-[70vh] object-contain"
-     />
-    ) : (
-     <p>No image available for this view.</p>
-    )}
-   </div>
+<button
+  onClick={exitToHome}
+  className="absolute top-4 left-4 z-30 btn btn-circle btn-sm bg-black/60 text-white border-white/30 hover:bg-white hover:text-black pointer-events-auto"
+  title="Back to Home"
+>
+  <span className="text-3xl leading-none -translate-y-1 inline-block">⌂</span>
 
-   {/* TURN BUTTONS */}
-   <div className="mt-6 flex gap-6">
-    <button className="btn btn-outline" onClick={() => turn("LEFT")}>
-     ⟲ Turn Left
-    </button>
+</button>
 
-    <button className="btn btn-outline" onClick={() => turn("RIGHT")}>
-     Turn Right ⟳
-    </button>
-   </div>
 
-   {/* DEBUG */}
-   <div className="mt-4 opacity-60 text-sm">
-    viewIndex: {viewIndex} | roomType: {roomType}
-   </div>
-  </div>
- );
+      {/* 1. THE FULLSCREEN WALL IMAGE */}
+      {images[viewIndex] ? (
+        <img
+          src={images[viewIndex]}
+          alt={`Wall ${viewIndex}`}
+          className="absolute inset-0 w-full h-full object-contain select-none"
+        />
+      ) : (
+        <div className="text-gray-500">No image available for this view.</div>
+      )}
+
+      {/* 2. OVERLAY INTERACTION LAYER (Placeholder for your next step) */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        {/* We will build the point-and-click hotspots here later */}
+        <InteractionLayer
+          viewIndex={viewIndex}
+          roomId={roomId}
+          socket={getSocket()}
+        />
+      </div>
+
+      {/* 3. NAVIGATION BUTTONS (Laid on top) */}
+      <div className="absolute inset-x-0 bottom-10 flex justify-between px-10 z-20 pointer-events-none">
+        <button
+          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white border-white/50 hover:bg-white/20 pointer-events-auto"
+          onClick={() => turn("LEFT")}
+        >
+          <span className="text-2xl">⟲</span>
+        </button>
+
+        <button
+          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white border-white/50 hover:bg-white/20 pointer-events-auto"
+          onClick={() => turn("RIGHT")}
+        >
+          <span className="text-2xl">⟳</span>
+        </button>
+      </div>
+
+      {/* 4. DEBUG INFO (Small and tucked away) */}
+      <div className="absolute top-4 right-4 bg-black/60 px-3 py-1 rounded-full text-xs font-mono opacity-50 z-20">
+        INDEX: {viewIndex} | TYPE: {roomType}
+      </div>
+
+      {/* 4. ACTIVE WIDGET POPUP */}
+      {activeWidget === 'keypad' && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-neutral p-8 rounded-2xl shadow-2xl border border-white/20">
+            <keypad-widget roomid={roomId}></keypad-widget>
+
+            {/* Optional: Add a manual close button in case the server doesn't close it */}
+            <button
+              className="btn btn-sm btn-circle absolute top-2 right-2"
+              onClick={() => setActiveWidget(null)}
+            >✕</button>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
 }

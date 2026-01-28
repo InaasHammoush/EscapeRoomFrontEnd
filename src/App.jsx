@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import TopBar from "./components/Layout/TopBar";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -22,6 +22,13 @@ import DeleteAccount from "./pages/DeleteAccount";
 import RecoverAccount from "./pages/RecoverAccount";
 
 export default function App() {
+  const { pathname } = useLocation();
+
+  // Hide TopBar inside room views (solo + coop)
+  const hideTopBar =
+    /^\/solo\/[^/]+\/room\/[^/]+/.test(pathname) ||
+    /^\/coop\/[^/]+\/room\/[^/]+\/role\/[^/]+/.test(pathname);
+
     useEffect(() => {
       const s = getSocket();
       if (!s) return; // RoomPage/Waiting will connect
@@ -44,7 +51,7 @@ export default function App() {
         </video>
         <div className="fixed inset-0 bg-black/50 -z-10"></div>
 
-      <TopBar />
+          {!hideTopBar && <TopBar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />

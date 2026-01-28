@@ -47,3 +47,8 @@ html, body, #root { height: 100%; margin: 0; }
 body, .text-base-content {
   color: hsl(0 0% 95%) !important;
 }
+
+body {
+  margin: 0;
+}
+
