@@ -10,6 +10,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getSocket, connectSocket } from "../state/socket";
 import InteractionLayer from "../components/InteractionLayer.jsx";
 import "../components/svelte/Keypad.svelte"; // Import the Svelte Web Component
+import ScrollGridPopup from "../components/ScrollGridPopup.jsx";
+
 
 // Get soloChoice from session storage if it exists (e.g., "wizard_library")
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
@@ -292,19 +294,14 @@ const exitToHome = () => {
       </div>
 
       {/* 4. ACTIVE WIDGET POPUP */}
-      {activeWidget === 'keypad' && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="bg-neutral p-8 rounded-2xl shadow-2xl border border-white/20">
-            <keypad-widget roomid={roomId}></keypad-widget>
-
-            {/* Optional: Add a manual close button in case the server doesn't close it */}
-            <button
-              className="btn btn-sm btn-circle absolute top-2 right-2"
-              onClick={() => setActiveWidget(null)}
-            >✕</button>
-          </div>
-        </div>
-      )}
+      {activeWidget === "scroll_grid" && (
+              <ScrollGridPopup
+                roomId={roomId}
+                socket={getSocket()}
+                defaultMark="X"
+                onClose={() => setActiveWidget(null)}
+              />
+            )}
 
     </div>
   );
