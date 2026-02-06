@@ -5,250 +5,261 @@
  * of room images and controls. 
 */ 
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSocket, connectSocket } from "../state/socket";
 import InteractionLayer from "../components/InteractionLayer.jsx";
-import "../components/svelte/Keypad.svelte"; // Import the Svelte Web Component
+import "../components/svelte/Keypad.svelte";
+import "../components/svelte/ScrollGrid.svelte";
 
 // Get soloChoice from session storage if it exists (e.g., "wizard_library")
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
 
 export default function RoomView({ mode = "solo" }) {
- const { sessionId, roomId } = useParams();
-const navigate = useNavigate();
+  const { sessionId, roomId } = useParams();
+  const navigate = useNavigate();
 
-const exitToHome = () => {
+  const [socketReady, setSocketReady] = useState(false);
 
-  if (!confirm("Leave the room and return to home?")) return;
+  // Room state
+  const [viewIndex, setViewIndex] = useState(0);
+  const [images, setImages] = useState([]);
+  const [roomType, setRoomType] = useState(initialSoloChoice);
+  const [loading, setLoading] = useState(true);
 
-  navigate("/");
-};
- const [socketReady, setSocketReady] = useState(false);
+  // Widgets / puzzle state
+  const [activeWidget, setActiveWidget] = useState(null);
+  const [scrollGrid, setScrollGrid] = useState(null);
 
- // Room state
- const [viewIndex, setViewIndex] = useState(0);
- const [images, setImages] = useState([]);
- // Use the value from sessionStorage as the initial roomType
- const [roomType, setRoomType] = useState(initialSoloChoice);
- const [loading, setLoading] = useState(true);
+  // ✅ Persistent ref to the Web Component instance
+  const scrollGridElRef = useRef(null);
 
- // ------------------------------------------------------------
- // STEP 4 — Load images (The authoritative function to set images and end loading)
- // ------------------------------------------------------------
- const loadImages = useCallback((files) => {
-  if (!Array.isArray(files) || files.length === 0) {
-    console.warn("Received empty or invalid views array.");
-    return;
-  }
-  console.log("Loaded images:", files);
-  setImages(files);
-  setLoading(false);
- }, []);
-
-
- // ------------------------------------------------------------
- // SNAPSHOT Processor (Handles state changes from listeners or callbacks)
- // ------------------------------------------------------------
- const onSnapshot = useCallback((msg) => {
-  console.log("SNAPSHOT RECEIVED:", msg);
-
-  // Snapshot can come from socket.on("state:snapshot") { roomState: { ... } }
-  // OR from the socket.emit("join_room") callback { snapshot: { state: { ... } } }
-  const st = msg?.roomState || msg?.snapshot?.state; 
-  if (!st) return;
-
-  if (st.viewIndex !== undefined) setViewIndex(st.viewIndex);
-  if (st.roomType && st.roomType !== roomType) setRoomType(st.roomType);
-
-  if (Array.isArray(st.views)) {
-   // The server must now provide the full image path array here
-   loadImages(st.views);
-  }
- }, [loadImages, roomType]);
-
-
- // ------------------------------------------------------------
- // STEP 1 — Ensure socket is connected
- // ------------------------------------------------------------
- useEffect(() => {
-  let s = getSocket();
-
-  if (!s) {
-   // Pass the soloChoice as roomType for connection context
-   s = connectSocket({ 
-     mode, 
-     sessionId, 
-     role: "player", 
-     roomType: initialSoloChoice 
-   });
-  }
-
-  const onConnect = () => setSocketReady(true);
-
-  if (s.connected) {
-   setSocketReady(true);
-  } else {
-   s.on("connect", onConnect);
-  }
-
-  return () => {
-   s?.off("connect", onConnect);
+  const exitToHome = () => {
+    if (!confirm("Leave the room and return to home?")) return;
+    navigate("/");
   };
- }, [mode, sessionId]);
-
-
- // ------------------------------------------------------------
- // STEP 2 — JOIN THE ROOM once socket is ready
- // ------------------------------------------------------------
- useEffect(() => {
-  // Crucial check: must have a ready socket AND a room ID from the URL
-  if (!socketReady || !roomId) return;
-  const s = getSocket();
-  if (!s) return;
-
-  console.log("Sending join_room", roomId);
-  
-  // Use the callback to ensure we process the initial snapshot immediately
-  s.emit("join_room", { roomId, name: "Solo Player" }, (res) => {
-    console.log("CLIENT: Join Room Response Received:", res);
-    if (res?.ok && res.snapshot) {
-      onSnapshot(res); // Process the snapshot from the join callback
-    } else if (!res?.ok) {
-      console.error("Failed to join room:", res?.error);
-      setLoading(false); // Stop loading if join fails
-    }
-  });
-
- }, [socketReady, roomId, onSnapshot]);
 
   // ------------------------------------------------------------
-  // STEP 2.5 — Send READY signal (Required for Solo Play to start the room)
+  // STEP 4 — Load images
+  // ------------------------------------------------------------
+  const loadImages = useCallback((files) => {
+    if (!Array.isArray(files) || files.length === 0) {
+      console.warn("Received empty or invalid views array.");
+      return;
+    }
+    console.log("Loaded images:", files);
+    setImages(files);
+    setLoading(false);
+  }, []);
+
+  // ------------------------------------------------------------
+  // SNAPSHOT Processor
+  // ------------------------------------------------------------
+  const onSnapshot = useCallback(
+    (msg) => {
+      console.log("SNAPSHOT RECEIVED:", msg);
+
+      const st = msg?.roomState || msg?.snapshot?.state;
+      if (!st) return;
+
+      if (st.viewIndex !== undefined) setViewIndex(st.viewIndex);
+      if (st.roomType && st.roomType !== roomType) setRoomType(st.roomType);
+      if (st.public?.scroll_grid) setScrollGrid(st.public.scroll_grid);
+
+      if (Array.isArray(st.views)) loadImages(st.views);
+    },
+    [loadImages, roomType]
+  );
+
+  // ------------------------------------------------------------
+  // STEP 1 — Ensure socket is connected
   // ------------------------------------------------------------
   useEffect(() => {
-      // Only proceed if the socket is ready and we are in solo mode
-      if (!socketReady || mode !== "solo" || !roomId) return;
-      
-      const s = getSocket();
-      if (!s) return;
+    let s = getSocket();
 
-      console.log("Emitting 'ready' event to start room", roomId);
-      // Send the ready signal to trigger the room start logic on the server
-      s.emit("ready", { roomId }, (res) => {
-          if (res?.ok) {
-              console.log("Room ready signal acknowledged by server.");
-          } else {
-              console.error("Failed to set ready state:", res?.error);
-          }
+    if (!s) {
+      s = connectSocket({
+        mode,
+        sessionId,
+        role: "player",
+        roomType: initialSoloChoice,
       });
-      
-      // NOTE: This effect is designed to run once when the component is ready
-      // to start the solo game.
+    }
 
+    const onConnect = () => setSocketReady(true);
+
+    if (s.connected) setSocketReady(true);
+    else s.on("connect", onConnect);
+
+    return () => {
+      s?.off("connect", onConnect);
+    };
+  }, [mode, sessionId]);
+
+  // ------------------------------------------------------------
+  // STEP 2 — JOIN THE ROOM
+  // ------------------------------------------------------------
+  useEffect(() => {
+    if (!socketReady || !roomId) return;
+    const s = getSocket();
+    if (!s) return;
+
+    console.log("Sending join_room", roomId);
+
+    s.emit("join_room", { roomId, name: "Solo Player" }, (res) => {
+      console.log("CLIENT: Join Room Response Received:", res);
+      if (res?.ok && res.snapshot) onSnapshot(res);
+      else if (!res?.ok) {
+        console.error("Failed to join room:", res?.error);
+        setLoading(false);
+      }
+    });
+  }, [socketReady, roomId, onSnapshot]);
+
+  // ------------------------------------------------------------
+  // STEP 2.5 — READY
+  // ------------------------------------------------------------
+  useEffect(() => {
+    if (!socketReady || mode !== "solo" || !roomId) return;
+
+    const s = getSocket();
+    if (!s) return;
+
+    console.log("Emitting 'ready' event to start room", roomId);
+    s.emit("ready", { roomId }, (res) => {
+      if (res?.ok) console.log("Room ready signal acknowledged by server.");
+      else console.error("Failed to set ready state:", res?.error);
+    });
   }, [socketReady, mode, roomId]);
 
- // ------------------------------------------------------------
- // STEP 3 — Handle SNAPSHOT LISTENERS (for state changes)
- // ------------------------------------------------------------
- const [activeWidget, setActiveWidget] = useState(null); // e.g., 'keypad', 'letter_safe', null
- 
- useEffect(() => {
-  if (!socketReady) return;
-  const s = getSocket();
-  if (!s) return;
+  // ------------------------------------------------------------
+  // Stable socket handlers
+  // ------------------------------------------------------------
+  const onViewChanged = useCallback((msg) => {
+    console.log("VIEW CHANGED:", msg);
+    if (msg.viewIndex !== undefined) setViewIndex(msg.viewIndex);
+  }, []);
 
-  const onViewChanged = (msg) => {
-   console.log("VIEW CHANGED:", msg);
-   if (msg.viewIndex !== undefined) setViewIndex(msg.viewIndex);
-  };
-
-  const onPuzzleUpdate = (msg) => {
+  const onPuzzleUpdate = useCallback((msg) => {
     console.log("Delta received:", msg);
-    
-    // 1. Check if the server explicitly closed the widget
+
     if (msg.diff && msg.diff.activeWidget === null) {
       console.log("Server commanded: Close Widget");
       setActiveWidget(null);
     }
 
-    // 2. Check if the server opened a widget
     if (msg.diff?.test_box_01?.showWidget) {
+      console.log("OPENING WIDGET:", msg.diff.test_box_01.showWidget);
       setActiveWidget(msg.diff.test_box_01.showWidget);
     }
-  };
 
-  
+    if (msg.diff?.scroll_grid) {
+      setScrollGrid(msg.diff.scroll_grid);
+    }
+  }, []);
 
-  s.on("state:snapshot", onSnapshot); // Listener for subsequent full snapshots
-  s.on("state:viewChanged", onViewChanged);
-  s.on("puzzle_update", onPuzzleUpdate);
-
-  return () => {
-   s.off("state:snapshot", onSnapshot);
-   s.off("state:viewChanged", onViewChanged);
-   s.off("puzzle_update", onPuzzleUpdate);
-  };
- }, [socketReady, onSnapshot]);
-
- useEffect(() => {
-  const handleSvelteIntent = (e) => {
-    const { objectId, verb, data } = e.detail;
+  // ------------------------------------------------------------
+  // STEP 3 — Attach socket listeners
+  // ------------------------------------------------------------
+  useEffect(() => {
+    if (!socketReady) return;
     const s = getSocket();
-    
-    if (s) {
-      s.emit("interact", {
+    if (!s) return;
+
+    s.off("state:snapshot", onSnapshot);
+    s.off("state:viewChanged", onViewChanged);
+    s.off("puzzle_update", onPuzzleUpdate);
+
+    s.on("state:snapshot", onSnapshot);
+    s.on("state:viewChanged", onViewChanged);
+    s.on("puzzle_update", onPuzzleUpdate);
+
+    return () => {
+      s.off("state:snapshot", onSnapshot);
+      s.off("state:viewChanged", onViewChanged);
+      s.off("puzzle_update", onPuzzleUpdate);
+    };
+  }, [socketReady, roomId, onSnapshot, onViewChanged, onPuzzleUpdate]);
+
+  // ------------------------------------------------------------
+  // ✅ CRITICAL: push updated grid into the Web Component whenever it changes
+  // ------------------------------------------------------------
+  useEffect(() => {
+    const el = scrollGridElRef.current;
+    if (!el) return;
+
+    // Always push the latest grid object into the custom element
+    el.grid = scrollGrid;
+  }, [scrollGrid]);
+
+  // ------------------------------------------------------------
+  // Listen for the custom event from the Web Component
+  // ------------------------------------------------------------
+  useEffect(() => {
+    const handleSvelteIntent = (e) => {
+        console.log("INTENT EVENT CAUGHT:", e.detail);
+
+      const { objectId, verb, data } = e.detail;
+      const s = getSocket();
+
+      if (objectId === "scroll_grid" && verb === "CLOSE") {
+        setActiveWidget(null);
+        return;
+      }
+
+   if (!s) return;
+
+    s.emit(
+      "interact",
+      {
         roomId,
-        actionId: crypto.randomUUID(), 
+        actionId: crypto.randomUUID(),
         objectId,
         verb,
-        data
-      });
-    }
+        data,
+      },
+      (res) => {
+        if (!res?.ok) console.error("INTERACT ERROR:", res);
+      }
+    );
   };
 
-  // Listen for the custom event from the Web Component 
-  window.addEventListener('intent', handleSvelteIntent);
-  return () => window.removeEventListener('intent', handleSvelteIntent);
-}, [roomId]);
 
+    document.addEventListener("intent", handleSvelteIntent);
+    return () => document.removeEventListener("intent", handleSvelteIntent);
+  }, [roomId]);
 
- // ------------------------------------------------------------
- // Turning controls
- // ------------------------------------------------------------
- const turn = (direction) => {
-  const s = getSocket();
-  if (!s) return;
-  console.log("Turn:", direction);
-  // The server expects the format { roomId, direction }
-  s.emit("intent:turn", { roomId, direction }); 
- };
+  // ------------------------------------------------------------
+  // Turning controls
+  // ------------------------------------------------------------
+  const turn = (direction) => {
+    const s = getSocket();
+    if (!s) return;
+    console.log("Turn:", direction);
+    s.emit("intent:turn", { roomId, direction });
+  };
 
+  // ------------------------------------------------------------
+  // Render
+  // ------------------------------------------------------------
+  if (loading || !socketReady) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-white">
+        Loading room…
+      </div>
+    );
+  }
 
- // ------------------------------------------------------------
- // Render
- // ------------------------------------------------------------
- if (loading || !socketReady) {
   return (
-   <div className="w-full h-full flex items-center justify-center text-white">
-    Loading room…
-   </div>
-  );
- }
-
- return (
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
+      <button
+        onClick={exitToHome}
+        className="absolute top-4 left-4 z-30 btn btn-circle btn-sm bg-black/60 text-white border-white/30 hover:bg-white hover:text-black pointer-events-auto"
+        title="Back to Home"
+      >
+        <span className="text-3xl leading-none -translate-y-1 inline-block">⌂</span>
+      </button>
 
-<button
-  onClick={exitToHome}
-  className="absolute top-4 left-4 z-30 btn btn-circle btn-sm bg-black/60 text-white border-white/30 hover:bg-white hover:text-black pointer-events-auto"
-  title="Back to Home"
->
-  <span className="text-3xl leading-none -translate-y-1 inline-block">⌂</span>
-
-</button>
-
-
-      {/* 1. THE FULLSCREEN WALL IMAGE */}
       {images[viewIndex] ? (
         <img
           src={images[viewIndex]}
@@ -259,17 +270,10 @@ const exitToHome = () => {
         <div className="text-gray-500">No image available for this view.</div>
       )}
 
-      {/* 2. OVERLAY INTERACTION LAYER (Placeholder for your next step) */}
       <div className="absolute inset-0 z-10 pointer-events-none">
-        {/* We will build the point-and-click hotspots here later */}
-        <InteractionLayer
-          viewIndex={viewIndex}
-          roomId={roomId}
-          socket={getSocket()}
-        />
+        <InteractionLayer viewIndex={viewIndex} roomId={roomId} socket={getSocket()} />
       </div>
 
-      {/* 3. NAVIGATION BUTTONS (Laid on top) */}
       <div className="absolute inset-x-0 bottom-10 flex justify-between px-10 z-20 pointer-events-none">
         <button
           className="btn btn-circle btn-lg btn-outline bg-black/40 text-white border-white/50 hover:bg-white/20 pointer-events-auto"
@@ -286,26 +290,17 @@ const exitToHome = () => {
         </button>
       </div>
 
-      {/* 4. DEBUG INFO (Small and tucked away) */}
       <div className="absolute top-4 right-4 bg-black/60 px-3 py-1 rounded-full text-xs font-mono opacity-50 z-20">
         INDEX: {viewIndex} | TYPE: {roomType}
       </div>
 
-      {/* 4. ACTIVE WIDGET POPUP */}
-      {activeWidget === 'keypad' && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="bg-neutral p-8 rounded-2xl shadow-2xl border border-white/20">
-            <keypad-widget roomid={roomId}></keypad-widget>
-
-            {/* Optional: Add a manual close button in case the server doesn't close it */}
-            <button
-              className="btn btn-sm btn-circle absolute top-2 right-2"
-              onClick={() => setActiveWidget(null)}
-            >✕</button>
-          </div>
+      {activeWidget === "scroll_grid" && (
+        <div className="absolute inset-0 z-50">
+          <scroll-grid-widget 
+            ref={scrollGridElRef} 
+          />
         </div>
       )}
-
     </div>
   );
 }
