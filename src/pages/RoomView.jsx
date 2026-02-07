@@ -8,7 +8,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSocket, connectSocket } from "../state/socket";
-import InteractionLayer from "../components/InteractionLayer.jsx";
+import InteractionLayer from "../components/InteractionLayers/InteractionLayerManager.jsx";
 import "../components/svelte/Keypad.svelte";
 import "../components/svelte/ScrollGrid.svelte";
 
@@ -271,7 +271,7 @@ export default function RoomView({ mode = "solo" }) {
       )}
 
       <div className="absolute inset-0 z-10 pointer-events-none">
-        <InteractionLayer viewIndex={viewIndex} roomId={roomId} socket={getSocket()} />
+        <InteractionLayer viewIndex={viewIndex} roomId={roomId} socket={getSocket()} roomType={roomType} />
       </div>
 
       <div className="absolute inset-x-0 bottom-10 flex justify-between px-10 z-20 pointer-events-none">
