@@ -47,38 +47,75 @@ export default function InteractionLayer({ viewIndex, roomId, socket, roomType }
     if (!app) return;
     app.stage.removeChildren();
 
+    // 1. Calculate the Image's actual displayed area
+    // Assuming a target aspect ratio for your room images (e.g., 16:9 or 4:3)
+    const targetAspect = 1920 / 1080; 
+    const windowAspect = window.innerWidth / window.innerHeight;
+
+    let displayW, displayH, offsetX, offsetY;
+
+    if (windowAspect > targetAspect) {
+      // Window is wider than image (Black bars on sides)
+      displayH = window.innerHeight;
+      displayW = displayH * targetAspect;
+      offsetX = (window.innerWidth - displayW) / 2;
+      offsetY = 0;
+    } else {
+      // Window is taller than image (Black bars on top/bottom)
+      displayW = window.innerWidth;
+      displayH = displayW / targetAspect;
+      offsetX = 0;
+      offsetY = (window.innerHeight - displayH) / 2;
+    }
+
     const layerRenderer = getInteractionLayer(roomType, viewIndex);
     if (layerRenderer) {
-      // Pass the normalization helpers to the specific layer
       layerRenderer(app, { 
         roomId, 
         socket, 
-        // Helper: Convert Virtual 1000 -> Current Pixels
-        normX: (val) => (val / 1000) * window.innerWidth,
-        normY: (val) => (val / 1000) * window.innerHeight
+        // 2. Letterbox-Aware Helpers
+        normX: (val) => offsetX + (val / 1000) * displayW,
+        normY: (val) => offsetY + (val / 1000) * displayH,
+        // Helper to scale sizes (widths/heights) without the offset
+        scaleX: (val) => (val / 1000) * displayW,
+        scaleY: (val) => (val / 1000) * displayH
       });
     }
   };
 
   // Debugging helper: Log normalized coordinates on click
   useEffect(() => {
-  const handleDebugClick = (e) => {
-    // Only log if 'Alt' key is held down to prevent spamming during normal play
-    if (!e.altKey) return;
+    const handleDebugClick = (e) => {
+      if (!e.altKey) return;
 
-    const normalizedX = Math.round((e.clientX / window.innerWidth) * 1000);
-    const normalizedY = Math.round((e.clientY / window.innerHeight) * 1000);
+      // Use the same math as above to find the active area
+      const targetAspect = 1920 / 1080;
+      const windowAspect = window.innerWidth / window.innerHeight;
+      let displayW, displayH, offsetX, offsetY;
 
-    console.log(`%c Hotspot Found! %c normX(${normalizedX}), normY(${normalizedY})`, 
-                "background: #222; color: #bada55; padding: 2px 5px; border-radius: 3px;",
-                "color: white;");
-    
-    console.log(`Copy-paste: .rect(normX(${normalizedX}), normY(${normalizedY}), normX(WIDTH), normY(HEIGHT))`);
-  };
+      if (windowAspect > targetAspect) {
+        displayH = window.innerHeight;
+        displayW = displayH * targetAspect;
+        offsetX = (window.innerWidth - displayW) / 2;
+        offsetY = 0;
+      } else {
+        displayW = window.innerWidth;
+        displayH = displayW / targetAspect;
+        offsetX = 0;
+        offsetY = (window.innerHeight - displayH) / 2;
+      }
 
-  window.addEventListener("click", handleDebugClick);
-  return () => window.removeEventListener("click", handleDebugClick);
-}, []);
+      // Convert screen click to 0-1000 image coordinate
+      const imgX = Math.round(((e.clientX - offsetX) / displayW) * 1000);
+      const imgY = Math.round(((e.clientY - offsetY) / displayH) * 1000);
+
+      console.log(`%c Normalized Coords: %c x: ${imgX}, y: ${imgY}`, 
+                  "color: #888", "color: #0ff; font-weight: bold;");
+    };
+
+    window.addEventListener("click", handleDebugClick);
+    return () => window.removeEventListener("click", handleDebugClick);
+  }, []);
 
   return <div ref={pixiContainerRef} className="absolute inset-0 z-10" />;
 }

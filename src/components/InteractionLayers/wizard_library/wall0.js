@@ -1,16 +1,15 @@
 import * as PIXI from "pixi.js";
 
-export const renderWizardLibraryWall0 = (app, { roomId, socket, normX, normY }) => {
-  const stage = app.stage;
-
-  // Instead of .rect(500, 400, 200, 200)
-  const x = normX(600);
-  const y = normY(500);
-  const width = normX(100);
-  const height = normY(50);
+export const renderWizardLibraryWall0 = (app, { roomId, socket, normX, normY, scaleX, scaleY }) => {
+    const stage = app.stage;
 
   const scrollBox = new PIXI.Graphics()
-    .rect(x, y, width, height) 
+    .rect(
+      normX(777),   // Position relative to image start
+      normY(475), 
+      scaleX(300),  // Size relative to image width
+      scaleY(200)   // Size relative to image height
+    ) 
     .fill({ color: 0x00ff00, alpha: 0.3 });
 
   scrollBox.eventMode = "static";
@@ -26,7 +25,12 @@ export const renderWizardLibraryWall0 = (app, { roomId, socket, normX, normY }) 
   });
 
   const bookShelf = new PIXI.Graphics()
-    .rect(normX(414), normY(409), 185, 123) 
+    .rect(
+      normX(393), 
+      normY(405), 
+      scaleX(150), 
+      scaleY(180)
+    ) 
     .fill({ color: 0x00ff00, alpha: 0.3 });
 
     bookShelf.eventMode = "static";
