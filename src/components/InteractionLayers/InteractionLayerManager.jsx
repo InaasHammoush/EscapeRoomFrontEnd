@@ -110,7 +110,7 @@ export default function InteractionLayer({ viewIndex, roomId, socket, roomType }
       const imgY = Math.round(((e.clientY - offsetY) / displayH) * 1000);
 
       console.log(`%c Normalized Coords: %c x: ${imgX}, y: ${imgY}`, 
-                  "color: #888", "color: #0ff; font-weight: bold;");
+                  "color: #888", "color: rgb(21, 152, 63); font-weight: bold;");
     };
 
     window.addEventListener("click", handleDebugClick);
