@@ -45,15 +45,6 @@ export const renderWizardLibraryWall0 = (app, { roomId, socket, normX, normY, sc
       });
     });
 
-  bookShelf.on("pointertap", () => {
-    socket.emit("interact", {
-      roomId,
-      actionId: crypto.randomUUID(),
-      objectId: "test_bookshelf_01",
-      verb: "INTERACT",
-    });
-  });
-
   stage.addChild(scrollBox);
   stage.addChild(bookShelf);
 };
