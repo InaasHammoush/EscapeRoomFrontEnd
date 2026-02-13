@@ -1,9 +1,9 @@
-<svelte:options customElement="scroll-grid-widget" />
+<svelte:options customElement="tictactoe-scroll-widget" />
 
 <script>
-  import scrollSrc from "../../assets/scroll-grid.png";
-  import xSrc from "../../assets/x.png";
-  import oSrc from "../../assets/o.png";
+  import scrollSrc from "../../assets/wizard_library/scroll-grid.png";
+  import xSrc from "../../assets/wizard_library/x.png";
+  import oSrc from "../../assets/wizard_library/o.png";
 
   export let grid = null;
 
@@ -28,7 +28,7 @@
 
     const event = new CustomEvent('intent', {
       detail: {
-        objectId: 'scroll_grid',
+        objectId: 'puzzle_tictactoe_scroll',
         verb: 'PLACE_MARK',
         data: { index: idx, mark: 'X' }
       },
@@ -40,7 +40,7 @@
 
   function close() {
     document.dispatchEvent(new CustomEvent('intent', {
-      detail: { objectId: 'scroll_grid', verb: 'CLOSE' },
+      detail: { objectId: 'trigger_tictactoe_scroll', verb: 'CLOSE' },
       bubbles: true, composed: true
     }));
   }

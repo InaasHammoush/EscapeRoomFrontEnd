@@ -11,6 +11,7 @@ import { getSocket, connectSocket } from "../state/socket";
 import InteractionLayer from "../components/InteractionLayers/InteractionLayerManager.jsx";
 import "../components/svelte/Keypad.svelte";
 import "../components/svelte/ScrollGrid.svelte";
+import "../components/svelte/Bookshelf.svelte";
 
 // Get soloChoice from session storage if it exists (e.g., "wizard_library")
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
@@ -64,7 +65,7 @@ export default function RoomView({ mode = "solo" }) {
 
       if (st.viewIndex !== undefined) setViewIndex(st.viewIndex);
       if (st.roomType && st.roomType !== roomType) setRoomType(st.roomType);
-      if (st.public?.scroll_grid) setScrollGrid(st.public.scroll_grid);
+      if (st.public?.tictactoe_scroll) setScrollGrid(st.public.tictactoe_scroll);
 
       if (Array.isArray(st.views)) loadImages(st.views);
     },
@@ -148,13 +149,13 @@ export default function RoomView({ mode = "solo" }) {
       setActiveWidget(null);
     }
 
-    if (msg.diff?.test_box_01?.showWidget) {
-      console.log("OPENING WIDGET:", msg.diff.test_box_01.showWidget);
-      setActiveWidget(msg.diff.test_box_01.showWidget);
+    if (msg.diff?.trigger_tictactoe_scroll?.showWidget) {
+      console.log("OPENING WIDGET:", msg.diff.trigger_tictactoe_scroll.showWidget);
+      setActiveWidget(msg.diff.trigger_tictactoe_scroll.showWidget);
     }
 
-    if (msg.diff?.scroll_grid) {
-      setScrollGrid(msg.diff.scroll_grid);
+    if (msg.diff?.tictactoe_scroll) {
+      setScrollGrid(msg.diff.tictactoe_scroll);
     }
   }, []);
 
@@ -202,7 +203,7 @@ export default function RoomView({ mode = "solo" }) {
       const { objectId, verb, data } = e.detail;
       const s = getSocket();
 
-      if (objectId === "scroll_grid" && verb === "CLOSE") {
+      if (objectId === "trigger_tictactoe_scroll" && verb === "CLOSE") {
         setActiveWidget(null);
         return;
       }
@@ -294,9 +295,9 @@ export default function RoomView({ mode = "solo" }) {
         INDEX: {viewIndex} | TYPE: {roomType}
       </div>
 
-      {activeWidget === "scroll_grid" && (
+      {activeWidget === "tictactoe_scroll" && (
         <div className="absolute inset-0 z-50">
-          <scroll-grid-widget 
+          <tictactoe-scroll-widget 
             ref={scrollGridElRef} 
           />
         </div>
