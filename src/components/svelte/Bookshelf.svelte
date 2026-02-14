@@ -60,7 +60,7 @@
   function emitAction(verb, data = {}) {
     const event = new CustomEvent('intent', {
       detail: {
-        objectId: 'bookshelf_puzzle', // Matches your backend apply() router
+        objectId: 'puzzle_bookshelf',
         verb,
         data
       },
@@ -73,7 +73,7 @@
   function closeWidget() {
     // Tells the frontend RoomView to close this widget
     document.dispatchEvent(new CustomEvent('intent', {
-      detail: { objectId: 'bookshelf_01', verb: 'CLOSE' },
+      detail: { objectId: 'trigger_bookshelf', verb: 'CLOSE' },
       bubbles: true, composed: true
     }));
   }
@@ -121,9 +121,9 @@
 
   .shelf-wrapper {
     position: relative;
-    width: 800px; /* Adjust based on your background image ratio */
-    max-width: 90vw;
-    aspect-ratio: 16/9; /* Update this to match your shelf image */
+    height: 90vh;
+    aspect-ratio: 3/4; 
+    max-width: 95vw;
     display: flex;
     justify-content: center;
   }
@@ -131,70 +131,78 @@
   .shelf-bg {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover; 
+    border-radius: 10px;
     user-select: none;
     pointer-events: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
 
   .close-btn {
     position: absolute;
-    top: 5%;
-    right: 5%;
-    width: 32px;
-    height: 32px;
+    top: 3%;
+    right: 4%;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.6);
     color: #f4e4bc;
     border: 2px solid #8b7355;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10;
+    transition: all 0.2s ease;
   }
-  .close-btn:hover { background: rgba(0, 0, 0, 0.9); }
+  
+  .close-btn:hover { background: rgba(0, 0, 0, 0.9); transform: scale(1.1); }
 
-  /* This container positions the row of books over the drawn shelf in the image.
-    Adjust top, left, width, and height so it aligns perfectly with the art.
-  */
+  /* --- THE INVISIBLE TARGET BOX --- */
   .books-container {
     position: absolute;
-    top: 45%;    
-    left: 20%;   
-    width: 60%;  
-    height: 35%; 
+    top: 35.5%;    
+    height: 24.5%; 
+    left: 10%;   
+    width: 45%;
     display: flex;
-    justify-content: center;
-    align-items: flex-end; /* Aligns books to the bottom "shelf" line */
-    gap: 10px;
+
+    /* Pack the books starting from the left edge of this box */
+    justify-content: flex-start; 
+    
+    /* TIGHTENED SPACING: Remove the gap between books */
+    gap: 0px; 
+    
+    align-items: flex-end; 
+    padding-bottom: 2%;
     transition: filter 0.5s ease;
+    
   }
 
   .solved-glow {
-    filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6)); /* Golden glow when won */
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.7));
   }
 
   .book-slot {
-    flex: 1;
     height: 100%;
     display: flex;
     align-items: flex-end;
-    justify-content: center;
+    padding: 0; 
   }
 
   .book-image {
     max-height: 100%;
-    width: auto;
+    width: auto; 
     object-fit: contain;
-    transition: transform 0.1s ease;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.8)); 
   }
 
-  .grabbable {
-    cursor: grab;
+  .grabbable { cursor: grab; }
+  .grabbable:hover {
+    transform: translateY(-5px) scale(1.02);
+    filter: brightness(1.15) drop-shadow(0 12px 8px rgba(0, 0, 0, 0.9));
   }
-  .grabbable:active {
-    cursor: grabbing;
-    transform: scale(0.95);
-  }
+  .grabbable:active { cursor: grabbing; transform: scale(0.98); }
 </style>

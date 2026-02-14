@@ -19,7 +19,7 @@ export const renderWizardLibraryNorthWall = (app, { roomId, socket, normX, normY
       socket.emit("interact", {
         roomId,
         actionId: crypto.randomUUID(),
-        objectId: "bookshelf_01",
+        objectId: "trigger_bookshelf",
         verb: "INTERACT",
       });
     });
