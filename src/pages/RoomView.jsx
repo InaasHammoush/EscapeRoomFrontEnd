@@ -11,6 +11,7 @@ import { getSocket, connectSocket } from "../state/socket";
 import InteractionLayer from "../components/InteractionLayers/InteractionLayerManager.jsx";
 import "../components/svelte/ScrollGrid.svelte";
 import "../components/svelte/Bookshelf.svelte";
+import "../components/svelte/CandlePuzzle.svelte";
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
 
@@ -220,6 +221,12 @@ export default function RoomView({ mode = "solo" }) {
       {activeWidget === "bookshelf_puzzle" && (
         <div className="absolute inset-0 z-50">
           <bookshelf-widget ref={el => widgetRefs.current["bookshelf_puzzle"] = el} />
+        </div>
+      )}
+
+      {activeWidget === "candle_puzzle" && (
+        <div className="absolute inset-0 z-50">
+          <candle-puzzle-widget ref={el => widgetRefs.current["candle_puzzle"] = el} />
         </div>
       )}
       

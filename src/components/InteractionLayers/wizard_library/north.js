@@ -24,5 +24,27 @@ export const renderWizardLibraryNorthWall = (app, { roomId, socket, normX, normY
       });
     });
 
+  const candles = new PIXI.Graphics()
+  .rect(
+    normX(770), 
+    normY(470), 
+    scaleX(160), 
+    scaleY(180)
+  ) 
+  .fill({ color: 0x00ff00, alpha: 0.3 });
+
+  candles.eventMode = "static";
+  candles.cursor = "pointer";
+
+  candles.on("pointertap", () => {
+    socket.emit("interact", {
+      roomId,
+      actionId: crypto.randomUUID(),
+      objectId: "trigger_candle_puzzle",
+      verb: "INTERACT",
+    });
+  });
+
   stage.addChild(bookShelf);
+  stage.addChild(candles);
 };
