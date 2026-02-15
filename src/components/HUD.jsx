@@ -1,12 +1,31 @@
-export default function HUD({ title = "Arcane Descent", subtitle = "Room A", children }) {
+// src/components/HUD.jsx
+export default function HUD({ onHome, onTurnLeft, onTurnRight }) {
   return (
-    <div className="absolute top-0 left-0 right-0 z-20 p-4">
-      <div className="navbar bg-base-200/80 backdrop-blur rounded-2xl shadow-xl">
-        <div className="flex-1">
-          <span className="text-xl font-bold px-2">{title}</span>
-          <span className="opacity-70">/ {subtitle}</span>
-        </div>
-        <div className="flex gap-2">{children}</div>
+    <div className="pointer-events-none">
+      <button
+        onClick={onHome}
+        className="absolute top-4 left-4 z-30 btn btn-circle btn-sm bg-black/60 text-white border-white/30 pointer-events-auto"
+        title="Back to Home"
+      >
+        {"\u2302"}
+      </button>
+
+      <div className="absolute inset-x-0 bottom-10 flex justify-between px-10 z-20 pointer-events-none">
+        <button
+          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white pointer-events-auto"
+          onClick={onTurnLeft}
+          title="Turn Left"
+        >
+          {"\u27F2"}
+        </button>
+
+        <button
+          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white pointer-events-auto"
+          onClick={onTurnRight}
+          title="Turn Right"
+        >
+          {"\u27F3"}
+        </button>
       </div>
     </div>
   );
