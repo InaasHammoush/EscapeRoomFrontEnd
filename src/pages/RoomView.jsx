@@ -56,14 +56,15 @@ export default function RoomView({ mode = "solo" }) {
   const onSnapshot = useCallback((msg) => {
     const st = msg?.roomState || msg?.snapshot?.state;
     if (!st) return;
+    const publicState = st.public || st;
 
     if (st.viewIndex !== undefined) setViewIndex(st.viewIndex);
     if (st.roomType) setRoomType(st.roomType);
     if (Array.isArray(st.views)) loadImages(st.views);
-    if (st.public) {
-      setGameState(st.public);
-      if (st.public.inventory?.items) {
-        setInventory(normalizeInventory(st.public.inventory.items, pendingFlags.current));
+    if (publicState) {
+      setGameState(publicState);
+      if (publicState.inventory?.items) {
+        setInventory(normalizeInventory(publicState.inventory.items, pendingFlags.current));
       }
     }
   }, [loadImages]);
@@ -83,7 +84,10 @@ export default function RoomView({ mode = "solo" }) {
     });
 
     // Clear specific pending flags if server confirms action
-    if (msg.diff?.["alch:mortar"]?.output?.blueLiquidTaken) {
+    if (
+      msg.diff?.["alch:mortar"]?.output?.blueLiquidTaken ||
+      msg.diff?.alchMortarEssence?.output?.blueLiquidTaken
+    ) {
       pendingFlags.current.mortarBottleSwap = false;
     }
 

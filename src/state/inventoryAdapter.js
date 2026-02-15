@@ -7,6 +7,7 @@
 export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
   const { objectId, verb, data } = intent || {};
   const itemUpper = String(data?.item || "").toUpperCase();
+  const isMortar = objectId === "alch:mortar" || objectId === "puzzle_mortar";
   
   // Clone inventory to avoid mutation
   let nextInv = Array.isArray(prevInventory) ? [...prevInventory] : [];
@@ -34,14 +35,14 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
 
   // --- RULE 2: Alchemist's Specific Bottle Logic ---
   // (We keep this specific because it's a complex swap, not just a consume)
-  if (objectId === "alch:mortar" && verb === "insert" && itemUpper === "GREEN_LIQUID") {
+  if (isMortar && verb === "insert" && itemUpper === "GREEN_LIQUID") {
     nextPending.mortarBottleSwap = true;
     const idx = findIdx("GREEN_LIQUID");
     if (idx !== -1) nextInv[idx] = { ...nextInv[idx], item: "EMPTY_BOTTLE" };
   }
 
   // --- RULE 3: Bottle Refill ---
-  if (objectId === "alch:mortar" && verb === "take" && itemUpper === "BLUE_LIQUID") {
+  if (isMortar && verb === "take" && itemUpper === "BLUE_LIQUID") {
     nextPending.mortarBottleSwap = false;
     const emptyIdx = findIdx("EMPTY_BOTTLE");
     if (emptyIdx >= 0) {
