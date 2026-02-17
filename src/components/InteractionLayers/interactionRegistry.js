@@ -1,14 +1,21 @@
-import { renderWizardLibraryWall0 } from "./wizard_library/wall0";
+import { renderWizardLibraryNorthWall } from "./wizard_library/north";
+import { renderWizardLibraryEastWall } from "./wizard_library/east";
+import { renderAlchemistLabWestWall } from "./alchemist_lab/west";
 // Import other walls they are implemented
 
 const registry = {
   wizard_library: {
-    0: renderWizardLibraryWall0,
-    1: null, // TODO: Implement and add
-    2: null,
+    0: renderWizardLibraryNorthWall,
+    1: renderWizardLibraryEastWall,
+    2: null, // TODO: Implement and add
     3: null,
   },
-  // alchemist_lab: { ... }, corridor: { ... }
+  alchemist_lab: {
+    0: null, // TODO: Implement and add
+    1: null,
+    2: null,
+    3: renderAlchemistLabWestWall,
+  },
 };
 
 export function getInteractionLayer(roomType, viewIndex) {

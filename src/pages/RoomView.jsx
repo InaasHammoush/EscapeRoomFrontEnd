@@ -1,18 +1,23 @@
-/** 
- * RoomView.jsx
- * The main room view component for solo escape room gameplay
- * Handles socket connection , room joining, state synchronization, and rendering
- * of room images and controls. 
-*/ 
-
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, createElement } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSocket, connectSocket } from "../state/socket";
 import InteractionLayer from "../components/InteractionLayers/InteractionLayerManager.jsx";
+
+// Import Widget Registry
+import { WIDGET_REGISTRY } from "../config/widgets.js";
+
+// Import Svelte Wrappers (Ensure these files exist)
 import "../components/svelte/Keypad.svelte";
 import "../components/svelte/ScrollGrid.svelte";
+import "../components/svelte/Bookshelf.svelte";
+import "../components/svelte/CandlePuzzle.svelte";
+import "../components/svelte/Mortar.svelte";
+import "../components/svelte/Transmuter.svelte";
 
-// Get soloChoice from session storage if it exists (e.g., "wizard_library")
+import HUD from "../components/HUD.jsx";
+import InventoryBar from "../components/inventory/InventoryBar.jsx";
+import { normalizeInventory, applyInventoryIntent } from "../state/inventoryAdapter.js";
+
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
 
 export default function RoomView({ mode = "solo" }) {
@@ -20,285 +25,187 @@ export default function RoomView({ mode = "solo" }) {
   const navigate = useNavigate();
 
   const [socketReady, setSocketReady] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Room state
+  // State
   const [viewIndex, setViewIndex] = useState(0);
   const [images, setImages] = useState([]);
   const [roomType, setRoomType] = useState(initialSoloChoice);
-  const [loading, setLoading] = useState(true);
-
-  // Widgets / puzzle state
+  const [gameState, setGameState] = useState({});
   const [activeWidget, setActiveWidget] = useState(null);
-  const [scrollGrid, setScrollGrid] = useState(null);
+  
+  // Inventory State
+  const [inventory, setInventory] = useState([]);
+  const pendingFlags = useRef({}); // Generic pending flags
 
-  // ✅ Persistent ref to the Web Component instance
-  const scrollGridElRef = useRef(null);
+  // Refs for Web Components
+  const widgetRefs = useRef({});
 
   const exitToHome = () => {
     if (!confirm("Leave the room and return to home?")) return;
     navigate("/");
   };
 
-  // ------------------------------------------------------------
-  // STEP 4 — Load images
-  // ------------------------------------------------------------
   const loadImages = useCallback((files) => {
-    if (!Array.isArray(files) || files.length === 0) {
-      console.warn("Received empty or invalid views array.");
-      return;
-    }
-    console.log("Loaded images:", files);
+    if (!Array.isArray(files) || files.length === 0) return setLoading(false);
     setImages(files);
     setLoading(false);
   }, []);
 
-  // ------------------------------------------------------------
-  // SNAPSHOT Processor
-  // ------------------------------------------------------------
-  const onSnapshot = useCallback(
-    (msg) => {
-      console.log("SNAPSHOT RECEIVED:", msg);
+  // --- SNAPSHOT ---
+  const onSnapshot = useCallback((msg) => {
+    const st = msg?.roomState || msg?.snapshot?.state;
+    if (!st) return;
+    const publicState = st.public || st;
 
-      const st = msg?.roomState || msg?.snapshot?.state;
-      if (!st) return;
+    if (st.viewIndex !== undefined) setViewIndex(st.viewIndex);
+    if (st.roomType) setRoomType(st.roomType);
+    if (Array.isArray(st.views)) loadImages(st.views);
+    if (publicState) {
+      setGameState(publicState);
+      if (publicState.inventory?.items) {
+        setInventory(normalizeInventory(publicState.inventory.items, pendingFlags.current));
+      }
+    }
+  }, [loadImages]);
 
-      if (st.viewIndex !== undefined) setViewIndex(st.viewIndex);
-      if (st.roomType && st.roomType !== roomType) setRoomType(st.roomType);
-      if (st.public?.scroll_grid) setScrollGrid(st.public.scroll_grid);
+  // --- DELTA UPDATE ---
+  const onPuzzleUpdate = useCallback((msg) => {
+    if (!msg?.diff) return;
 
-      if (Array.isArray(st.views)) loadImages(st.views);
-    },
-    [loadImages, roomType]
-  );
+    if (msg.diff.activeWidget !== undefined) setActiveWidget(msg.diff.activeWidget);
 
-  // ------------------------------------------------------------
-  // STEP 1 — Ensure socket is connected
-  // ------------------------------------------------------------
-  useEffect(() => {
-    let s = getSocket();
-
-    if (!s) {
-      s = connectSocket({
-        mode,
-        sessionId,
-        role: "player",
-        roomType: initialSoloChoice,
+    setGameState((prev) => {
+      const next = { ...prev };
+      Object.keys(msg.diff).forEach((key) => {
+        if (key !== "activeWidget") next[key] = msg.diff[key];
       });
+      return next;
+    });
+
+    // Clear specific pending flags if server confirms action
+    if (
+      msg.diff?.["alch:mortar"]?.output?.blueLiquidTaken ||
+      msg.diff?.alchMortarEssence?.output?.blueLiquidTaken
+    ) {
+      pendingFlags.current.mortarBottleSwap = false;
     }
 
-    const onConnect = () => setSocketReady(true);
+    if (msg.diff?.inventory?.items) {
+      setInventory(normalizeInventory(msg.diff.inventory.items, pendingFlags.current));
+    }
+  }, []);
 
+  // --- VIEW CHANGE ---
+  const onViewChanged = useCallback((delta) => {
+    if (delta?.viewIndex !== undefined) setViewIndex(delta.viewIndex);
+  }, []);
+
+  // --- SOCKET SETUP ---
+  useEffect(() => {
+    let s = getSocket();
+    if (!s) s = connectSocket({ mode, sessionId, role: "player", roomType: initialSoloChoice });
+    
+    const onConnect = () => setSocketReady(true);
     if (s.connected) setSocketReady(true);
     else s.on("connect", onConnect);
 
-    return () => {
-      s?.off("connect", onConnect);
-    };
-  }, [mode, sessionId]);
-
-  // ------------------------------------------------------------
-  // STEP 2 — JOIN THE ROOM
-  // ------------------------------------------------------------
-  useEffect(() => {
-    if (!socketReady || !roomId) return;
-    const s = getSocket();
-    if (!s) return;
-
-    console.log("Sending join_room", roomId);
-
-    s.emit("join_room", { roomId, name: "Solo Player" }, (res) => {
-      console.log("CLIENT: Join Room Response Received:", res);
-      if (res?.ok && res.snapshot) onSnapshot(res);
-      else if (!res?.ok) {
-        console.error("Failed to join room:", res?.error);
-        setLoading(false);
-      }
-    });
-  }, [socketReady, roomId, onSnapshot]);
-
-  // ------------------------------------------------------------
-  // STEP 2.5 — READY
-  // ------------------------------------------------------------
-  useEffect(() => {
-    if (!socketReady || mode !== "solo" || !roomId) return;
-
-    const s = getSocket();
-    if (!s) return;
-
-    console.log("Emitting 'ready' event to start room", roomId);
-    s.emit("ready", { roomId }, (res) => {
-      if (res?.ok) console.log("Room ready signal acknowledged by server.");
-      else console.error("Failed to set ready state:", res?.error);
-    });
-  }, [socketReady, mode, roomId]);
-
-  // ------------------------------------------------------------
-  // Stable socket handlers
-  // ------------------------------------------------------------
-  const onViewChanged = useCallback((msg) => {
-    console.log("VIEW CHANGED:", msg);
-    if (msg.viewIndex !== undefined) setViewIndex(msg.viewIndex);
-  }, []);
-
-  const onPuzzleUpdate = useCallback((msg) => {
-    console.log("Delta received:", msg);
-
-    if (msg.diff && msg.diff.activeWidget === null) {
-      console.log("Server commanded: Close Widget");
-      setActiveWidget(null);
-    }
-
-    if (msg.diff?.test_box_01?.showWidget) {
-      console.log("OPENING WIDGET:", msg.diff.test_box_01.showWidget);
-      setActiveWidget(msg.diff.test_box_01.showWidget);
-    }
-
-    if (msg.diff?.scroll_grid) {
-      setScrollGrid(msg.diff.scroll_grid);
-    }
-  }, []);
-
-  // ------------------------------------------------------------
-  // STEP 3 — Attach socket listeners
-  // ------------------------------------------------------------
-  useEffect(() => {
-    if (!socketReady) return;
-    const s = getSocket();
-    if (!s) return;
-
-    s.off("state:snapshot", onSnapshot);
-    s.off("state:viewChanged", onViewChanged);
-    s.off("puzzle_update", onPuzzleUpdate);
-
     s.on("state:snapshot", onSnapshot);
-    s.on("state:viewChanged", onViewChanged);
     s.on("puzzle_update", onPuzzleUpdate);
+    s.on("state:viewChanged", onViewChanged);
 
     return () => {
       s.off("state:snapshot", onSnapshot);
-      s.off("state:viewChanged", onViewChanged);
       s.off("puzzle_update", onPuzzleUpdate);
+      s.off("state:viewChanged", onViewChanged);
     };
-  }, [socketReady, roomId, onSnapshot, onViewChanged, onPuzzleUpdate]);
+  }, [mode, sessionId, roomId, onSnapshot, onPuzzleUpdate, onViewChanged]);
 
-  // ------------------------------------------------------------
-  // ✅ CRITICAL: push updated grid into the Web Component whenever it changes
-  // ------------------------------------------------------------
+  // --- JOIN & READY ---
   useEffect(() => {
-    const el = scrollGridElRef.current;
-    if (!el) return;
+    if (!socketReady || !roomId) return;
+    const s = getSocket();
+    s.emit("join_room", { roomId, name: "Solo Player" }, (res) => {
+      if (res?.ok && res.snapshot) onSnapshot(res);
+      else setLoading(false);
+    });
+    // Auto-ready for solo mode
+    if (mode === "solo") s.emit("ready", { roomId });
+  }, [socketReady, roomId, mode, onSnapshot]);
 
-    // Always push the latest grid object into the custom element
-    el.grid = scrollGrid;
-  }, [scrollGrid]);
 
-  // ------------------------------------------------------------
-  // Listen for the custom event from the Web Component
-  // ------------------------------------------------------------
+  // --- PUSH STATE TO WIDGETS ---
   useEffect(() => {
-    const handleSvelteIntent = (e) => {
-        console.log("INTENT EVENT CAUGHT:", e.detail);
+    if (!activeWidget) return;
+    const tagName = WIDGET_REGISTRY[activeWidget];
+    if (!tagName) return;
 
-      const { objectId, verb, data } = e.detail;
-      const s = getSocket();
+    const el = widgetRefs.current[activeWidget];
+    const puzzleData = gameState[activeWidget];
 
-      if (objectId === "scroll_grid" && verb === "CLOSE") {
+    if (el && puzzleData) {
+      // Generic prop passing
+      if ("grid" in el) el.grid = puzzleData;
+      if ("puzzle" in el) el.puzzle = puzzleData;
+      
+      // Inject inventory only if the widget needs it (optional optimization)
+      if ("inventory" in el) el.inventory = inventory;
+    }
+  }, [gameState, activeWidget, inventory]);
+
+  // --- INTENT LISTENER ---
+  useEffect(() => {
+    const handleIntent = (e) => {
+      const { objectId, verb, data } = e.detail || {};
+      
+      if (verb === "CLOSE") {
         setActiveWidget(null);
         return;
       }
 
-   if (!s) return;
+      // Optimistic Update
+      const result = applyInventoryIntent(inventory, pendingFlags.current, { objectId, verb, data });
+      pendingFlags.current = result.nextPending;
+      setInventory(normalizeInventory(result.nextInventory, pendingFlags.current));
 
-    s.emit(
-      "interact",
-      {
-        roomId,
-        actionId: crypto.randomUUID(),
-        objectId,
-        verb,
-        data,
-      },
-      (res) => {
-        if (!res?.ok) console.error("INTERACT ERROR:", res);
-      }
-    );
-  };
+      getSocket()?.emit("interact", { roomId, actionId: crypto.randomUUID(), objectId, verb, data });
+    };
 
+    document.addEventListener("intent", handleIntent);
+    return () => document.removeEventListener("intent", handleIntent);
+  }, [roomId, inventory]);
 
-    document.addEventListener("intent", handleSvelteIntent);
-    return () => document.removeEventListener("intent", handleSvelteIntent);
-  }, [roomId]);
+  const turn = (dir) => getSocket()?.emit("intent:turn", { roomId, direction: dir });
 
-  // ------------------------------------------------------------
-  // Turning controls
-  // ------------------------------------------------------------
-  const turn = (direction) => {
-    const s = getSocket();
-    if (!s) return;
-    console.log("Turn:", direction);
-    s.emit("intent:turn", { roomId, direction });
-  };
+  if (loading || !socketReady) return <div className="text-white">Loading...</div>;
 
-  // ------------------------------------------------------------
-  // Render
-  // ------------------------------------------------------------
-  if (loading || !socketReady) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-white">
-        Loading room…
-      </div>
-    );
-  }
+  // --- RENDER ---
+  const WidgetTag = activeWidget ? WIDGET_REGISTRY[activeWidget] : null;
 
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
-      <button
-        onClick={exitToHome}
-        className="absolute top-4 left-4 z-30 btn btn-circle btn-sm bg-black/60 text-white border-white/30 hover:bg-white hover:text-black pointer-events-auto"
-        title="Back to Home"
-      >
-        <span className="text-3xl leading-none -translate-y-1 inline-block">⌂</span>
-      </button>
-
-      {images[viewIndex] ? (
-        <img
-          src={images[viewIndex]}
-          alt={`Wall ${viewIndex}`}
-          className="absolute inset-0 w-full h-full object-contain select-none"
-        />
-      ) : (
-        <div className="text-gray-500">No image available for this view.</div>
-      )}
-
+      <HUD 
+        onHome={exitToHome} 
+        onTurnLeft={() => turn("LEFT")} 
+        onTurnRight={() => turn("RIGHT")} 
+      />
+      
+      {/* Background & Click Layer */}
+      {images[viewIndex] && <img src={images[viewIndex]} className="absolute inset-0 w-full h-full object-contain select-none z-0" />}
       <div className="absolute inset-0 z-10 pointer-events-none">
         <InteractionLayer viewIndex={viewIndex} roomId={roomId} socket={getSocket()} roomType={roomType} />
       </div>
 
-      <div className="absolute inset-x-0 bottom-10 flex justify-between px-10 z-20 pointer-events-none">
-        <button
-          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white border-white/50 hover:bg-white/20 pointer-events-auto"
-          onClick={() => turn("LEFT")}
-        >
-          <span className="text-2xl">⟲</span>
-        </button>
+      {/* Generic Inventory Bar */}
+      <InventoryBar inventory={inventory} />
 
-        <button
-          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white border-white/50 hover:bg-white/20 pointer-events-auto"
-          onClick={() => turn("RIGHT")}
-        >
-          <span className="text-2xl">⟳</span>
-        </button>
-      </div>
-
-      <div className="absolute top-4 right-4 bg-black/60 px-3 py-1 rounded-full text-xs font-mono opacity-50 z-20">
-        INDEX: {viewIndex} | TYPE: {roomType}
-      </div>
-
-      {activeWidget === "scroll_grid" && (
+      {/* Dynamic Widget Rendering */}
+      {WidgetTag && (
         <div className="absolute inset-0 z-50">
-          <scroll-grid-widget 
-            ref={scrollGridElRef} 
-          />
+           {/* React can render Web Components directly using the string tag */}
+           {createElement(WidgetTag, {
+              ref: (el) => (widgetRefs.current[activeWidget] = el)
+           })}
         </div>
       )}
     </div>
