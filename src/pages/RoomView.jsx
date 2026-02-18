@@ -20,6 +20,23 @@ import { normalizeInventory, applyInventoryIntent } from "../state/inventoryAdap
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
 
+// TEMP TEST ONLY (Transmuter): remove this helper once these items are earned via puzzle flow.
+function withTransmuterTestItems(
+  items,
+  includeCoalBlock = false,
+  includeMatches = false,
+  includeGoldNugget = false
+) {
+  const next = Array.isArray(items) ? [...items] : [];
+  const hasItem = (name) =>
+    next.some((entry) => String(entry?.item || "").toUpperCase() === name.toUpperCase());
+
+  if (includeCoalBlock && !hasItem("COAL_BLOCK")) next.push({ item: "COAL_BLOCK", count: 1 });
+  if (includeMatches && !hasItem("MATCHES")) next.push({ item: "MATCHES", count: 1 });
+  if (includeGoldNugget && !hasItem("GOLD_NUGGET")) next.push({ item: "GOLD_NUGGET", count: 1 });
+  return next;
+}
+
 export default function RoomView({ mode = "solo" }) {
   const { sessionId, roomId } = useParams();
   const navigate = useNavigate();
@@ -37,6 +54,10 @@ export default function RoomView({ mode = "solo" }) {
   // Inventory State
   const [inventory, setInventory] = useState([]);
   const pendingFlags = useRef({}); // Generic pending flags
+  // TEMP TEST ONLY (Transmuter): keeps COAL_BLOCK, MATCHES and GOLD_NUGGET in test inventory until first use.
+  const transmuterCoalTestPending = useRef(true);
+  const transmuterMatchesTestPending = useRef(true);
+  const transmuterGoldTestPending = useRef(true);
 
   // Refs for Web Components
   const widgetRefs = useRef({});
@@ -64,7 +85,15 @@ export default function RoomView({ mode = "solo" }) {
     if (publicState) {
       setGameState(publicState);
       if (publicState.inventory?.items) {
-        setInventory(normalizeInventory(publicState.inventory.items, pendingFlags.current));
+        // TEMP TEST ONLY (Transmuter): remove this wrapper once backend rewards these items.
+        setInventory(
+          withTransmuterTestItems(
+            normalizeInventory(publicState.inventory.items, pendingFlags.current),
+            transmuterCoalTestPending.current,
+            transmuterMatchesTestPending.current,
+            transmuterGoldTestPending.current
+          )
+        );
       }
     }
   }, [loadImages]);
@@ -92,7 +121,15 @@ export default function RoomView({ mode = "solo" }) {
     }
 
     if (msg.diff?.inventory?.items) {
-      setInventory(normalizeInventory(msg.diff.inventory.items, pendingFlags.current));
+      // TEMP TEST ONLY (Transmuter): remove this wrapper once backend rewards these items.
+      setInventory(
+        withTransmuterTestItems(
+          normalizeInventory(msg.diff.inventory.items, pendingFlags.current),
+          transmuterCoalTestPending.current,
+          transmuterMatchesTestPending.current,
+          transmuterGoldTestPending.current
+        )
+      );
     }
   }, []);
 
@@ -125,6 +162,10 @@ export default function RoomView({ mode = "solo" }) {
   useEffect(() => {
     if (!socketReady || !roomId) return;
     const s = getSocket();
+    // TEMP TEST ONLY (Transmuter): re-seed COAL_BLOCK, MATCHES and GOLD_NUGGET whenever the room is initialized.
+    transmuterCoalTestPending.current = true;
+    transmuterMatchesTestPending.current = true;
+    transmuterGoldTestPending.current = true;
     s.emit("join_room", { roomId, name: "Solo Player" }, (res) => {
       if (res?.ok && res.snapshot) onSnapshot(res);
       else setLoading(false);
@@ -157,16 +198,47 @@ export default function RoomView({ mode = "solo" }) {
   useEffect(() => {
     const handleIntent = (e) => {
       const { objectId, verb, data } = e.detail || {};
+      const usedCoalInTransmuter =
+        String(objectId || "").toLowerCase() === "alch:transmuter" &&
+        String(verb || "").toLowerCase() === "insert" &&
+        String(data?.item || "").trim().toUpperCase() === "COAL_BLOCK";
+      const usedMatchesInTransmuter =
+        String(objectId || "").toLowerCase() === "alch:transmuter" &&
+        String(verb || "").toLowerCase() === "insert" &&
+        String(data?.item || "").trim().toUpperCase() === "MATCHES";
+      const usedGoldInTransmuter =
+        String(objectId || "").toLowerCase() === "alch:transmuter" &&
+        String(verb || "").toLowerCase() === "insert" &&
+        String(data?.item || "").trim().toUpperCase() === "GOLD_NUGGET";
       
       if (verb === "CLOSE") {
         setActiveWidget(null);
         return;
       }
 
+      // TEMP TEST ONLY (Transmuter): stop auto-injecting COAL_BLOCK after first use.
+      if (usedCoalInTransmuter && transmuterCoalTestPending.current) {
+        transmuterCoalTestPending.current = false;
+      }
+      if (usedMatchesInTransmuter && transmuterMatchesTestPending.current) {
+        transmuterMatchesTestPending.current = false;
+      }
+      if (usedGoldInTransmuter && transmuterGoldTestPending.current) {
+        transmuterGoldTestPending.current = false;
+      }
+
       // Optimistic Update
       const result = applyInventoryIntent(inventory, pendingFlags.current, { objectId, verb, data });
       pendingFlags.current = result.nextPending;
-      setInventory(normalizeInventory(result.nextInventory, pendingFlags.current));
+      // TEMP TEST ONLY (Transmuter): remove this wrapper once backend rewards these items.
+      setInventory(
+        withTransmuterTestItems(
+          normalizeInventory(result.nextInventory, pendingFlags.current),
+          transmuterCoalTestPending.current,
+          transmuterMatchesTestPending.current,
+          transmuterGoldTestPending.current
+        )
+      );
 
       getSocket()?.emit("interact", { roomId, actionId: crypto.randomUUID(), objectId, verb, data });
     };

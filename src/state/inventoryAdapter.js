@@ -8,6 +8,10 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
   const { objectId, verb, data } = intent || {};
   const itemUpper = String(data?.item || "").toUpperCase();
   const isMortar = objectId === "alch:mortar" || objectId === "puzzle_mortar";
+  const isTransmuter =
+    objectId === "alch:transmuter" ||
+    objectId === "alch:ritual-paper" ||
+    objectId === "puzzle_transmuter";
   
   // Clone inventory to avoid mutation
   let nextInv = Array.isArray(prevInventory) ? [...prevInventory] : [];
@@ -22,6 +26,15 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
     if (idx === -1) return;
     if (nextInv[idx].count > 1) nextInv[idx] = { ...nextInv[idx], count: nextInv[idx].count - 1 };
     else nextInv.splice(idx, 1);
+  };
+
+  const add = (name) => {
+    const idx = findIdx(name);
+    if (idx === -1) {
+      nextInv.push({ item: name, count: 1 });
+      return;
+    }
+    nextInv[idx] = { ...nextInv[idx], count: (nextInv[idx].count || 0) + 1 };
   };
 
   // --- RULE 1: Generic Consumption (Any puzzle asking to INSERT/PLACE consumes the item) ---
@@ -50,6 +63,11 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
     } else {
       nextInv.push({ item: "BLUE_LIQUID", count: 1 });
     }
+  }
+
+  // --- RULE 4: Transmuter Key Pickup ---
+  if (isTransmuter && verb === "take" && itemUpper === "GOLDEN_KEY") {
+    add("GOLDEN_KEY");
   }
 
   return { nextInventory: nextInv, nextPending };
