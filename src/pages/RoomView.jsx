@@ -14,6 +14,8 @@ import "../components/svelte/CandlePuzzle.svelte";
 import "../components/svelte/Mortar.svelte";
 import "../components/svelte/Transmuter.svelte";
 import "../components/svelte/WestJigsaw.svelte";
+import "../components/svelte/EastCodebox.svelte";
+import finalDoorOpenImg from "../assets/alchemist/finaldoor_open.png";
 
 import HUD from "../components/HUD.jsx";
 import InventoryBar from "../components/inventory/InventoryBar.jsx";
@@ -62,6 +64,26 @@ function hasWestRoseReady(payload) {
   return false;
 }
 
+function hasEastDoorSolved(payload) {
+  if (!payload || typeof payload !== "object") return false;
+  const keys = [
+    "alchEastCodebox",
+    "alchEastCodeboxJigsaw",
+    "alch_east_codebox_jigsaw",
+    "east_codebox_jigsaw",
+  ];
+  for (const key of keys) {
+    const p = payload[key];
+    if (p?.solved || p?.jigsaw?.solved || p?.output?.finalDoorOpen) return true;
+  }
+  for (const [key, value] of Object.entries(payload)) {
+    if (!/east/i.test(String(key))) continue;
+    if (!value || typeof value !== "object") continue;
+    if (value?.solved || value?.jigsaw?.solved || value?.output?.finalDoorOpen) return true;
+  }
+  return false;
+}
+
 export default function RoomView({ mode = "solo" }) {
   const { sessionId, roomId } = useParams();
   const navigate = useNavigate();
@@ -75,6 +97,7 @@ export default function RoomView({ mode = "solo" }) {
   const [roomType, setRoomType] = useState(initialSoloChoice);
   const [gameState, setGameState] = useState({});
   const [activeWidget, setActiveWidget] = useState(null);
+  const [eastDoorSolved, setEastDoorSolved] = useState(false);
   
   // Inventory State
   const [inventory, setInventory] = useState([]);
@@ -110,6 +133,7 @@ export default function RoomView({ mode = "solo" }) {
     if (Array.isArray(st.views)) loadImages(st.views);
     if (publicState) {
       if (hasWestRoseReady(publicState)) westRoseRewardGranted.current = true;
+      setEastDoorSolved(hasEastDoorSolved(publicState));
       setGameState(publicState);
       if (publicState.inventory?.items) {
         // TEMP TEST ONLY (Transmuter): remove this wrapper once backend rewards these items.
@@ -132,6 +156,7 @@ export default function RoomView({ mode = "solo" }) {
   const onPuzzleUpdate = useCallback((msg) => {
     if (!msg?.diff) return;
     if (hasWestRoseReady(msg.diff)) westRoseRewardGranted.current = true;
+    if (hasEastDoorSolved(msg.diff)) setEastDoorSolved(true);
 
     if (msg.diff.activeWidget !== undefined) {
       setActiveWidget(msg.diff.activeWidget);
@@ -237,6 +262,13 @@ export default function RoomView({ mode = "solo" }) {
     }
   }, [gameState, activeWidget, inventory]);
 
+  useEffect(() => {
+    if (!eastDoorSolved) return;
+    if (activeWidget === "alchEastCodebox") {
+      setActiveWidget(null);
+    }
+  }, [eastDoorSolved, activeWidget]);
+
   // --- INTENT LISTENER ---
   useEffect(() => {
     const handleIntent = (e) => {
@@ -245,9 +277,16 @@ export default function RoomView({ mode = "solo" }) {
       const verbLower = String(verb || "").toLowerCase();
       const isWestJigsawObject =
         objectLower === "alch:west-codebox" || objectLower === "alch:west-jigsaw";
+      const isEastCodeboxObject =
+        objectLower === "alch:east-codebox" || objectLower === "alch:east-jigsaw";
 
       if (isWestJigsawObject && (verbLower === "interact" || verbLower === "inspect" || verbLower === "open")) {
         setActiveWidget("alchWestCodeboxJigsaw");
+      }
+      if (isEastCodeboxObject && (verbLower === "interact" || verbLower === "inspect" || verbLower === "open")) {
+        if (eastDoorSolved) return;
+        setActiveWidget("alchEastCodebox");
+        return;
       }
 
       const usedCoalInTransmuter =
@@ -297,7 +336,7 @@ export default function RoomView({ mode = "solo" }) {
 
     document.addEventListener("intent", handleIntent);
     return () => document.removeEventListener("intent", handleIntent);
-  }, [roomId, inventory]);
+  }, [roomId, inventory, eastDoorSolved]);
 
   const turn = (dir) => getSocket()?.emit("intent:turn", { roomId, direction: dir });
 
@@ -305,6 +344,11 @@ export default function RoomView({ mode = "solo" }) {
 
   // --- RENDER ---
   const WidgetTag = activeWidget ? WIDGET_REGISTRY[activeWidget] : null;
+  const currentImage = images[viewIndex];
+  const displayImage =
+    roomType === "alchemist_lab" && viewIndex === 1 && eastDoorSolved
+      ? finalDoorOpenImg
+      : currentImage;
 
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
@@ -315,14 +359,15 @@ export default function RoomView({ mode = "solo" }) {
       />
       
       {/* Background & Click Layer */}
-      {images[viewIndex] && <img src={images[viewIndex]} className="absolute inset-0 w-full h-full object-contain select-none z-0" />}
+      {displayImage && <img src={displayImage} className="absolute inset-0 w-full h-full object-contain select-none z-0" />}
       <div className="absolute inset-0 z-10">
         <InteractionLayer
-          key={`${roomType || "unknown"}-${viewIndex}`}
+          key={`${roomType || "unknown"}-${viewIndex}-${eastDoorSolved ? "solved" : "unsolved"}`}
           viewIndex={viewIndex}
           roomId={roomId}
           socket={getSocket()}
           roomType={roomType}
+          eastDoorSolved={eastDoorSolved}
         />
       </div>
 

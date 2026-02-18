@@ -15,4 +15,8 @@ export const WIDGET_REGISTRY = {
   "alchWestCodeboxJigsaw": "west-jigsaw-widget",
   "alch_west_codebox_jigsaw": "west-jigsaw-widget",
   "west_codebox_jigsaw": "west-jigsaw-widget",
+  "alchEastCodebox": "east-codebox-widget",
+  "alchEastCodeboxJigsaw": "east-codebox-widget",
+  "alch_east_codebox_jigsaw": "east-codebox-widget",
+  "east_codebox_jigsaw": "east-codebox-widget",
 };
