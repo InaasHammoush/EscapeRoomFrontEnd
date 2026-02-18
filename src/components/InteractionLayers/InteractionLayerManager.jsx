@@ -40,12 +40,17 @@ export default function InteractionLayer({ viewIndex, roomId, socket, roomType }
   // Re-run whenever the view changes OR the screen is resized
   useEffect(() => {
     updateLayer();
-  }, [viewIndex, roomType, dimensions]);
+  }, [viewIndex, roomType, dimensions, roomId, socket]);
 
   const updateLayer = () => {
     const app = appRef.current;
     if (!app) return;
-    app.stage.removeChildren();
+    const oldChildren = app.stage.removeChildren();
+    oldChildren.forEach((child) => {
+      if (child && typeof child.destroy === "function") {
+        child.destroy({ children: true });
+      }
+    });
 
     // 1. Calculate the Image's actual displayed area
     // Assuming a target aspect ratio for your room images (e.g., 16:9 or 4:3)

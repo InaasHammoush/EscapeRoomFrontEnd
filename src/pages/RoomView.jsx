@@ -316,8 +316,14 @@ export default function RoomView({ mode = "solo" }) {
       
       {/* Background & Click Layer */}
       {images[viewIndex] && <img src={images[viewIndex]} className="absolute inset-0 w-full h-full object-contain select-none z-0" />}
-      <div className="absolute inset-0 z-10 pointer-events-none">
-        <InteractionLayer viewIndex={viewIndex} roomId={roomId} socket={getSocket()} roomType={roomType} />
+      <div className="absolute inset-0 z-10">
+        <InteractionLayer
+          key={`${roomType || "unknown"}-${viewIndex}`}
+          viewIndex={viewIndex}
+          roomId={roomId}
+          socket={getSocket()}
+          roomType={roomType}
+        />
       </div>
 
       {/* Generic Inventory Bar */}
