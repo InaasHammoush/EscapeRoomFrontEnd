@@ -7,26 +7,40 @@
   export let puzzle = null;
 
   const DEFAULT_SIZE = 3;
-  const DEFAULT_LAYOUT = [2, 8, 3, 1, 6, 4, 7, 0, 5];
+  let localBoard = [];
+  let lastBoardSignature = "";
+  let solvedSignalSent = false;
 
-  let localTiles = [...DEFAULT_LAYOUT];
-  let lastTilesSignature = "";
-
-  $: size = Number(puzzle?.jigsaw?.size || DEFAULT_SIZE);
-  $: serverTiles = Array.isArray(puzzle?.jigsaw?.tiles) ? puzzle.jigsaw.tiles : [];
+  $: size = Number(puzzle?.size || DEFAULT_SIZE);
+  $: serverBoard = Array.isArray(puzzle?.board) ? puzzle.board : [];
   $: {
-    const sig = serverTiles.join(",");
-    if (sig && sig !== lastTilesSignature) {
-      localTiles = [...serverTiles];
-      lastTilesSignature = sig;
+    if (serverBoard.length === size * size) {
+      const sig = serverBoard.join(",");
+      if (sig !== lastBoardSignature) {
+        localBoard = [...serverBoard];
+        lastBoardSignature = sig;
+      }
+    } else {
+      localBoard = [];
+      lastBoardSignature = "";
     }
   }
-  $: solvedByState = Boolean(puzzle?.jigsaw?.solved || puzzle?.solved);
+  $: solvedByState = Boolean(puzzle?.solved);
   $: localSolved =
-    Array.isArray(localTiles) &&
-    localTiles.length === size * size &&
-    localTiles.every((v, i) => (i === size * size - 1 ? v === 0 : v === i + 1));
+    Array.isArray(localBoard) &&
+    localBoard.length === size * size &&
+    localBoard.every((v, i) => (i === size * size - 1 ? v === 0 : v === i + 1));
   $: solved = solvedByState || localSolved;
+  $: if (!solved) solvedSignalSent = false;
+  $: if (solved && !solvedSignalSent) {
+    solvedSignalSent = true;
+    document.dispatchEvent(new CustomEvent("east-sliding-solved", {
+      detail: { solved: true },
+      bubbles: true,
+      composed: true,
+    }));
+    close();
+  }
 
   function emitIntent(objectId, verb, data = {}) {
     document.dispatchEvent(new CustomEvent("intent", {
@@ -50,16 +64,18 @@
 
   function moveTile(index) {
     if (solved) return;
-    const emptyIndex = localTiles.indexOf(0);
+    const emptyIndex = localBoard.indexOf(0);
     if (emptyIndex < 0) return;
     if (!isAdjacent(index, emptyIndex)) return;
 
-    const next = [...localTiles];
+    const next = [...localBoard];
     [next[index], next[emptyIndex]] = [next[emptyIndex], next[index]];
-    localTiles = next;
+    localBoard = next;
 
-    emitIntent("alch:east-jigsaw", "set_layout", { tiles: next });
-    emitIntent("alch:east-codebox", "set_layout", { tiles: next });
+    emitIntent("alch:east-sliding-lock", "move", {
+      index,
+      tile: next[emptyIndex],
+    });
   }
 
   function tileBgStyle(tileNumber) {
@@ -85,7 +101,7 @@
 
       <div class="puzzle-overlay" class:solved>
         <div class="puzzle-grid" style={`--size:${size}`}>
-          {#each localTiles as tile, i}
+          {#each localBoard as tile, i}
             <button
               class="puzzle-tile"
               class:empty={tile === 0}

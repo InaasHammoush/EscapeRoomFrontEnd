@@ -66,7 +66,17 @@ function hasWestRoseReady(payload) {
 
 function hasEastDoorSolved(payload) {
   if (!payload || typeof payload !== "object") return false;
+  const looksLikeEastSlidingPayload =
+    Array.isArray(payload?.board) ||
+    typeof payload?.moves === "number" ||
+    typeof payload?.lockVisible === "boolean" ||
+    typeof payload?.keyImageRevealed === "boolean";
+  if (looksLikeEastSlidingPayload && !!payload?.solved) return true;
+
   const keys = [
+    "alchEastSlidingLock",
+    "alch_east_sliding_lock",
+    "east_sliding_lock",
     "alchEastCodebox",
     "alchEastCodeboxJigsaw",
     "alch_east_codebox_jigsaw",
@@ -263,11 +273,22 @@ export default function RoomView({ mode = "solo" }) {
   }, [gameState, activeWidget, inventory]);
 
   useEffect(() => {
+    if (eastDoorSolved) return;
+    if (hasEastDoorSolved(gameState)) setEastDoorSolved(true);
+  }, [gameState, eastDoorSolved]);
+
+  useEffect(() => {
     if (!eastDoorSolved) return;
-    if (activeWidget === "alchEastCodebox") {
+    if (activeWidget === "alchEastCodebox" || activeWidget === "alchEastSlidingLock") {
       setActiveWidget(null);
     }
   }, [eastDoorSolved, activeWidget]);
+
+  useEffect(() => {
+    const onEastSolved = () => setEastDoorSolved(true);
+    document.addEventListener("east-sliding-solved", onEastSolved);
+    return () => document.removeEventListener("east-sliding-solved", onEastSolved);
+  }, []);
 
   // --- INTENT LISTENER ---
   useEffect(() => {
@@ -278,14 +299,16 @@ export default function RoomView({ mode = "solo" }) {
       const isWestJigsawObject =
         objectLower === "alch:west-codebox" || objectLower === "alch:west-jigsaw";
       const isEastCodeboxObject =
-        objectLower === "alch:east-codebox" || objectLower === "alch:east-jigsaw";
+        objectLower === "alch:east-codebox" ||
+        objectLower === "alch:east-jigsaw" ||
+        objectLower === "alch:east-sliding-lock";
 
       if (isWestJigsawObject && (verbLower === "interact" || verbLower === "inspect" || verbLower === "open")) {
         setActiveWidget("alchWestCodeboxJigsaw");
       }
       if (isEastCodeboxObject && (verbLower === "interact" || verbLower === "inspect" || verbLower === "open")) {
         if (eastDoorSolved) return;
-        setActiveWidget("alchEastCodebox");
+        setActiveWidget("alchEastSlidingLock");
         return;
       }
 
