@@ -12,6 +12,10 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
     objectId === "alch:transmuter" ||
     objectId === "alch:ritual-paper" ||
     objectId === "puzzle_transmuter";
+  const isWestJigsaw =
+    objectId === "alch:west-jigsaw" ||
+    objectId === "alch:west-codebox" ||
+    objectId === "puzzle_west_jigsaw";
   
   // Clone inventory to avoid mutation
   let nextInv = Array.isArray(prevInventory) ? [...prevInventory] : [];
@@ -68,6 +72,11 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
   // --- RULE 4: Transmuter Key Pickup ---
   if (isTransmuter && verb === "take" && itemUpper === "GOLDEN_KEY") {
     add("GOLDEN_KEY");
+  }
+
+  // --- RULE 5: West Jigsaw Rose Pickup ---
+  if (isWestJigsaw && String(verb || "").toLowerCase() === "take" && itemUpper === "BURNINGROSE_WHOLE") {
+    add("BURNINGROSE_WHOLE");
   }
 
   return { nextInventory: nextInv, nextPending };

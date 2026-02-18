@@ -12,4 +12,7 @@ export const WIDGET_REGISTRY = {
   // Alchemist Puzzles
   "mortar_puzzle":      "mortar-widget",
   "transmuter_puzzle":  "transmuter-widget",
+  "alchWestCodeboxJigsaw": "west-jigsaw-widget",
+  "alch_west_codebox_jigsaw": "west-jigsaw-widget",
+  "west_codebox_jigsaw": "west-jigsaw-widget",
 };

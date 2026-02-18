@@ -1,5 +1,6 @@
 // src/components/inventory/InventoryBar.jsx
 import { getInventoryImage } from "../../config/items.js";
+import { getInventoryUi } from "../../config/items.js";
 import inventoryEmptyImg from "../../assets/alchemist/inventory_empty.png";
 
 export default function InventoryBar({ inventory = [] }) {
@@ -16,6 +17,10 @@ export default function InventoryBar({ inventory = [] }) {
           {inventory.map((item) => {
             const iconSrc = getInventoryImage(item.item);
             if (!iconSrc) return null;
+            const itemKey = String(item.item || "").trim().toUpperCase().replace(/\s+/g, "_");
+            const ui = getInventoryUi(itemKey);
+            const iconSizeClass = ui.sizeClass || "h-25 w-25";
+            const iconOffsetClass = ui.offsetClass || "";
 
             return (
               <div
@@ -25,7 +30,7 @@ export default function InventoryBar({ inventory = [] }) {
                 <img
                   src={iconSrc}
                   alt={item.item}
-                  className="h-25 w-25 object-contain pointer-events-auto cursor-grab"
+                  className={`${iconSizeClass} ${iconOffsetClass} object-contain pointer-events-auto cursor-grab`}
                   draggable
                   onDragStart={(e) => {
                     const dragKey = String(item.item || "")

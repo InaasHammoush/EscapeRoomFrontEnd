@@ -13,6 +13,7 @@ import "../components/svelte/Bookshelf.svelte";
 import "../components/svelte/CandlePuzzle.svelte";
 import "../components/svelte/Mortar.svelte";
 import "../components/svelte/Transmuter.svelte";
+import "../components/svelte/WestJigsaw.svelte";
 
 import HUD from "../components/HUD.jsx";
 import InventoryBar from "../components/inventory/InventoryBar.jsx";
@@ -37,6 +38,30 @@ function withTransmuterTestItems(
   return next;
 }
 
+function withWestRoseReward(items, includeRose = false) {
+  const next = Array.isArray(items) ? [...items] : [];
+  if (!includeRose) return next;
+  const hasItem = next.some((entry) => String(entry?.item || "").toUpperCase() === "BURNINGROSE_WHOLE");
+  if (!hasItem) next.push({ item: "BURNINGROSE_WHOLE", count: 1 });
+  return next;
+}
+
+function hasWestRoseReady(payload) {
+  if (!payload || typeof payload !== "object") return false;
+  const keys = ["alchWestCodeboxJigsaw", "alch_west_codebox_jigsaw", "west_codebox_jigsaw"];
+  for (const key of keys) {
+    const p = payload[key];
+    if (p?.output?.blueRoseImageReady || p?.solved || p?.jigsaw?.solved) return true;
+  }
+  for (const value of Object.values(payload)) {
+    if (!value || typeof value !== "object") continue;
+    const looksLikeWestPuzzle = !!value.code && !!value.jigsaw;
+    if (!looksLikeWestPuzzle) continue;
+    if (value?.output?.blueRoseImageReady || value?.solved || value?.jigsaw?.solved) return true;
+  }
+  return false;
+}
+
 export default function RoomView({ mode = "solo" }) {
   const { sessionId, roomId } = useParams();
   const navigate = useNavigate();
@@ -58,6 +83,7 @@ export default function RoomView({ mode = "solo" }) {
   const transmuterCoalTestPending = useRef(true);
   const transmuterMatchesTestPending = useRef(true);
   const transmuterGoldTestPending = useRef(true);
+  const westRoseRewardGranted = useRef(false);
 
   // Refs for Web Components
   const widgetRefs = useRef({});
@@ -83,15 +109,19 @@ export default function RoomView({ mode = "solo" }) {
     if (st.roomType) setRoomType(st.roomType);
     if (Array.isArray(st.views)) loadImages(st.views);
     if (publicState) {
+      if (hasWestRoseReady(publicState)) westRoseRewardGranted.current = true;
       setGameState(publicState);
       if (publicState.inventory?.items) {
         // TEMP TEST ONLY (Transmuter): remove this wrapper once backend rewards these items.
         setInventory(
-          withTransmuterTestItems(
-            normalizeInventory(publicState.inventory.items, pendingFlags.current),
-            transmuterCoalTestPending.current,
-            transmuterMatchesTestPending.current,
-            transmuterGoldTestPending.current
+          withWestRoseReward(
+            withTransmuterTestItems(
+              normalizeInventory(publicState.inventory.items, pendingFlags.current),
+              transmuterCoalTestPending.current,
+              transmuterMatchesTestPending.current,
+              transmuterGoldTestPending.current
+            ),
+            westRoseRewardGranted.current
           )
         );
       }
@@ -101,8 +131,16 @@ export default function RoomView({ mode = "solo" }) {
   // --- DELTA UPDATE ---
   const onPuzzleUpdate = useCallback((msg) => {
     if (!msg?.diff) return;
+    if (hasWestRoseReady(msg.diff)) westRoseRewardGranted.current = true;
 
-    if (msg.diff.activeWidget !== undefined) setActiveWidget(msg.diff.activeWidget);
+    if (msg.diff.activeWidget !== undefined) {
+      setActiveWidget(msg.diff.activeWidget);
+    } else {
+      const derivedWidget = Object.keys(msg.diff).find(
+        (key) => key !== "activeWidget" && msg.diff?.[key]?.activeWidget && WIDGET_REGISTRY[key]
+      );
+      if (derivedWidget) setActiveWidget(derivedWidget);
+    }
 
     setGameState((prev) => {
       const next = { ...prev };
@@ -123,13 +161,18 @@ export default function RoomView({ mode = "solo" }) {
     if (msg.diff?.inventory?.items) {
       // TEMP TEST ONLY (Transmuter): remove this wrapper once backend rewards these items.
       setInventory(
-        withTransmuterTestItems(
-          normalizeInventory(msg.diff.inventory.items, pendingFlags.current),
-          transmuterCoalTestPending.current,
-          transmuterMatchesTestPending.current,
-          transmuterGoldTestPending.current
+        withWestRoseReward(
+          withTransmuterTestItems(
+            normalizeInventory(msg.diff.inventory.items, pendingFlags.current),
+            transmuterCoalTestPending.current,
+            transmuterMatchesTestPending.current,
+            transmuterGoldTestPending.current
+          ),
+          westRoseRewardGranted.current
         )
       );
+    } else if (hasWestRoseReady(msg.diff)) {
+      setInventory((prev) => withWestRoseReward(prev, true));
     }
   }, []);
 
@@ -198,17 +241,26 @@ export default function RoomView({ mode = "solo" }) {
   useEffect(() => {
     const handleIntent = (e) => {
       const { objectId, verb, data } = e.detail || {};
+      const objectLower = String(objectId || "").toLowerCase();
+      const verbLower = String(verb || "").toLowerCase();
+      const isWestJigsawObject =
+        objectLower === "alch:west-codebox" || objectLower === "alch:west-jigsaw";
+
+      if (isWestJigsawObject && (verbLower === "interact" || verbLower === "inspect" || verbLower === "open")) {
+        setActiveWidget("alchWestCodeboxJigsaw");
+      }
+
       const usedCoalInTransmuter =
-        String(objectId || "").toLowerCase() === "alch:transmuter" &&
-        String(verb || "").toLowerCase() === "insert" &&
+        objectLower === "alch:transmuter" &&
+        verbLower === "insert" &&
         String(data?.item || "").trim().toUpperCase() === "COAL_BLOCK";
       const usedMatchesInTransmuter =
-        String(objectId || "").toLowerCase() === "alch:transmuter" &&
-        String(verb || "").toLowerCase() === "insert" &&
+        objectLower === "alch:transmuter" &&
+        verbLower === "insert" &&
         String(data?.item || "").trim().toUpperCase() === "MATCHES";
       const usedGoldInTransmuter =
-        String(objectId || "").toLowerCase() === "alch:transmuter" &&
-        String(verb || "").toLowerCase() === "insert" &&
+        objectLower === "alch:transmuter" &&
+        verbLower === "insert" &&
         String(data?.item || "").trim().toUpperCase() === "GOLD_NUGGET";
       
       if (verb === "CLOSE") {

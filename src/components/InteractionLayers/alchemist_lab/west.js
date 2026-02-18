@@ -74,4 +74,34 @@ export const renderAlchemistLabWestWall = (app, { roomId, socket, normX, normY, 
 
   stage.addChild(transmuter);
   console.log("Transmuter hotspot added to stage");
+
+  // West Codebox + Jigsaw hotspot
+  const westJigsaw = new PIXI.Graphics()
+    .rect(
+      normX(372),
+      normY(655),
+      scaleX(250), // width
+      scaleY(220)  // height
+    )
+    .fill({ color: 0x00ff00, alpha: 0.3 });
+
+  westJigsaw.eventMode = "static";
+  westJigsaw.cursor = "pointer";
+
+  westJigsaw.on("pointertap", () => {
+    console.log("West jigsaw hotspot clicked!");
+    console.log("Dispatching intent for alch:west-codebox");
+
+    document.dispatchEvent(new CustomEvent("intent", {
+      detail: {
+        objectId: "alch:west-codebox",
+        verb: "INTERACT",
+      },
+      bubbles: true,
+      composed: true,
+    }));
+  });
+
+  stage.addChild(westJigsaw);
+  console.log("West jigsaw hotspot added to stage");
 };

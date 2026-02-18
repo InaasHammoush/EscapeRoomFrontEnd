@@ -9,6 +9,7 @@ import charcoalPenImg from "../assets/alchemist/charcoal_pen.png";
 import goldNuggetImg from "../assets/alchemist/goldnugget.png";
 import matchboxImg from "../assets/alchemist/matchbox.png";
 import goldKeyImg from "../assets/alchemist/goldkey.png";
+import burningRoseWholeImg from "../assets/alchemist/burningrose_whole.png";
 
 // Import Wizard Items 
 import bluePowderImg from "../assets/wizard_library/bluePowder.png";
@@ -31,6 +32,8 @@ export const ITEM_IMAGES = {
   GOLDKEY: goldKeyImg,
   GOLD_KEY: goldKeyImg,
   GOLDEN_KEY: goldKeyImg,
+  BURNINGROSE_WHOLE: burningRoseWholeImg,
+  BURNING_ROSE_WHOLE: burningRoseWholeImg,
   
   // Wizard
   BLUE_POWDER: bluePowderImg,
@@ -38,6 +41,23 @@ export const ITEM_IMAGES = {
   NOTE_RUNES: runeNoteImg,
   ASH_KEY: ashKeyImg,
 };
+
+export const ITEM_UI_CONFIG = {
+  BURNINGROSE_WHOLE: {
+    sizeClass: "h-16 w-16",
+    offsetClass: "-mt-4",
+  },
+  BURNING_ROSE_WHOLE: {
+    sizeClass: "h-16 w-16",
+    offsetClass: "-mt-4",
+  },
+};
+
+export function getInventoryUi(itemName) {
+  if (!itemName) return { sizeClass: "h-25 w-25", offsetClass: "" };
+  const key = String(itemName).trim().toUpperCase().replace(/\s+/g, "_");
+  return ITEM_UI_CONFIG[key] || { sizeClass: "h-25 w-25", offsetClass: "" };
+}
 
 export function getInventoryImage(itemName) {
   if (!itemName) return null;
