@@ -11,6 +11,7 @@ import "../components/svelte/Keypad.svelte";
 import "../components/svelte/ScrollGrid.svelte";
 import "../components/svelte/Bookshelf.svelte";
 import "../components/svelte/CandlePuzzle.svelte";
+import "../components/svelte/TransformationTable.svelte";
 import "../components/svelte/CandleHint.svelte";
 import "../components/svelte/FrameHint.svelte";
 import "../components/svelte/RecipeHint.svelte";
