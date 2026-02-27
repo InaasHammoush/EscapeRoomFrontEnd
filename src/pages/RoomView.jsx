@@ -6,7 +6,7 @@ import InteractionLayer from "../components/InteractionLayers/InteractionLayerMa
 // Import Widget Registry
 import { WIDGET_REGISTRY } from "../config/widgets.js";
 
-// Import Svelte Wrappers (Ensure these files exist)
+// Import Svelte Wrappers
 import "../components/svelte/Keypad.svelte";
 import "../components/svelte/ScrollGrid.svelte";
 import "../components/svelte/Bookshelf.svelte";
@@ -14,6 +14,7 @@ import "../components/svelte/CandlePuzzle.svelte";
 import "../components/svelte/TransformationTable.svelte";
 import "../components/svelte/CandleHint.svelte";
 import "../components/svelte/FrameHint.svelte";
+import "../components/svelte/KeyVase.svelte";
 import "../components/svelte/RecipeHint.svelte";
 import "../components/svelte/Mortar.svelte";
 import "../components/svelte/Transmuter.svelte";

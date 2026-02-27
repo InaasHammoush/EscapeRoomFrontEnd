@@ -14,6 +14,8 @@ import ashKeyImg from "../assets/wizard_library/ashes_key.png";
 import whiteRoseImg from "../assets/wizard_library/white_rose.png";
 import blueRoseImg from "../assets/wizard_library/blue_rose.png";
 import alchemistSketchImg from "../assets/wizard_library/alchemist_sketch.png";
+import chestKeyImg from "../assets/wizard_library/chest_key.png";
+import recipeImg from "../assets/wizard_library/recipe.png";
 
 // Export the Map
 export const ITEM_IMAGES = {
@@ -30,7 +32,9 @@ export const ITEM_IMAGES = {
   ASH_KEY: ashKeyImg,
   WHITE_ROSE: whiteRoseImg,
   BLUE_ROSE: blueRoseImg,
-  SKETCH_ALCHEMIST: alchemistSketchImg
+  SKETCH_ALCHEMIST: alchemistSketchImg,
+  CHEST_KEY: chestKeyImg,
+  RECIPE: recipeImg,
 };
 
 export function getInventoryImage(itemName) {

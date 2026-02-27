@@ -45,28 +45,28 @@ export const renderWizardLibraryNorthWall = (app, { roomId, socket, normX, normY
     });
   });
 
-  const candlesHint = new PIXI.Graphics()
+  const keyVase = new PIXI.Graphics()
   .rect(
-    normX(110), 
-    normY(252), 
-    scaleX(60), 
-    scaleY(40)
+    normX(233), 
+    normY(706), 
+    scaleX(50), 
+    scaleY(120)
   ) 
   .fill({ color: 0x00ff00, alpha: 0.3 });
 
-  candlesHint.eventMode = "static";
-  candlesHint.cursor = "pointer";
+  keyVase.eventMode = "static";
+  keyVase.cursor = "pointer";
 
-  candlesHint.on("pointertap", () => {
+  keyVase.on("pointertap", () => {
     socket.emit("interact", {
       roomId,
       actionId: crypto.randomUUID(),
-      objectId: "trigger_wiz_hint_candles",
+      objectId: "trigger_key_vase",
       verb: "INTERACT",
     });
   });
 
   stage.addChild(bookShelf);
   stage.addChild(candles);
-  stage.addChild(candlesHint);
+  stage.addChild(keyVase);
 };

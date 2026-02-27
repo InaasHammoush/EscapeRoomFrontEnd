@@ -12,6 +12,7 @@ export const WIDGET_REGISTRY = {
   "frame_hint":        "frame-hint-widget",
   "recipe_hint":       "recipe-hint-widget",
   "transformation_table_puzzle": "transformation-table-widget",
+  "vase_puzzle":       "vase-widget",
   
 
   // Alchemist Puzzles

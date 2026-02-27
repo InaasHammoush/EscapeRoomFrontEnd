@@ -24,6 +24,16 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
     else nextInv.splice(idx, 1);
   };
 
+  // Helper to add/increment
+  const award = (name) => {
+    const idx = findIdx(name);
+    if (idx === -1) {
+      nextInv.push({ item: name, count: 1 });
+      return;
+    }
+    nextInv[idx] = { ...nextInv[idx], count: Number(nextInv[idx].count || 0) + 1 };
+  };
+
   // --- RULE 1: Generic Consumption (Any puzzle asking to INSERT/PLACE consumes the item) ---
   // This covers the Wizard Table (Rose) and Mortar (Moonwort) automatically.
   if (verb === "insert" || verb === "PLACE" || verb === "SPRINKLE") {
@@ -50,6 +60,14 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
     } else {
       nextInv.push({ item: "BLUE_LIQUID", count: 1 });
     }
+  }
+
+  // --- RULE 4: Recipe Chest ---
+  if (objectId === "puzzle_recipe_hint" && verb === "PLACE" && itemUpper === "CHEST_KEY") {
+    consume("CHEST_KEY");
+  }
+  if (objectId === "puzzle_recipe_hint" && verb === "TAKE") {
+    award("RECIPE");
   }
 
   return { nextInventory: nextInv, nextPending };

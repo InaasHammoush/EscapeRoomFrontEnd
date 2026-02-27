@@ -45,6 +45,28 @@ export const renderWizardLibrarySouthWall = (app, { roomId, socket, normX, normY
       });
     });
 
+    const candleHint = new PIXI.Graphics()
+    .rect(
+      normX(40), 
+      normY(327), 
+      scaleX(97), 
+      scaleY(265)
+    ) 
+    .fill({ color: 0x00ff00, alpha: 0.3 });
+
+    candleHint.eventMode = "static";
+    candleHint.cursor = "pointer";
+
+    candleHint.on("pointertap", () => {
+      socket.emit("interact", {
+        roomId,
+        actionId: crypto.randomUUID(),
+        objectId: "trigger_wiz_hint_candles",
+        verb: "INTERACT",
+      });
+    });
+
   stage.addChild(frameHint);
   stage.addChild(mrelinPuzzle);
+  stage.addChild(candleHint);
 };
