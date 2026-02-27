@@ -17,6 +17,7 @@ import "../components/svelte/FrameHint.svelte";
 import "../components/svelte/RecipeHint.svelte";
 import "../components/svelte/Mortar.svelte";
 import "../components/svelte/Transmuter.svelte";
+import "../components/svelte/MerlinScale.svelte";
 
 import HUD from "../components/HUD.jsx";
 import InventoryBar from "../components/inventory/InventoryBar.jsx";
