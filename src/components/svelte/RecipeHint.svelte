@@ -259,18 +259,17 @@
   .recipe-item {
     position: absolute;
     z-index: 4;
-    width: 22%;
+    width: 10%;
     min-width: 72px;
     left: 51%;
-    top: 59%;
-    transform: translate(-50%, -50%);
+    top: 60%;
+    transform: translate(-50%, -50%) rotate(90deg);
     cursor: pointer;
     filter: drop-shadow(0 6px 7px rgba(0, 0, 0, 0.8));
-    transition: transform 0.2s ease, filter 0.2s ease;
+    transition: filter 0.2s ease;
   }
 
   .recipe-item:hover {
-    transform: translate(-50%, -50%) scale(1.08);
     filter: drop-shadow(0 0 12px rgba(255, 220, 145, 0.9));
   }
 

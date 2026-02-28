@@ -37,12 +37,12 @@ export default function InventoryBar({ inventory = [] }) {
               return (
                 <div
                   key={item.item}
-                  className="flex flex-col items-center gap-0 px-0 py-0 pointer-events-none"
+                  className="h-[3rem] w-[3rem] flex items-center justify-center pointer-events-none"
                 >
                   <img
                     src={iconSrc}
                     alt={item.item}
-                    className="h-25 w-25 object-contain pointer-events-auto cursor-grab"
+                    className="h-full w-full max-h-full max-w-full object-contain pointer-events-auto cursor-grab select-none"
                     draggable
                     onClick={() => setSelectedItem(item)}
                     onDragStart={(e) => {
