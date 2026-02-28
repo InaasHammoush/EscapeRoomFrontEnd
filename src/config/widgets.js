@@ -13,6 +13,7 @@ export const WIDGET_REGISTRY = {
   "recipe_hint":       "recipe-hint-widget",
   "transformation_table_puzzle": "transformation-table-widget",
   "vase_puzzle":       "vase-widget",
+  "door_seal":         "door-seal-widget",
   
 
   // Alchemist Puzzles

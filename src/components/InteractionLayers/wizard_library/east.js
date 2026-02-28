@@ -1,28 +1,55 @@
 import * as PIXI from "pixi.js";
 
-export const renderWizardLibraryEastWall = (app, { roomId, socket, normX, normY, scaleX, scaleY }) => {
-    const stage = app.stage;
+export const renderWizardLibraryEastWall = (app, { roomId, socket, gameState, normX, normY, scaleX, scaleY }) => {
+  const stage = app.stage;
+  const scrollSolved = !!gameState?.tictactoe_scroll?.solved;
 
-  const scroll_trigger = new PIXI.Graphics()
+  if (!scrollSolved) {
+    const scrollTrigger = new PIXI.Graphics()
+      .rect(
+        normX(435),
+        normY(555),
+        scaleX(130),
+        scaleY(105)
+      )
+      .fill({ color: 0x00ff00, alpha: 0.3 });
+
+    scrollTrigger.eventMode = "static";
+    scrollTrigger.cursor = "pointer";
+
+    scrollTrigger.on("pointertap", () => {
+      socket.emit("interact", {
+        roomId,
+        actionId: crypto.randomUUID(),
+        objectId: "trigger_tictactoe_scroll",
+        verb: "INTERACT",
+      });
+    });
+
+    stage.addChild(scrollTrigger);
+    return;
+  }
+
+  const doorTrigger = new PIXI.Graphics()
     .rect(
-      normX(435),   // Position relative to image start
-      normY(555), 
-      scaleX(130),  // Size relative to image width
-      scaleY(105)   // Size relative to image height
-    ) 
+      normX(350),
+      normY(250),
+      scaleX(310),
+      scaleY(620)
+    )
     .fill({ color: 0x00ff00, alpha: 0.3 });
 
-  scroll_trigger.eventMode = "static";
-  scroll_trigger.cursor = "pointer";
+  doorTrigger.eventMode = "static";
+  doorTrigger.cursor = "pointer";
 
-  scroll_trigger.on("pointertap", () => {
+  doorTrigger.on("pointertap", () => {
     socket.emit("interact", {
       roomId,
       actionId: crypto.randomUUID(),
-      objectId: "trigger_tictactoe_scroll",
+      objectId: "trigger_door_seal",
       verb: "INTERACT",
     });
   });
 
-  stage.addChild(scroll_trigger);
+  stage.addChild(doorTrigger);
 };
