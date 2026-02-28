@@ -16,11 +16,17 @@ import "../components/svelte/Transmuter.svelte";
 import "../components/svelte/WestJigsaw.svelte";
 import "../components/svelte/EastCodebox.svelte";
 import "../components/svelte/LightBeamGrid.svelte";
+import "../components/svelte/NorthStatue.svelte";
 import finalDoorOpenImg from "../assets/alchemist/finaldoor_open.png";
+import featherStatueImg from "../assets/alchemist/feather_statue.png";
 
 import HUD from "../components/HUD.jsx";
 import InventoryBar from "../components/inventory/InventoryBar.jsx";
 import { normalizeInventory, applyInventoryIntent } from "../state/inventoryAdapter.js";
+import {
+  getNorthWallFeatherOverlay,
+  readStatueFeatherFromPayload,
+} from "./roomView/statueFeather.js";
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
 
@@ -28,8 +34,7 @@ const initialSoloChoice = sessionStorage.getItem("soloChoice");
 function withTransmuterTestItems(
   items,
   includeCoalBlock = false,
-  includeMatches = false,
-  includeGoldNugget = false
+  includeMatches = false
 ) {
   const next = Array.isArray(items) ? [...items] : [];
   const hasItem = (name) =>
@@ -37,7 +42,6 @@ function withTransmuterTestItems(
 
   if (includeCoalBlock && !hasItem("COAL_BLOCK")) next.push({ item: "COAL_BLOCK", count: 1 });
   if (includeMatches && !hasItem("MATCHES")) next.push({ item: "MATCHES", count: 1 });
-  if (includeGoldNugget && !hasItem("GOLD_NUGGET")) next.push({ item: "GOLD_NUGGET", count: 1 });
   return next;
 }
 
@@ -114,6 +118,7 @@ function normalizeActiveWidgetKey(value) {
     alchwestcodeboxjigsaw: "alchWestCodeboxJigsaw",
     alcheastslidinglock: "alchEastSlidingLock",
     alchlightbeamgrid: "alchLightBeamGrid",
+    alchstatuepose: "alch:statue",
     "alch:mirror-grid": "alchLightBeamGrid",
   };
   return aliases[lowered] || raw;
@@ -157,6 +162,27 @@ function getPuzzleStateByWidget(gameState, activeWidget) {
       "light_beam_grid_puzzle",
       "puzzle_light_beam_grid",
       "light_beam_grid",
+    ],
+    "alch:statue": [
+      "alchStatuePose",
+      "alch:statue-pose",
+      "alch:statue",
+    ],
+    "alch:statue-pose": [
+      "alchStatuePose",
+      "alch:statue-pose",
+      "alch:statue",
+    ],
+    statue_pose_puzzle: [
+      "alchStatuePose",
+      "statue_pose_puzzle",
+      "alch:statue",
+      "alch:statue-pose",
+    ],
+    alchStatuePose: [
+      "alchStatuePose",
+      "alch:statue",
+      "alch:statue-pose",
     ],
   };
 
@@ -203,14 +229,15 @@ export default function RoomView({ mode = "solo" }) {
   const [gameState, setGameState] = useState({});
   const [activeWidget, setActiveWidget] = useState(null);
   const [eastDoorSolved, setEastDoorSolved] = useState(false);
+  const [statueFeatherPlaced, setStatueFeatherPlaced] = useState(false);
+  const [statueFeatherSide, setStatueFeatherSide] = useState("left");
   
   // Inventory State
   const [inventory, setInventory] = useState([]);
   const pendingFlags = useRef({}); // Generic pending flags
-  // TEMP TEST ONLY (Transmuter): keeps COAL_BLOCK, MATCHES and GOLD_NUGGET in test inventory until first use.
+  // TEMP TEST ONLY (Transmuter): keeps COAL_BLOCK and MATCHES in test inventory until first use.
   const transmuterCoalTestPending = useRef(true);
   const transmuterMatchesTestPending = useRef(true);
-  const transmuterGoldTestPending = useRef(true);
   const westRoseRewardGranted = useRef(false);
 
   // Refs for Web Components
@@ -237,8 +264,15 @@ export default function RoomView({ mode = "solo" }) {
     if (st.viewIndex !== undefined) setViewIndex(st.viewIndex);
     if (st.roomType) setRoomType(st.roomType);
     if (Array.isArray(st.views)) loadImages(st.views);
-    if (snapshotWidget !== undefined) setActiveWidget(normalizeActiveWidgetKey(snapshotWidget));
+    if (snapshotWidget !== undefined) {
+      setActiveWidget(normalizeActiveWidgetKey(snapshotWidget));
+    }
     if (publicState) {
+      const statueFeather = readStatueFeatherFromPayload(publicState);
+      if (statueFeather) {
+        setStatueFeatherPlaced(statueFeather.placed);
+        if (statueFeather.side) setStatueFeatherSide(statueFeather.side);
+      }
       if (hasWestRoseReady(publicState)) westRoseRewardGranted.current = true;
       setEastDoorSolved(hasEastDoorSolved(publicState));
       setGameState(publicState);
@@ -249,8 +283,7 @@ export default function RoomView({ mode = "solo" }) {
             withTransmuterTestItems(
               normalizeInventory(publicState.inventory.items, pendingFlags.current),
               transmuterCoalTestPending.current,
-              transmuterMatchesTestPending.current,
-              transmuterGoldTestPending.current
+              transmuterMatchesTestPending.current
             ),
             westRoseRewardGranted.current
           )
@@ -262,16 +295,30 @@ export default function RoomView({ mode = "solo" }) {
   // --- DELTA UPDATE ---
   const onPuzzleUpdate = useCallback((msg) => {
     if (!msg?.diff) return;
+    const statueFeather = readStatueFeatherFromPayload(msg.diff);
+    if (statueFeather) {
+      setStatueFeatherPlaced(statueFeather.placed);
+      if (statueFeather.side) setStatueFeatherSide(statueFeather.side);
+    }
     if (hasWestRoseReady(msg.diff)) westRoseRewardGranted.current = true;
     if (hasEastDoorSolved(msg.diff)) setEastDoorSolved(true);
 
     if (msg.diff.activeWidget !== undefined) {
       setActiveWidget(normalizeActiveWidgetKey(msg.diff.activeWidget));
     } else {
-      const derivedWidget = Object.keys(msg.diff).find(
-        (key) => key !== "activeWidget" && msg.diff?.[key]?.activeWidget && WIDGET_REGISTRY[key]
-      );
-      if (derivedWidget) setActiveWidget(derivedWidget);
+      // Keep fallback narrow to avoid auto-opening unrelated widgets from baseline puzzle state.
+      if (
+        msg.diff["alch:statue"] !== undefined ||
+        msg.diff["alch:statue-pose"] !== undefined ||
+        msg.diff.alchStatuePose !== undefined
+      ) {
+        setActiveWidget("alch:statue");
+      } else {
+        const derivedWidget = Object.keys(msg.diff).find(
+          (key) => key !== "activeWidget" && msg.diff?.[key]?.activeWidget && WIDGET_REGISTRY[key]
+        );
+        if (derivedWidget) setActiveWidget(derivedWidget);
+      }
     }
 
     setGameState((prev) => {
@@ -297,8 +344,7 @@ export default function RoomView({ mode = "solo" }) {
           withTransmuterTestItems(
             normalizeInventory(msg.diff.inventory.items, pendingFlags.current),
             transmuterCoalTestPending.current,
-            transmuterMatchesTestPending.current,
-            transmuterGoldTestPending.current
+            transmuterMatchesTestPending.current
           ),
           westRoseRewardGranted.current
         )
@@ -337,10 +383,9 @@ export default function RoomView({ mode = "solo" }) {
   useEffect(() => {
     if (!socketReady || !roomId) return;
     const s = getSocket();
-    // TEMP TEST ONLY (Transmuter): re-seed COAL_BLOCK, MATCHES and GOLD_NUGGET whenever the room is initialized.
+    // TEMP TEST ONLY (Transmuter): re-seed COAL_BLOCK and MATCHES whenever the room is initialized.
     transmuterCoalTestPending.current = true;
     transmuterMatchesTestPending.current = true;
-    transmuterGoldTestPending.current = true;
     s.emit("join_room", { roomId, name: "Solo Player" }, (res) => {
       if (res?.ok && res.snapshot) onSnapshot(res);
       else setLoading(false);
@@ -372,8 +417,10 @@ export default function RoomView({ mode = "solo" }) {
       el.grid = puzzleData;
       el.puzzle = puzzleData;
       el.inventory = inventory;
+      el.featherSideHint = statueFeatherSide;
+      el.featherPlacedHint = statueFeatherPlaced;
     }
-  }, [gameState, activeWidget, inventory]);
+  }, [gameState, activeWidget, inventory, statueFeatherSide, statueFeatherPlaced]);
 
   useEffect(() => {
     if (eastDoorSolved) return;
@@ -413,14 +460,24 @@ export default function RoomView({ mode = "solo" }) {
         objectLower === "alch:transmuter" &&
         verbLower === "insert" &&
         String(data?.item || "").trim().toUpperCase() === "MATCHES";
-      const usedGoldInTransmuter =
-        objectLower === "alch:transmuter" &&
-        verbLower === "insert" &&
-        String(data?.item || "").trim().toUpperCase() === "GOLD_NUGGET";
-      
+      const canonicalLower = String(canonicalObjectId || "").toLowerCase();
+      const isStatueIntent =
+        objectLower === "puzzle_statue_pose" ||
+        objectLower === "alch:statue-pose" ||
+        canonicalLower === "alch:statue-pose";
       if (verb === "CLOSE") {
         setActiveWidget(null);
         return;
+      }
+
+      if (isStatueIntent && verbLower === "insert") {
+        const itemNorm = String(data?.item || "").trim().toUpperCase().replace(/\s+/g, "_");
+        if (itemNorm === "FEATHER" || itemNorm === "FEATHER_STATUE") {
+          const sideRaw = String(data?.side || data?.ear || "").toLowerCase();
+          const side = sideRaw.includes("right") ? "right" : "left";
+          setStatueFeatherPlaced(true);
+          setStatueFeatherSide(side);
+        }
       }
 
       // TEMP TEST ONLY (Transmuter): stop auto-injecting COAL_BLOCK after first use.
@@ -429,9 +486,6 @@ export default function RoomView({ mode = "solo" }) {
       }
       if (usedMatchesInTransmuter && transmuterMatchesTestPending.current) {
         transmuterMatchesTestPending.current = false;
-      }
-      if (usedGoldInTransmuter && transmuterGoldTestPending.current) {
-        transmuterGoldTestPending.current = false;
       }
 
       // Optimistic Update
@@ -442,8 +496,7 @@ export default function RoomView({ mode = "solo" }) {
         withTransmuterTestItems(
           normalizeInventory(result.nextInventory, pendingFlags.current),
           transmuterCoalTestPending.current,
-          transmuterMatchesTestPending.current,
-          transmuterGoldTestPending.current
+          transmuterMatchesTestPending.current
         )
       );
 
@@ -467,6 +520,15 @@ export default function RoomView({ mode = "solo" }) {
     roomType === "alchemist_lab" && viewIndex === 1 && eastDoorSolved
       ? finalDoorOpenImg
       : currentImage;
+  const { visible: showNorthWallFeather, style: wallFeatherStyle } =
+    getNorthWallFeatherOverlay({
+      roomType,
+      viewIndex,
+      statueFeatherPlaced,
+      statueFeatherSide,
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
+    });
 
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
@@ -478,6 +540,14 @@ export default function RoomView({ mode = "solo" }) {
       
       {/* Background & Click Layer */}
       {displayImage && <img src={displayImage} className="absolute inset-0 w-full h-full object-contain select-none z-0" />}
+      {showNorthWallFeather && (
+        <img
+          src={featherStatueImg}
+          alt=""
+          className="absolute z-[5] pointer-events-none select-none"
+          style={wallFeatherStyle}
+        />
+      )}
       <div className="absolute inset-0 z-10">
         <InteractionLayer
           key={`${roomType || "unknown"}-${viewIndex}-${eastDoorSolved ? "solved" : "unsolved"}`}
@@ -486,6 +556,8 @@ export default function RoomView({ mode = "solo" }) {
           socket={getSocket()}
           roomType={roomType}
           eastDoorSolved={eastDoorSolved}
+          statueFeatherPlaced={statueFeatherPlaced}
+          statueFeatherSide={statueFeatherSide}
         />
       </div>
 

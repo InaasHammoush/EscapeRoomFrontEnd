@@ -10,6 +10,9 @@ import goldNuggetImg from "../assets/alchemist/goldnugget.png";
 import matchboxImg from "../assets/alchemist/matchbox.png";
 import goldKeyImg from "../assets/alchemist/goldkey.png";
 import burningRoseWholeImg from "../assets/alchemist/burningrose_whole.png";
+import featherStatueImg from "../assets/alchemist/feather_statue.png";
+import flammaImg from "../assets/alchemist/flamma.png";
+import hirachyImg from "../assets/alchemist/hirachy.png";
 
 // Import Wizard Items 
 import bluePowderImg from "../assets/wizard_library/bluePowder.png";
@@ -34,6 +37,10 @@ export const ITEM_IMAGES = {
   GOLDEN_KEY: goldKeyImg,
   BURNINGROSE_WHOLE: burningRoseWholeImg,
   BURNING_ROSE_WHOLE: burningRoseWholeImg,
+  FEATHER: featherStatueImg,
+  FEATHER_STATUE: featherStatueImg,
+  NOTE_FLAMMA: flammaImg,
+  HIRACHY: hirachyImg,
   
   // Wizard
   BLUE_POWDER: bluePowderImg,
@@ -50,6 +57,22 @@ export const ITEM_UI_CONFIG = {
   BURNING_ROSE_WHOLE: {
     sizeClass: "h-16 w-16",
     offsetClass: "-mt-4",
+  },
+  FEATHER: {
+    sizeClass: "h-12 w-12",
+    offsetClass: "",
+  },
+  FEATHER_STATUE: {
+    sizeClass: "h-12 w-12",
+    offsetClass: "",
+  },
+  NOTE_FLAMMA: {
+    sizeClass: "h-12 w-12",
+    offsetClass: "",
+  },
+  HIRACHY: {
+    sizeClass: "h-10 w-10",
+    offsetClass: "",
   },
 };
 

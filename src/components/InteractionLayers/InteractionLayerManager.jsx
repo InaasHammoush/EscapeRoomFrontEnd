@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import * as PIXI from "pixi.js";
 import { getInteractionLayer } from "./interactionRegistry";
 
-export default function InteractionLayer({ viewIndex, roomId, socket, roomType, eastDoorSolved = false }) {
+export default function InteractionLayer({
+  viewIndex,
+  roomId,
+  socket,
+  roomType,
+  eastDoorSolved = false,
+  statueFeatherPlaced = false,
+  statueFeatherSide = "left",
+}) {
   const pixiContainerRef = useRef(null);
   const appRef = useRef(null);
   // Track dimensions to trigger re-renders of the hotspots on resize
@@ -40,7 +48,7 @@ export default function InteractionLayer({ viewIndex, roomId, socket, roomType, 
   // Re-run whenever the view changes OR the screen is resized
   useEffect(() => {
     updateLayer();
-  }, [viewIndex, roomType, dimensions, roomId, socket, eastDoorSolved]);
+  }, [viewIndex, roomType, dimensions, roomId, socket, eastDoorSolved, statueFeatherPlaced, statueFeatherSide]);
 
   const updateLayer = () => {
     const app = appRef.current;
@@ -79,6 +87,8 @@ export default function InteractionLayer({ viewIndex, roomId, socket, roomType, 
         roomId, 
         socket, 
         eastDoorSolved,
+        statueFeatherPlaced,
+        statueFeatherSide,
         // 2. Letterbox-Aware Helpers
         normX: (val) => offsetX + (val / 1000) * displayW,
         normY: (val) => offsetY + (val / 1000) * displayH,

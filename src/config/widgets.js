@@ -16,6 +16,7 @@ export const WIDGET_REGISTRY = {
   "west_codebox_puzzle": "west-jigsaw-widget",
   "east_sliding_lock_puzzle": "east-codebox-widget",
   "light_beam_grid_puzzle": "lightbeam-grid-widget",
+  "statue_pose_puzzle": "north-statue-widget",
   // New backend IDs
   "puzzle_west_codebox": "west-jigsaw-widget",
   "puzzle_east_sliding_lock": "east-codebox-widget",
@@ -35,4 +36,7 @@ export const WIDGET_REGISTRY = {
   "alch_light_beam_grid": "lightbeam-grid-widget",
   "light_beam_grid": "lightbeam-grid-widget",
   "alch:mirror-grid": "lightbeam-grid-widget",
+  "alch:statue": "north-statue-widget",
+  "alch:statue-pose": "north-statue-widget",
+  "alchStatuePose": "north-statue-widget",
 };
