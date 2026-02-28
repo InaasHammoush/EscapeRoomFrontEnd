@@ -13,6 +13,7 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
     objectId === "alch:ritual-paper" ||
     objectId === "puzzle_transmuter";
   const isWestJigsaw =
+    objectId === "puzzle_west_codebox" ||
     objectId === "alch:west-jigsaw" ||
     objectId === "alch:west-codebox" ||
     objectId === "puzzle_west_jigsaw";

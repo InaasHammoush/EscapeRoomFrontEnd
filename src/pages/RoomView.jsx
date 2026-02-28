@@ -15,6 +15,7 @@ import "../components/svelte/Mortar.svelte";
 import "../components/svelte/Transmuter.svelte";
 import "../components/svelte/WestJigsaw.svelte";
 import "../components/svelte/EastCodebox.svelte";
+import "../components/svelte/LightBeamGrid.svelte";
 import finalDoorOpenImg from "../assets/alchemist/finaldoor_open.png";
 
 import HUD from "../components/HUD.jsx";
@@ -50,7 +51,12 @@ function withWestRoseReward(items, includeRose = false) {
 
 function hasWestRoseReady(payload) {
   if (!payload || typeof payload !== "object") return false;
-  const keys = ["alchWestCodeboxJigsaw", "alch_west_codebox_jigsaw", "west_codebox_jigsaw"];
+  const keys = [
+    "puzzle_west_codebox",
+    "alchWestCodeboxJigsaw",
+    "alch_west_codebox_jigsaw",
+    "west_codebox_jigsaw",
+  ];
   for (const key of keys) {
     const p = payload[key];
     if (p?.output?.blueRoseImageReady || p?.solved || p?.jigsaw?.solved) return true;
@@ -74,6 +80,7 @@ function hasEastDoorSolved(payload) {
   if (looksLikeEastSlidingPayload && !!payload?.solved) return true;
 
   const keys = [
+    "puzzle_east_sliding_lock",
     "alchEastSlidingLock",
     "alch_east_sliding_lock",
     "east_sliding_lock",
@@ -92,6 +99,94 @@ function hasEastDoorSolved(payload) {
     if (value?.solved || value?.jigsaw?.solved || value?.output?.finalDoorOpen) return true;
   }
   return false;
+}
+
+function normalizeActiveWidgetKey(value) {
+  if (value === null || value === undefined) return value;
+  const raw = String(value);
+  if (WIDGET_REGISTRY[raw]) return raw;
+
+  const lowered = raw.toLowerCase();
+  const byCaseFold = Object.keys(WIDGET_REGISTRY).find((k) => k.toLowerCase() === lowered);
+  if (byCaseFold) return byCaseFold;
+
+  const aliases = {
+    alchwestcodeboxjigsaw: "alchWestCodeboxJigsaw",
+    alcheastslidinglock: "alchEastSlidingLock",
+    alchlightbeamgrid: "alchLightBeamGrid",
+    "alch:mirror-grid": "alchLightBeamGrid",
+  };
+  return aliases[lowered] || raw;
+}
+
+function getPuzzleStateByWidget(gameState, activeWidget) {
+  if (!gameState || !activeWidget) return undefined;
+  const widgetStateCandidates = {
+    west_codebox_puzzle: ["alchWestCodeboxJigsaw", "west_codebox_puzzle", "puzzle_west_codebox"],
+    puzzle_west_codebox: ["alchWestCodeboxJigsaw", "puzzle_west_codebox", "west_codebox_puzzle"],
+    alchWestCodeboxJigsaw: ["alchWestCodeboxJigsaw", "west_codebox_puzzle", "puzzle_west_codebox"],
+
+    east_sliding_lock_puzzle: ["alchEastSlidingLock", "east_sliding_lock_puzzle", "puzzle_east_sliding_lock"],
+    puzzle_east_sliding_lock: ["alchEastSlidingLock", "puzzle_east_sliding_lock", "east_sliding_lock_puzzle"],
+    alchEastSlidingLock: ["alchEastSlidingLock", "east_sliding_lock_puzzle", "puzzle_east_sliding_lock"],
+
+    light_beam_grid_puzzle: [
+      "alchLightBeamGrid",
+      "alch:mirror-grid",
+      "light_beam_grid_puzzle",
+      "puzzle_light_beam_grid",
+      "light_beam_grid",
+    ],
+    puzzle_light_beam_grid: [
+      "alchLightBeamGrid",
+      "alch:mirror-grid",
+      "puzzle_light_beam_grid",
+      "light_beam_grid_puzzle",
+      "light_beam_grid",
+    ],
+    alchLightBeamGrid: [
+      "alchLightBeamGrid",
+      "alch:mirror-grid",
+      "light_beam_grid_puzzle",
+      "puzzle_light_beam_grid",
+      "light_beam_grid",
+    ],
+    "alch:mirror-grid": [
+      "alchLightBeamGrid",
+      "alch:mirror-grid",
+      "light_beam_grid_puzzle",
+      "puzzle_light_beam_grid",
+      "light_beam_grid",
+    ],
+  };
+
+  const candidates = widgetStateCandidates[activeWidget] || [activeWidget];
+  for (const key of candidates) {
+    if (gameState[key] !== undefined) return gameState[key];
+  }
+
+  // Last-resort shape-based fallback for light beam payloads with unexpected keys.
+  const isLightBeamWidget =
+    activeWidget === "light_beam_grid_puzzle" ||
+    activeWidget === "puzzle_light_beam_grid" ||
+    activeWidget === "alchLightBeamGrid" ||
+    activeWidget === "alch:mirror-grid";
+  if (isLightBeamWidget) {
+    for (const value of Object.values(gameState)) {
+      if (!value || typeof value !== "object") continue;
+      const looksLikeLightBeam =
+        value?.grid &&
+        Number.isInteger(value?.grid?.width) &&
+        Number.isInteger(value?.grid?.height) &&
+        Array.isArray(value?.runes) &&
+        value?.beam &&
+        Array.isArray(value?.beam?.segments);
+      if (looksLikeLightBeam) return value;
+    }
+  }
+
+  if (gameState[activeWidget] !== undefined) return gameState[activeWidget];
+  return undefined;
 }
 
 export default function RoomView({ mode = "solo" }) {
@@ -137,10 +232,12 @@ export default function RoomView({ mode = "solo" }) {
     const st = msg?.roomState || msg?.snapshot?.state;
     if (!st) return;
     const publicState = st.public || st;
+    const snapshotWidget = st?.activeWidget ?? publicState?.activeWidget;
 
     if (st.viewIndex !== undefined) setViewIndex(st.viewIndex);
     if (st.roomType) setRoomType(st.roomType);
     if (Array.isArray(st.views)) loadImages(st.views);
+    if (snapshotWidget !== undefined) setActiveWidget(normalizeActiveWidgetKey(snapshotWidget));
     if (publicState) {
       if (hasWestRoseReady(publicState)) westRoseRewardGranted.current = true;
       setEastDoorSolved(hasEastDoorSolved(publicState));
@@ -169,7 +266,7 @@ export default function RoomView({ mode = "solo" }) {
     if (hasEastDoorSolved(msg.diff)) setEastDoorSolved(true);
 
     if (msg.diff.activeWidget !== undefined) {
-      setActiveWidget(msg.diff.activeWidget);
+      setActiveWidget(normalizeActiveWidgetKey(msg.diff.activeWidget));
     } else {
       const derivedWidget = Object.keys(msg.diff).find(
         (key) => key !== "activeWidget" && msg.diff?.[key]?.activeWidget && WIDGET_REGISTRY[key]
@@ -260,15 +357,21 @@ export default function RoomView({ mode = "solo" }) {
     if (!tagName) return;
 
     const el = widgetRefs.current[activeWidget];
-    const puzzleData = gameState[activeWidget];
+    let puzzleData = getPuzzleStateByWidget(gameState, activeWidget);
+    const isLightBeamTag = tagName === "lightbeam-grid-widget";
+    if (puzzleData === undefined && isLightBeamTag) {
+      puzzleData =
+        gameState?.alchLightBeamGrid ??
+        gameState?.["alch:mirror-grid"] ??
+        gameState?.light_beam_grid_puzzle ??
+        gameState?.puzzle_light_beam_grid;
+    }
 
-    if (el && puzzleData) {
-      // Generic prop passing
-      if ("grid" in el) el.grid = puzzleData;
-      if ("puzzle" in el) el.puzzle = puzzleData;
-      
-      // Inject inventory only if the widget needs it (optional optimization)
-      if ("inventory" in el) el.inventory = inventory;
+    if (el && puzzleData !== undefined) {
+      // Always assign component props directly; custom element prototypes can be inconsistent for `in` checks.
+      el.grid = puzzleData;
+      el.puzzle = puzzleData;
+      el.inventory = inventory;
     }
   }, [gameState, activeWidget, inventory]);
 
@@ -279,7 +382,12 @@ export default function RoomView({ mode = "solo" }) {
 
   useEffect(() => {
     if (!eastDoorSolved) return;
-    if (activeWidget === "alchEastCodebox" || activeWidget === "alchEastSlidingLock") {
+    if (
+      activeWidget === "east_sliding_lock_puzzle" ||
+      activeWidget === "puzzle_east_sliding_lock" ||
+      activeWidget === "alchEastCodebox" ||
+      activeWidget === "alchEastSlidingLock"
+    ) {
       setActiveWidget(null);
     }
   }, [eastDoorSolved, activeWidget]);
@@ -293,24 +401,9 @@ export default function RoomView({ mode = "solo" }) {
   // --- INTENT LISTENER ---
   useEffect(() => {
     const handleIntent = (e) => {
-      const { objectId, verb, data } = e.detail || {};
+      const { objectId, verb, data, canonicalObjectId } = e.detail || {};
       const objectLower = String(objectId || "").toLowerCase();
       const verbLower = String(verb || "").toLowerCase();
-      const isWestJigsawObject =
-        objectLower === "alch:west-codebox" || objectLower === "alch:west-jigsaw";
-      const isEastCodeboxObject =
-        objectLower === "alch:east-codebox" ||
-        objectLower === "alch:east-jigsaw" ||
-        objectLower === "alch:east-sliding-lock";
-
-      if (isWestJigsawObject && (verbLower === "interact" || verbLower === "inspect" || verbLower === "open")) {
-        setActiveWidget("alchWestCodeboxJigsaw");
-      }
-      if (isEastCodeboxObject && (verbLower === "interact" || verbLower === "inspect" || verbLower === "open")) {
-        if (eastDoorSolved) return;
-        setActiveWidget("alchEastSlidingLock");
-        return;
-      }
 
       const usedCoalInTransmuter =
         objectLower === "alch:transmuter" &&
@@ -354,12 +447,14 @@ export default function RoomView({ mode = "solo" }) {
         )
       );
 
-      getSocket()?.emit("interact", { roomId, actionId: crypto.randomUUID(), objectId, verb, data });
+      const payload = { roomId, actionId: crypto.randomUUID(), objectId, verb, data };
+      if (canonicalObjectId) payload.canonicalObjectId = canonicalObjectId;
+      getSocket()?.emit("interact", payload);
     };
 
     document.addEventListener("intent", handleIntent);
     return () => document.removeEventListener("intent", handleIntent);
-  }, [roomId, inventory, eastDoorSolved]);
+  }, [roomId, inventory]);
 
   const turn = (dir) => getSocket()?.emit("intent:turn", { roomId, direction: dir });
 

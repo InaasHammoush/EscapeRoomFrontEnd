@@ -42,16 +42,16 @@
     close();
   }
 
-  function emitIntent(objectId, verb, data = {}) {
+  function emitIntent(objectId, verb, data = {}, canonicalObjectId = "") {
     document.dispatchEvent(new CustomEvent("intent", {
-      detail: { objectId, verb, data },
+      detail: { objectId, verb, data, canonicalObjectId },
       bubbles: true,
       composed: true,
     }));
   }
 
   function close() {
-    emitIntent("alch:east-codebox", "CLOSE");
+    emitIntent("puzzle_east_sliding_lock", "CLOSE");
   }
 
   function isAdjacent(a, b) {
@@ -72,10 +72,10 @@
     [next[index], next[emptyIndex]] = [next[emptyIndex], next[index]];
     localBoard = next;
 
-    emitIntent("alch:east-sliding-lock", "move", {
+    emitIntent("puzzle_east_sliding_lock", "move", {
       index,
       tile: next[emptyIndex],
-    });
+    }, "alch:east-sliding-lock");
   }
 
   function tileBgStyle(tileNumber) {

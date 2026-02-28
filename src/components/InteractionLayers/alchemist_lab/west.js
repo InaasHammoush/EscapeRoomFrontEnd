@@ -90,16 +90,13 @@ export const renderAlchemistLabWestWall = (app, { roomId, socket, normX, normY, 
 
   westJigsaw.on("pointertap", () => {
     console.log("West jigsaw hotspot clicked!");
-    console.log("Dispatching intent for alch:west-codebox");
-
-    document.dispatchEvent(new CustomEvent("intent", {
-      detail: {
-        objectId: "alch:west-codebox",
-        verb: "INTERACT",
-      },
-      bubbles: true,
-      composed: true,
-    }));
+    if (!socket) return;
+    socket.emit("interact", {
+      roomId,
+      actionId: crypto.randomUUID(),
+      objectId: "trigger_west_codebox",
+      verb: "INTERACT",
+    });
   });
 
   stage.addChild(westJigsaw);

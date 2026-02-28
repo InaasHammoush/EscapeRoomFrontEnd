@@ -102,18 +102,18 @@
   $: if (!localSolved) localSolveSyncSent = false;
   $: if (localSolved && !solved && !localSolveSyncSent) {
     localSolveSyncSent = true;
-    emitIntent("alch:west-jigsaw", "set_layout", { tiles: localTiles });
+    emitIntent("puzzle_west_codebox", "set_layout", { tiles: localTiles }, "alch:west-jigsaw");
   }
   $: if (roseReady && !hasRoseInInventory && !roseRewardSent) {
     roseRewardSent = true;
     // Same pattern as mortar blue liquid: emit a take intent, let inventoryAdapter apply optimistic add.
-    emitIntent("alch:west-jigsaw", "take", { item: "BURNINGROSE_WHOLE" });
+    emitIntent("puzzle_west_codebox", "take", { item: "BURNINGROSE_WHOLE" }, "alch:west-jigsaw");
   }
 
-  function emitIntent(objectId, verb, data = {}) {
+  function emitIntent(objectId, verb, data = {}, canonicalObjectId = "") {
     document.dispatchEvent(
       new CustomEvent("intent", {
-        detail: { objectId, verb, data },
+        detail: { objectId, verb, data, canonicalObjectId },
         bubbles: true,
         composed: true
       })
@@ -121,7 +121,7 @@
   }
 
   function close() {
-    emitIntent("alch:west-codebox", "CLOSE");
+    emitIntent("puzzle_west_codebox", "CLOSE");
   }
 
   function handleOverlayClick(e) {
@@ -141,15 +141,14 @@
     if (code.length !== 7) return;
     submittedCode = code;
     awaitingCodeResult = true;
-    emitIntent("alch:west-codebox", "enter_code", { code });
+    emitIntent("puzzle_west_codebox", "enter_code", { code }, "alch:west-codebox");
     if (codeResponseTimer) {
       clearTimeout(codeResponseTimer);
       codeResponseTimer = null;
     }
     codeResponseTimer = setTimeout(() => {
-      // Fallback: some routers may bind this puzzle to west-jigsaw only.
       if (awaitingCodeResult && !unlocked) {
-        emitIntent("alch:west-jigsaw", "enter_code", { code });
+        emitIntent("puzzle_west_codebox", "enter_code", { code }, "alch:west-codebox");
       }
       codeResponseTimer = setTimeout(() => {
         // Do not lock the input forever if no backend response arrives.
@@ -226,7 +225,7 @@
     const next = [...localTiles];
     [next[fromIndex], next[toIndex]] = [next[toIndex], next[fromIndex]];
     localTiles = next;
-    emitIntent("alch:west-jigsaw", "set_layout", { tiles: next });
+    emitIntent("puzzle_west_codebox", "set_layout", { tiles: next }, "alch:west-jigsaw");
   }
 
   function onTileDragStart(e, index) {

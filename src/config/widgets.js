@@ -12,6 +12,15 @@ export const WIDGET_REGISTRY = {
   // Alchemist Puzzles
   "mortar_puzzle":      "mortar-widget",
   "transmuter_puzzle":  "transmuter-widget",
+  // Backend activeWidget keys (current index.js)
+  "west_codebox_puzzle": "west-jigsaw-widget",
+  "east_sliding_lock_puzzle": "east-codebox-widget",
+  "light_beam_grid_puzzle": "lightbeam-grid-widget",
+  // New backend IDs
+  "puzzle_west_codebox": "west-jigsaw-widget",
+  "puzzle_east_sliding_lock": "east-codebox-widget",
+  "puzzle_light_beam_grid": "lightbeam-grid-widget",
+  // Legacy aliases kept for compatibility
   "alchWestCodeboxJigsaw": "west-jigsaw-widget",
   "alch_west_codebox_jigsaw": "west-jigsaw-widget",
   "west_codebox_jigsaw": "west-jigsaw-widget",
@@ -22,4 +31,8 @@ export const WIDGET_REGISTRY = {
   "alchEastCodeboxJigsaw": "east-codebox-widget",
   "alch_east_codebox_jigsaw": "east-codebox-widget",
   "east_codebox_jigsaw": "east-codebox-widget",
+  "alchLightBeamGrid": "lightbeam-grid-widget",
+  "alch_light_beam_grid": "lightbeam-grid-widget",
+  "light_beam_grid": "lightbeam-grid-widget",
+  "alch:mirror-grid": "lightbeam-grid-widget",
 };

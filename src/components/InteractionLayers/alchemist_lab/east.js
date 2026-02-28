@@ -4,6 +4,32 @@ export const renderAlchemistLabEastWall = (app, { roomId, socket, normX, normY, 
   const stage = app.stage;
 
   console.log(" Rendering alchemist_lab east wall. Socket available?", !!socket);
+
+  // LightBeamGrid hotspot
+  const mirrorGrid = new PIXI.Graphics()
+    .rect(
+      normX(710),
+      normY(410),
+      scaleX(180),
+      scaleY(300)
+    )
+    .fill({ color: 0x00ff00, alpha: 0.3 });
+
+  mirrorGrid.eventMode = "static";
+  mirrorGrid.cursor = "pointer";
+
+  mirrorGrid.on("pointertap", () => {
+    if (!socket) return;
+    socket.emit("interact", {
+      roomId,
+      actionId: crypto.randomUUID(),
+      objectId: "trigger_light_beam_grid",
+      verb: "INTERACT",
+    });
+  });
+
+  stage.addChild(mirrorGrid);
+
   if (eastDoorSolved) {
     console.log("East codebox solved; hotspot hidden.");
     return;
@@ -23,14 +49,13 @@ export const renderAlchemistLabEastWall = (app, { roomId, socket, normX, normY, 
   eastCodebox.cursor = "pointer";
 
   eastCodebox.on("pointertap", () => {
-    document.dispatchEvent(new CustomEvent("intent", {
-      detail: {
-        objectId: "alch:east-codebox",
-        verb: "INTERACT",
-      },
-      bubbles: true,
-      composed: true,
-    }));
+    if (!socket) return;
+    socket.emit("interact", {
+      roomId,
+      actionId: crypto.randomUUID(),
+      objectId: "trigger_east_sliding_lock",
+      verb: "INTERACT",
+    });
   });
 
   stage.addChild(eastCodebox);
