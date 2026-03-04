@@ -9,7 +9,7 @@ import emptyBottleImg from "../assets/alchemist/empty_bottle.png";
 // Import Wizard Items 
 import bluePowderImg from "../assets/wizard_library/bluePowder.png";
 import noteCodeImg from "../assets/wizard_library/ScrollWithCode.png";
-import runeNoteImg from "../assets/wizard_library/runeScroll.png";
+import runeNoteImg from "../assets/wizard_library/rune_translation.png";
 import ashKeyImg from "../assets/wizard_library/ashes_key.png";
 import whiteRoseImg from "../assets/wizard_library/white_rose.png";
 import blueRoseImg from "../assets/wizard_library/blue_rose.png";
