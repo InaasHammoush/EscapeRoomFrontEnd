@@ -123,6 +123,9 @@
         src={currentLeftArm} 
         alt="Left Arm" 
         class="statue-part left-arm" 
+        class:left-arm-down={pose.leftArm === 'DOWN'}
+        class:left-arm-half-up={pose.leftArm === 'HALF_UP'}
+        class:left-arm-up={pose.leftArm === 'UP'}
         class:interactive={!solved}
         on:click={() => togglePart('leftArm', pose.leftArm, leftArmStates)} 
       />
@@ -131,6 +134,8 @@
         src={currentRightArm} 
         alt="Right Arm" 
         class="statue-part right-arm" 
+        class:right-arm-half-up={pose.rightArm === 'ON_CHEST'}
+        class:right-arm-up={pose.rightArm === 'UP'}
         class:interactive={!solved}
         on:click={() => togglePart('rightArm', pose.rightArm, rightArmStates)} 
       />
@@ -186,7 +191,7 @@
 
   .widget-wrapper {
     position: relative; 
-    width: 90vw;
+    width: 50vw;
     max-width: 800px;
     aspect-ratio: 1/1; /* Keeps the workspace square */
     display: flex; justify-content: center; align-items: center;
@@ -231,19 +236,53 @@
     to make the arms and head attach perfectly to your body image! 
   */
   .body {
-    bottom: 0; left: 20%; width: 60%; height: 80%; pointer-events: none; z-index: 2;
+    bottom: -7%;
+    left: -60%;
+    width: 220%;
+    height: 80%;
+    transform: scale(1.20);
+    transform-origin: bottom center;
+    pointer-events: none;
+    z-index: 2;
   }
 
   .head {
-    top: 5%; left: 35%; width: 30%; height: 30%; z-index: 3;
+    top: -1%; left: 35%; width: 25%; height: 30%; z-index: 3;
   }
 
   .left-arm {
-    top: 30%; left: 5%; width: 35%; height: 50%; z-index: 4;
+    top: 15.5%; left: 17%; width: 20%; height: 50%; z-index: 4;
   }
 
   .right-arm {
-    top: 30%; right: 5%; width: 35%; height: 50%; z-index: 4;
+    top: 15.5%; right: 21%; width: 20%; height: 50%; z-index: 4;
+  }
+
+  /* Left arm pose-specific manual offsets */
+  .left-arm-down {
+    top: 15.5%;
+    left: 17%;
+  }
+
+  .left-arm-half-up {
+    top: 12%;
+    left: 16%;
+  }
+
+  .left-arm-up {
+    top: 8%;
+    left: 23%;
+  }
+
+  /* Right arm pose-specific manual offsets */
+  .right-arm-half-up {
+    top: 12%;
+    right: 21%;
+  }
+
+  .right-arm-up {
+    top: 8%;
+    right: 27%;
   }
 
   .ear-feather {
@@ -257,14 +296,14 @@
   }
 
   .ear-feather.left {
-    top: 17%;
-    left: 36%;
+    top: 7.5%;
+    left: 30%;
     transform: rotate(-16deg);
   }
 
   .ear-feather.right {
-    top: 17%;
-    right: 36%;
+    top: 7.5%;
+    right: 34%;
     transform: scaleX(-1) rotate(-16deg);
   }
 

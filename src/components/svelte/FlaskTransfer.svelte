@@ -92,19 +92,22 @@
             class:solved-bottle={solved}
             on:click={() => handleBottleClick(id)}
           >
-            <img src={glassEmptyImg} alt="Glass Flask" class="glass-img" />
+            <div class="bottle-hitbox" aria-hidden="true"></div>
+            <div class="bottle-visual">
+              <img src={glassEmptyImg} alt="Glass Flask" class="glass-img" />
 
-            <div class="layers-container">
-              {#if bottleData && bottleData.layers}
-                {#each bottleData.layers as color, index}
-                  <img 
-                    src={layerImages[color]} 
-                    alt="{color} Layer" 
-                    class="liquid-layer"
-                    style="bottom: {index * 16}%; z-index: {index + 1};"
-                  />
-                {/each}
-              {/if}
+              <div class="layers-container">
+                {#if bottleData && bottleData.layers}
+                  {#each bottleData.layers as color, index}
+                    <img 
+                      src={layerImages[color]} 
+                      alt="{color} Layer" 
+                      class="liquid-layer"
+                      style="bottom: {index * 9}%; z-index: {index + 1};"
+                    />
+                  {/each}
+                {/if}
+              </div>
             </div>
           </div>
         {/each}
@@ -122,7 +125,7 @@
 
   .widget-wrapper {
     position: relative; 
-    width: 90vw;
+    width: 60vw;
     max-width: 900px;
     display: flex; flex-direction: column; align-items: center;
     border-radius: 8px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.9);
@@ -154,8 +157,8 @@
   .bottles-container {
     position: absolute;
     /* Aligns bottles naturally over the bench structure (image_3.png) */
-    bottom: 30%; 
-    width: 80%;
+    bottom: 13%; 
+    width: 75%;
     height: 45%;
     display: flex;
     justify-content: space-between;
@@ -171,22 +174,49 @@
 
   /* A single bottle slot */
   .bottle-slot {
+    --bottle-scale: 2.5;
+    --bottle-hitbox-scale-y: 2.5;
     position: relative;
-    width: 18%; 
+    width: 30%; 
     height: 100%;
+    overflow: visible;
     cursor: pointer;
+  }
+
+  /* Transparent click target that follows bottle scale */
+  .bottle-hitbox {
+    position: absolute;
+    inset: 0;
+    transform: scaleY(var(--bottle-hitbox-scale-y));
+    transform-origin: bottom center;
+    pointer-events: auto;
+    z-index: 11;
+  }
+
+  /* Visual bottle layer (independent from click hotspot) */
+  .bottle-visual {
+    position: absolute;
+    inset: 0;
+    transform: scale(var(--bottle-scale));
+    transform-origin: bottom center;
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
   }
 
   /* Interaction highlights while unsolved */
   .bottle-slot:not(.solved-bottle):hover {
-    filter: brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.2));
+    filter: brightness(0.8) drop-shadow(0 0 10px rgba(255,255,255,0.2));
   }
 
-  /* Lift the selected source bottle */
+  /*selected source bottle */
   .bottle-slot.selected {
-    transform: translateY(-30px) scale(1.05);
-    filter: drop-shadow(0 20px 15px rgba(0,0,0,0.8));
+    z-index: 12;
+  }
+
+  .bottle-slot.selected .bottle-visual {
+    transform: scale(var(--bottle-scale));
+    filter: drop-shadow(0 0 14px rgba(255, 225, 140, 0.95))
+            drop-shadow(0 0 28px rgba(255, 190, 90, 0.65));
   }
   
   /* Lock cursor after solved */
@@ -208,9 +238,9 @@
   .layers-container {
     position: absolute;
     /* Adjust these bounds specifically so the liquids sit perfectly inside your unique glass image shape */
-    bottom: 12%; 
-    left: 18%; 
-    width: 64%; 
+    bottom: 21%; 
+    left:30%; 
+    width: 40%; 
     height: 60%; 
     display: flex;
     flex-direction: column;
@@ -221,8 +251,10 @@
   .liquid-layer {
     position: absolute;
     width: 100%;
-    height: 20%; /* 5 capacity, each is ~20% */
-    object-fit: cover;
+    height: 20%;
+    object-fit: fill;
+    transform: scaleY(2.75);
+    transform-origin: bottom center;
     pointer-events: none;
     
     /* MAGIC CSS: Removes the black background of the JPGs perfectly! */
