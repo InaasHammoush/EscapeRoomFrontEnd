@@ -25,6 +25,7 @@ import HUD from "../components/HUD.jsx";
 import InventoryBar from "../components/inventory/InventoryBar.jsx";
 import { normalizeInventory, applyInventoryIntent } from "../state/inventoryAdapter.js";
 import { resolveWallImage } from "../config/wallImageOverrides.js";
+import { readMusicSettings, writeMusicSettings } from "../state/musicSettings.js";
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
 
@@ -45,6 +46,7 @@ export default function RoomView({ mode = "solo" }) {
   // Inventory State
   const [inventory, setInventory] = useState([]);
   const pendingFlags = useRef({}); // Generic pending flags
+  const [musicEnabled, setMusicEnabled] = useState(() => readMusicSettings().enabled);
 
   // Refs for Web Components
   const widgetRefs = useRef({});
@@ -184,6 +186,30 @@ export default function RoomView({ mode = "solo" }) {
   }, [roomId, inventory]);
 
   const turn = (dir) => getSocket()?.emit("intent:turn", { roomId, direction: dir });
+  const toggleMusic = () => {
+    const current = readMusicSettings();
+    const nextEnabled = !current.enabled;
+    setMusicEnabled(nextEnabled);
+    writeMusicSettings({ enabled: nextEnabled, volume: current.volume });
+  };
+
+  useEffect(() => {
+    const onSettings = (event) => {
+      if (!event?.detail) return;
+      setMusicEnabled(event.detail.enabled !== false);
+    };
+    const onStorage = (event) => {
+      if (event.key !== "musicSettings") return;
+      setMusicEnabled(readMusicSettings().enabled);
+    };
+
+    window.addEventListener("music:settings", onSettings);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("music:settings", onSettings);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
 
   if (loading || !socketReady) return <div className="text-white">Loading...</div>;
 
@@ -198,6 +224,8 @@ export default function RoomView({ mode = "solo" }) {
         onHome={exitToHome} 
         onTurnLeft={() => turn("LEFT")} 
         onTurnRight={() => turn("RIGHT")} 
+        onToggleMusic={toggleMusic}
+        musicEnabled={musicEnabled}
       />
       
       {/* Background & Click Layer */}
