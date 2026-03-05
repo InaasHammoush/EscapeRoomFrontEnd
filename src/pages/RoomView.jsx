@@ -17,6 +17,7 @@ import "../components/svelte/WestJigsaw.svelte";
 import "../components/svelte/EastCodebox.svelte";
 import "../components/svelte/LightBeamGrid.svelte";
 import "../components/svelte/NorthStatue.svelte";
+import "../components/svelte/FlaskTransfer.svelte";
 import finalDoorOpenImg from "../assets/alchemist/finaldoor_open.png";
 import featherStatueImg from "../assets/alchemist/feather_statue.png";
 
@@ -29,21 +30,6 @@ import {
 } from "./roomView/statueFeather.js";
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
-
-// TEMP TEST ONLY (Transmuter): remove this helper once these items are earned via puzzle flow.
-function withTransmuterTestItems(
-  items,
-  includeCoalBlock = false,
-  includeMatches = false
-) {
-  const next = Array.isArray(items) ? [...items] : [];
-  const hasItem = (name) =>
-    next.some((entry) => String(entry?.item || "").toUpperCase() === name.toUpperCase());
-
-  if (includeCoalBlock && !hasItem("COAL_BLOCK")) next.push({ item: "COAL_BLOCK", count: 1 });
-  if (includeMatches && !hasItem("MATCHES")) next.push({ item: "MATCHES", count: 1 });
-  return next;
-}
 
 function withWestRoseReward(items, includeRose = false) {
   const next = Array.isArray(items) ? [...items] : [];
@@ -105,6 +91,66 @@ function hasEastDoorSolved(payload) {
   return false;
 }
 
+function getFlaskTransferState(payload) {
+  if (!payload || typeof payload !== "object") return null;
+  return (
+    payload.alchFlaskTransfer ||
+    payload.flask_transfer_puzzle ||
+    payload.puzzle_flask_transfer ||
+    payload["alch:flask-transfer"] ||
+    null
+  );
+}
+
+function stripLeakedFlaskRewardsAtStart(items, payload) {
+  if (!Array.isArray(items)) return [];
+  const flask = getFlaskTransferState(payload);
+  if (!flask) return items;
+
+  const solved = !!flask.solved;
+  const moves = Number(flask.moves || 0);
+  const output = flask.output || {};
+  const rewardsOpen =
+    !!output.coalBlockReady ||
+    !!output.moonwortReady ||
+    !!output.matchesReady ||
+    !!output.greenLiquidReady;
+
+  // Only scrub at true initial state. Once progressed/solved, trust backend inventory.
+  if (solved || moves > 0 || rewardsOpen) return items;
+
+  const leaked = new Set(["MOONWORT", "GREEN_LIQUID", "MATCHES", "COAL_BLOCK", "CHARCOAL_PEN"]);
+  return items.filter((entry) => !leaked.has(String(entry?.item || "").trim().toUpperCase()));
+}
+
+function withSolvedFlaskRewards(items, payload) {
+  const next = Array.isArray(items) ? [...items] : [];
+  const flask = getFlaskTransferState(payload);
+  if (!flask) return next;
+
+  const output = flask.output || {};
+  const rewardReady = {
+    MOONWORT: !!output.moonwortReady,
+    GREEN_LIQUID: !!output.greenLiquidReady,
+    MATCHES: !!output.matchesReady,
+    CHARCOAL_PEN: !!output.coalBlockReady,
+  };
+  if (!Object.values(rewardReady).some(Boolean)) return next;
+
+  const ensure = (name, aliases = []) => {
+    const wanted = new Set([String(name).toUpperCase(), ...aliases.map((v) => String(v).toUpperCase())]);
+    const exists = next.some((entry) => wanted.has(String(entry?.item || "").trim().toUpperCase()));
+    if (!exists) next.push({ item: name, count: 1 });
+  };
+
+  if (rewardReady.MOONWORT) ensure("MOONWORT");
+  if (rewardReady.GREEN_LIQUID) ensure("GREEN_LIQUID");
+  if (rewardReady.MATCHES) ensure("MATCHES");
+  if (rewardReady.CHARCOAL_PEN) ensure("CHARCOAL_PEN", ["COAL_BLOCK"]);
+
+  return next;
+}
+
 function normalizeActiveWidgetKey(value) {
   if (value === null || value === undefined) return value;
   const raw = String(value);
@@ -119,6 +165,8 @@ function normalizeActiveWidgetKey(value) {
     alcheastslidinglock: "alchEastSlidingLock",
     alchlightbeamgrid: "alchLightBeamGrid",
     alchstatuepose: "alch:statue",
+    "alch:flask-transfer": "flask_transfer_puzzle",
+    alchflasktransfer: "flask_transfer_puzzle",
     "alch:mirror-grid": "alchLightBeamGrid",
   };
   return aliases[lowered] || raw;
@@ -184,6 +232,27 @@ function getPuzzleStateByWidget(gameState, activeWidget) {
       "alch:statue",
       "alch:statue-pose",
     ],
+    flask_transfer_puzzle: [
+      "alchFlaskTransfer",
+      "flask_transfer_puzzle",
+      "puzzle_flask_transfer",
+    ],
+    puzzle_flask_transfer: [
+      "alchFlaskTransfer",
+      "puzzle_flask_transfer",
+      "flask_transfer_puzzle",
+    ],
+    alchFlaskTransfer: [
+      "alchFlaskTransfer",
+      "flask_transfer_puzzle",
+      "puzzle_flask_transfer",
+    ],
+    "alch:flask-transfer": [
+      "alchFlaskTransfer",
+      "alch:flask-transfer",
+      "flask_transfer_puzzle",
+      "puzzle_flask_transfer",
+    ],
   };
 
   const candidates = widgetStateCandidates[activeWidget] || [activeWidget];
@@ -235,9 +304,6 @@ export default function RoomView({ mode = "solo" }) {
   // Inventory State
   const [inventory, setInventory] = useState([]);
   const pendingFlags = useRef({}); // Generic pending flags
-  // TEMP TEST ONLY (Transmuter): keeps COAL_BLOCK and MATCHES in test inventory until first use.
-  const transmuterCoalTestPending = useRef(true);
-  const transmuterMatchesTestPending = useRef(true);
   const westRoseRewardGranted = useRef(false);
 
   // Refs for Web Components
@@ -277,14 +343,11 @@ export default function RoomView({ mode = "solo" }) {
       setEastDoorSolved(hasEastDoorSolved(publicState));
       setGameState(publicState);
       if (publicState.inventory?.items) {
-        // TEMP TEST ONLY (Transmuter): remove this wrapper once backend rewards these items.
+        const startItems = stripLeakedFlaskRewardsAtStart(publicState.inventory.items, publicState);
+        const solvedRewardItems = withSolvedFlaskRewards(startItems, publicState);
         setInventory(
           withWestRoseReward(
-            withTransmuterTestItems(
-              normalizeInventory(publicState.inventory.items, pendingFlags.current),
-              transmuterCoalTestPending.current,
-              transmuterMatchesTestPending.current
-            ),
+            normalizeInventory(solvedRewardItems, pendingFlags.current),
             westRoseRewardGranted.current
           )
         );
@@ -338,14 +401,13 @@ export default function RoomView({ mode = "solo" }) {
     }
 
     if (msg.diff?.inventory?.items) {
-      // TEMP TEST ONLY (Transmuter): remove this wrapper once backend rewards these items.
+      const solvedRewardItems = withSolvedFlaskRewards(msg.diff.inventory.items, {
+        ...gameState,
+        ...msg.diff,
+      });
       setInventory(
         withWestRoseReward(
-          withTransmuterTestItems(
-            normalizeInventory(msg.diff.inventory.items, pendingFlags.current),
-            transmuterCoalTestPending.current,
-            transmuterMatchesTestPending.current
-          ),
+          normalizeInventory(solvedRewardItems, pendingFlags.current),
           westRoseRewardGranted.current
         )
       );
@@ -383,9 +445,7 @@ export default function RoomView({ mode = "solo" }) {
   useEffect(() => {
     if (!socketReady || !roomId) return;
     const s = getSocket();
-    // TEMP TEST ONLY (Transmuter): re-seed COAL_BLOCK and MATCHES whenever the room is initialized.
-    transmuterCoalTestPending.current = true;
-    transmuterMatchesTestPending.current = true;
+    pendingFlags.current = {};
     s.emit("join_room", { roomId, name: "Solo Player" }, (res) => {
       if (res?.ok && res.snapshot) onSnapshot(res);
       else setLoading(false);
@@ -451,15 +511,6 @@ export default function RoomView({ mode = "solo" }) {
       const { objectId, verb, data, canonicalObjectId } = e.detail || {};
       const objectLower = String(objectId || "").toLowerCase();
       const verbLower = String(verb || "").toLowerCase();
-
-      const usedCoalInTransmuter =
-        objectLower === "alch:transmuter" &&
-        verbLower === "insert" &&
-        String(data?.item || "").trim().toUpperCase() === "COAL_BLOCK";
-      const usedMatchesInTransmuter =
-        objectLower === "alch:transmuter" &&
-        verbLower === "insert" &&
-        String(data?.item || "").trim().toUpperCase() === "MATCHES";
       const canonicalLower = String(canonicalObjectId || "").toLowerCase();
       const isStatueIntent =
         objectLower === "puzzle_statue_pose" ||
@@ -480,25 +531,10 @@ export default function RoomView({ mode = "solo" }) {
         }
       }
 
-      // TEMP TEST ONLY (Transmuter): stop auto-injecting COAL_BLOCK after first use.
-      if (usedCoalInTransmuter && transmuterCoalTestPending.current) {
-        transmuterCoalTestPending.current = false;
-      }
-      if (usedMatchesInTransmuter && transmuterMatchesTestPending.current) {
-        transmuterMatchesTestPending.current = false;
-      }
-
       // Optimistic Update
       const result = applyInventoryIntent(inventory, pendingFlags.current, { objectId, verb, data });
       pendingFlags.current = result.nextPending;
-      // TEMP TEST ONLY (Transmuter): remove this wrapper once backend rewards these items.
-      setInventory(
-        withTransmuterTestItems(
-          normalizeInventory(result.nextInventory, pendingFlags.current),
-          transmuterCoalTestPending.current,
-          transmuterMatchesTestPending.current
-        )
-      );
+      setInventory(normalizeInventory(result.nextInventory, pendingFlags.current));
 
       const payload = { roomId, actionId: crypto.randomUUID(), objectId, verb, data };
       if (canonicalObjectId) payload.canonicalObjectId = canonicalObjectId;

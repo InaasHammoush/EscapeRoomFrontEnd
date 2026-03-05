@@ -17,10 +17,12 @@ export const WIDGET_REGISTRY = {
   "east_sliding_lock_puzzle": "east-codebox-widget",
   "light_beam_grid_puzzle": "lightbeam-grid-widget",
   "statue_pose_puzzle": "north-statue-widget",
+  "flask_transfer_puzzle": "flask-transfer-widget",
   // New backend IDs
   "puzzle_west_codebox": "west-jigsaw-widget",
   "puzzle_east_sliding_lock": "east-codebox-widget",
   "puzzle_light_beam_grid": "lightbeam-grid-widget",
+  "puzzle_flask_transfer": "flask-transfer-widget",
   // Legacy aliases kept for compatibility
   "alchWestCodeboxJigsaw": "west-jigsaw-widget",
   "alch_west_codebox_jigsaw": "west-jigsaw-widget",
@@ -39,4 +41,6 @@ export const WIDGET_REGISTRY = {
   "alch:statue": "north-statue-widget",
   "alch:statue-pose": "north-statue-widget",
   "alchStatuePose": "north-statue-widget",
+  "alch:flask-transfer": "flask-transfer-widget",
+  "alchFlaskTransfer": "flask-transfer-widget",
 };
