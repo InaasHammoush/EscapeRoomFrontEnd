@@ -5,6 +5,10 @@ import moonwortImg from "../assets/alchemist/moonwort.png";
 import blueLiquidImg from "../assets/alchemist/blue_liquid.png";
 import greenLiquidImg from "../assets/alchemist/green_liquid.png";
 import emptyBottleImg from "../assets/alchemist/empty_bottle.png";
+import goldenKeyImg from "../assets/alchemist/goldkey.png";
+import charcoalPenImg from "../assets/alchemist/charcoal_pen.png";
+import goldNuggetImg from "../assets/alchemist/goldnugget.png";
+import matchesImg from "../assets/alchemist/matchbox.png";
 
 // Import Wizard Items 
 import bluePowderImg from "../assets/wizard_library/bluePowder.png";
@@ -24,6 +28,10 @@ export const ITEM_IMAGES = {
   BLUE_LIQUID: blueLiquidImg,
   GREEN_LIQUID: greenLiquidImg,
   EMPTY_BOTTLE: emptyBottleImg,
+  GOLDEN_KEY: goldenKeyImg,
+  COAL_BLOCK: charcoalPenImg,
+  GOLD_NUGGET: goldNuggetImg,
+  MATCHES : matchesImg,
   
   // Wizard
   BLUE_POWDER: bluePowderImg,

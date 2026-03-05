@@ -28,6 +28,12 @@ import { normalizeInventory, applyInventoryIntent } from "../state/inventoryAdap
 import { resolveWallImage } from "../config/wallImageOverrides.js";
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
+const WIDGET_STATE_ALIASES = Object.freeze({
+  transmuter_puzzle: ["transmuter_puzzle", "alch:transmuter", "alchKeyTransmutation"],
+  "alch:transmuter": ["alch:transmuter", "alchKeyTransmutation", "transmuter_puzzle"],
+  "alch:mortar": ["alch:mortar", "alchMortarEssence", "mortar_puzzle"],
+  mortar_puzzle: ["mortar_puzzle", "alch:mortar", "alchMortarEssence"],
+});
 
 export default function RoomView({ mode = "solo" }) {
   const { sessionId, roomId } = useParams();
@@ -150,7 +156,8 @@ export default function RoomView({ mode = "solo" }) {
     if (!tagName) return;
 
     const el = widgetRefs.current[activeWidget];
-    const puzzleData = gameState[activeWidget];
+    const candidateKeys = WIDGET_STATE_ALIASES[activeWidget] || [activeWidget];
+    const puzzleData = candidateKeys.map((k) => gameState[k]).find(Boolean);
 
     if (el && puzzleData) {
       // Generic prop passing
