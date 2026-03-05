@@ -18,6 +18,7 @@ import "../components/svelte/KeyVase.svelte";
 import "../components/svelte/RecipeHint.svelte";
 import "../components/svelte/Mortar.svelte";
 import "../components/svelte/Transmuter.svelte";
+import "../components/svelte/StatuePose.svelte";
 import "../components/svelte/MerlinScale.svelte";
 import "../components/svelte/DoorSeal.svelte";
 import "../components/svelte/Mortar.svelte"; 
@@ -33,6 +34,8 @@ const WIDGET_STATE_ALIASES = Object.freeze({
   "alch:transmuter": ["alch:transmuter", "alchKeyTransmutation", "transmuter_puzzle"],
   "alch:mortar": ["alch:mortar", "alchMortarEssence", "mortar_puzzle"],
   mortar_puzzle: ["mortar_puzzle", "alch:mortar", "alchMortarEssence"],
+  statue_pose_puzzle: ["statue_pose_puzzle", "alch:statue", "alchStatuePose"],
+  "alch:statue": ["alch:statue", "alchStatuePose", "statue_pose_puzzle"],
 });
 
 export default function RoomView({ mode = "solo" }) {

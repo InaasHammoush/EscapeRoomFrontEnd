@@ -21,4 +21,6 @@ export const WIDGET_REGISTRY = {
   "mortar_puzzle": "mortar-widget",
   "transmuter_puzzle":  "transmuter-widget",
   "alch:transmuter": "transmuter-widget",
+  "statue_pose_puzzle": "statue-widget",
+  "alch:statue": "statue-widget",
 };

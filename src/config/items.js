@@ -9,6 +9,8 @@ import goldenKeyImg from "../assets/alchemist/goldkey.png";
 import charcoalPenImg from "../assets/alchemist/charcoal_pen.png";
 import goldNuggetImg from "../assets/alchemist/goldnugget.png";
 import matchesImg from "../assets/alchemist/matchbox.png";
+import featherStatueImg from "../assets/alchemist/feather_statue.png";
+import flammaNoteImg from "../assets/alchemist/flamma.png";
 
 // Import Wizard Items 
 import bluePowderImg from "../assets/wizard_library/bluePowder.png";
@@ -32,6 +34,8 @@ export const ITEM_IMAGES = {
   COAL_BLOCK: charcoalPenImg,
   GOLD_NUGGET: goldNuggetImg,
   MATCHES : matchesImg,
+  FEATHER: featherStatueImg,
+  NOTE_FLAMMA: flammaNoteImg,
   
   // Wizard
   BLUE_POWDER: bluePowderImg,
