@@ -6,17 +6,25 @@ import InteractionLayer from "../components/InteractionLayers/InteractionLayerMa
 // Import Widget Registry
 import { WIDGET_REGISTRY } from "../config/widgets.js";
 
-// Import Svelte Wrappers (Ensure these files exist)
+// Import Svelte Wrappers
 import "../components/svelte/Keypad.svelte";
 import "../components/svelte/ScrollGrid.svelte";
 import "../components/svelte/Bookshelf.svelte";
 import "../components/svelte/CandlePuzzle.svelte";
+import "../components/svelte/TransformationTable.svelte";
+import "../components/svelte/CandleHint.svelte";
+import "../components/svelte/FrameHint.svelte";
+import "../components/svelte/KeyVase.svelte";
+import "../components/svelte/RecipeHint.svelte";
 import "../components/svelte/Mortar.svelte";
 import "../components/svelte/Transmuter.svelte";
+import "../components/svelte/MerlinScale.svelte";
+import "../components/svelte/DoorSeal.svelte";
 
 import HUD from "../components/HUD.jsx";
 import InventoryBar from "../components/inventory/InventoryBar.jsx";
 import { normalizeInventory, applyInventoryIntent } from "../state/inventoryAdapter.js";
+import { resolveWallImage } from "../config/wallImageOverrides.js";
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
 
@@ -181,6 +189,8 @@ export default function RoomView({ mode = "solo" }) {
 
   // --- RENDER ---
   const WidgetTag = activeWidget ? WIDGET_REGISTRY[activeWidget] : null;
+  const baseWallImage = images[viewIndex];
+  const wallImage = resolveWallImage(baseWallImage, { roomType, viewIndex, gameState });
 
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
@@ -191,9 +201,9 @@ export default function RoomView({ mode = "solo" }) {
       />
       
       {/* Background & Click Layer */}
-      {images[viewIndex] && <img src={images[viewIndex]} className="absolute inset-0 w-full h-full object-contain select-none z-0" />}
+      {wallImage && <img src={wallImage} className="absolute inset-0 w-full h-full object-contain select-none z-0" />}
       <div className="absolute inset-0 z-10 pointer-events-none">
-        <InteractionLayer viewIndex={viewIndex} roomId={roomId} socket={getSocket()} roomType={roomType} />
+        <InteractionLayer viewIndex={viewIndex} roomId={roomId} socket={getSocket()} roomType={roomType} gameState={gameState} />
       </div>
 
       {/* Generic Inventory Bar */}

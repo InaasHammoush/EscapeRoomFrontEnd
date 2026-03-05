@@ -8,6 +8,13 @@ export const WIDGET_REGISTRY = {
   "candle_puzzle":    "candle-puzzle-widget",
   "merlin_scale":     "merlin-scale-widget",
   "mortar_puzzle_widget": "mortar-widget",
+  "candle_hint":       "candle-hint-widget",
+  "frame_hint":        "frame-hint-widget",
+  "recipe_hint":       "recipe-hint-widget",
+  "transformation_table_puzzle": "transformation-table-widget",
+  "vase_puzzle":       "vase-widget",
+  "door_seal":         "door-seal-widget",
+  
 
   // Alchemist Puzzles
   "mortar_puzzle":      "mortar-widget",
