@@ -17,6 +17,7 @@ export const WIDGET_REGISTRY = {
   
 
   // Alchemist Puzzles
-  "mortar_puzzle":      "mortar-widget",
+  "alch:mortar": "mortar-widget",
+  "mortar_puzzle": "mortar-widget",
   "transmuter_puzzle":  "transmuter-widget",
 };
