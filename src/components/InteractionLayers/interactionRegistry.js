@@ -4,6 +4,7 @@ import { renderWizardLibrarySouthWall } from "./wizard_library/south";
 import { renderWizardLibraryWestWall } from "./wizard_library/west";
 import { renderAlchemistLabWestWall } from "./alchemist_lab/west";
 import { renderAlchemistLabNorthWall } from "./alchemist_lab/north";
+import { renderAlchemistLabSouthWall } from "./alchemist_lab/south";
 
 // Import other walls they are implemented
 
@@ -17,7 +18,7 @@ const registry = {
   alchemist_lab: {
     0: renderAlchemistLabNorthWall,
     1: null,
-    2: null,
+    2: renderAlchemistLabSouthWall,
     3: renderAlchemistLabWestWall,
   },
 };
