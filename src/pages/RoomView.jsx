@@ -6,30 +6,41 @@ import InteractionLayer from "../components/InteractionLayers/InteractionLayerMa
 // Import Widget Registry
 import { WIDGET_REGISTRY } from "../config/widgets.js";
 
-// Import Svelte Wrappers (Ensure these files exist)
-import "../components/svelte/Keypad.svelte";
+// Import Svelte Wrappers
 import "../components/svelte/ScrollGrid.svelte";
 import "../components/svelte/Bookshelf.svelte";
 import "../components/svelte/CandlePuzzle.svelte";
-import "../components/svelte/Mortar.svelte";
+import "../components/svelte/TransformationTable.svelte";
+import "../components/svelte/CandleHint.svelte";
+import "../components/svelte/FrameHint.svelte";
+import "../components/svelte/KeyVase.svelte";
+import "../components/svelte/RecipeHint.svelte";
 import "../components/svelte/Transmuter.svelte";
 import "../components/svelte/WestJigsaw.svelte";
 import "../components/svelte/EastCodebox.svelte";
 import "../components/svelte/LightBeamGrid.svelte";
-import "../components/svelte/NorthStatue.svelte";
 import "../components/svelte/FlaskTransfer.svelte";
-import finalDoorOpenImg from "../assets/alchemist/finaldoor_open.png";
-import featherStatueImg from "../assets/alchemist/feather_statue.png";
+import "../components/svelte/StatuePose.svelte";
+import "../components/svelte/MerlinScale.svelte";
+import "../components/svelte/DoorSeal.svelte";
+import "../components/svelte/Mortar.svelte"; 
 
 import HUD from "../components/HUD.jsx";
 import InventoryBar from "../components/inventory/InventoryBar.jsx";
 import { normalizeInventory, applyInventoryIntent } from "../state/inventoryAdapter.js";
-import {
-  getNorthWallFeatherOverlay,
-  readStatueFeatherFromPayload,
-} from "./roomView/statueFeather.js";
+import { resolveWallImage } from "../config/wallImageOverrides.js";
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
+const WIDGET_STATE_ALIASES = Object.freeze({
+  transmuter_puzzle: ["transmuter_puzzle", "alch:transmuter", "alchKeyTransmutation"],
+  "alch:transmuter": ["alch:transmuter", "alchKeyTransmutation", "transmuter_puzzle"],
+  "alch:mortar": ["alch:mortar", "alchMortarEssence", "mortar_puzzle"],
+  mortar_puzzle: ["mortar_puzzle", "alch:mortar", "alchMortarEssence"],
+  flask_transfer_puzzle: ["flask_transfer_puzzle", "alch:flask-transfer", "alchFlaskTransfer"],
+  "alch:flask-transfer": ["alch:flask-transfer", "alchFlaskTransfer", "flask_transfer_puzzle"],
+  statue_pose_puzzle: ["statue_pose_puzzle", "alch:statue", "alchStatuePose"],
+  "alch:statue": ["alch:statue", "alchStatuePose", "statue_pose_puzzle"],
+});
 
 function withWestRoseReward(items, includeRose = false) {
   const next = Array.isArray(items) ? [...items] : [];
@@ -470,6 +481,16 @@ export default function RoomView({ mode = "solo" }) {
         gameState?.["alch:mirror-grid"] ??
         gameState?.light_beam_grid_puzzle ??
         gameState?.puzzle_light_beam_grid;
+    const candidateKeys = WIDGET_STATE_ALIASES[activeWidget] || [activeWidget];
+    const puzzleData = candidateKeys.map((k) => gameState[k]).find(Boolean);}
+
+    if (el && puzzleData) {
+      // Generic prop passing
+      if ("grid" in el) el.grid = puzzleData;
+      if ("puzzle" in el) el.puzzle = puzzleData;
+      
+      // Inject inventory only if the widget needs it (optional optimization)
+      if ("inventory" in el) el.inventory = inventory;
     }
 
     if (el && puzzleData !== undefined) {
@@ -551,20 +572,8 @@ export default function RoomView({ mode = "solo" }) {
 
   // --- RENDER ---
   const WidgetTag = activeWidget ? WIDGET_REGISTRY[activeWidget] : null;
-  const currentImage = images[viewIndex];
-  const displayImage =
-    roomType === "alchemist_lab" && viewIndex === 1 && eastDoorSolved
-      ? finalDoorOpenImg
-      : currentImage;
-  const { visible: showNorthWallFeather, style: wallFeatherStyle } =
-    getNorthWallFeatherOverlay({
-      roomType,
-      viewIndex,
-      statueFeatherPlaced,
-      statueFeatherSide,
-      windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight,
-    });
+  const baseWallImage = images[viewIndex];
+  const wallImage = resolveWallImage(baseWallImage, { roomType, viewIndex, gameState });
 
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
@@ -575,26 +584,9 @@ export default function RoomView({ mode = "solo" }) {
       />
       
       {/* Background & Click Layer */}
-      {displayImage && <img src={displayImage} className="absolute inset-0 w-full h-full object-contain select-none z-0" />}
-      {showNorthWallFeather && (
-        <img
-          src={featherStatueImg}
-          alt=""
-          className="absolute z-[5] pointer-events-none select-none"
-          style={wallFeatherStyle}
-        />
-      )}
-      <div className="absolute inset-0 z-10">
-        <InteractionLayer
-          key={`${roomType || "unknown"}-${viewIndex}-${eastDoorSolved ? "solved" : "unsolved"}`}
-          viewIndex={viewIndex}
-          roomId={roomId}
-          socket={getSocket()}
-          roomType={roomType}
-          eastDoorSolved={eastDoorSolved}
-          statueFeatherPlaced={statueFeatherPlaced}
-          statueFeatherSide={statueFeatherSide}
-        />
+      {wallImage && <img src={wallImage} className="absolute inset-0 w-full h-full object-contain select-none z-0" />}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        <InteractionLayer viewIndex={viewIndex} roomId={roomId} socket={getSocket()} roomType={roomType} gameState={gameState} />
       </div>
 
       {/* Generic Inventory Bar */}

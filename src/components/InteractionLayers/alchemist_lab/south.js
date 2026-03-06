@@ -3,8 +3,6 @@ import * as PIXI from "pixi.js";
 export const renderAlchemistLabSouthWall = (app, { roomId, socket, normX, normY, scaleX, scaleY }) => {
   const stage = app.stage;
 
-  console.log(" Rendering alchemist_lab south wall. Socket available?", !!socket);
-
   const portraitHotspot = new PIXI.Graphics()
     .rect(
       normX(350),
@@ -17,9 +15,6 @@ export const renderAlchemistLabSouthWall = (app, { roomId, socket, normX, normY,
   portraitHotspot.eventMode = "static";
   portraitHotspot.cursor = "pointer";
 
-  portraitHotspot.on("pointertap", () => {
-    console.log("South portrait hotspot clicked!");
-
     document.dispatchEvent(
       new CustomEvent("intent", {
         detail: {
@@ -31,14 +26,11 @@ export const renderAlchemistLabSouthWall = (app, { roomId, socket, normX, normY,
         composed: true,
       })
     );
-    console.log("FEATHER granted from south portrait");
-  });
+  
 
   stage.addChild(portraitHotspot);
-  console.log("South portrait hotspot added to stage");
 
-  // Flask transfer puzzle hotspot
-  const flaskTransfer = new PIXI.Graphics()
+  const flasks = new PIXI.Graphics()
     .rect(
       normX(717),
       normY(412),
@@ -47,11 +39,10 @@ export const renderAlchemistLabSouthWall = (app, { roomId, socket, normX, normY,
     )
     .fill({ color: 0x00ff00, alpha: 0.3 });
 
-  flaskTransfer.eventMode = "static";
-  flaskTransfer.cursor = "pointer";
+  flasks.eventMode = "static";
+  flasks.cursor = "pointer";
 
-  flaskTransfer.on("pointertap", () => {
-    console.log("Flask transfer hotspot clicked!");
+  flasks.on("pointertap", () => {
     if (!socket) return;
 
     socket.emit("interact", {
@@ -62,7 +53,5 @@ export const renderAlchemistLabSouthWall = (app, { roomId, socket, normX, normY,
     });
   });
 
-  stage.addChild(flaskTransfer);
-  console.log("Flask transfer hotspot added to stage");
-
+  stage.addChild(flasks);
 };

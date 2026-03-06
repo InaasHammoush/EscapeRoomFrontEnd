@@ -8,16 +8,22 @@ export const WIDGET_REGISTRY = {
   "candle_puzzle":    "candle-puzzle-widget",
   "merlin_scale":     "merlin-scale-widget",
   "mortar_puzzle_widget": "mortar-widget",
+  "candle_hint":       "candle-hint-widget",
+  "frame_hint":        "frame-hint-widget",
+  "recipe_hint":       "recipe-hint-widget",
+  "transformation_table_puzzle": "transformation-table-widget",
+  "vase_puzzle":       "vase-widget",
+  "door_seal":         "door-seal-widget",
+  
 
   // Alchemist Puzzles
-  "mortar_puzzle":      "mortar-widget",
+  "alch:mortar": "mortar-widget",
+  "mortar_puzzle": "mortar-widget",
   "transmuter_puzzle":  "transmuter-widget",
   // Backend activeWidget keys (current index.js)
   "west_codebox_puzzle": "west-jigsaw-widget",
   "east_sliding_lock_puzzle": "east-codebox-widget",
   "light_beam_grid_puzzle": "lightbeam-grid-widget",
-  "statue_pose_puzzle": "north-statue-widget",
-  "flask_transfer_puzzle": "flask-transfer-widget",
   // New backend IDs
   "puzzle_west_codebox": "west-jigsaw-widget",
   "puzzle_east_sliding_lock": "east-codebox-widget",
@@ -38,9 +44,11 @@ export const WIDGET_REGISTRY = {
   "alch_light_beam_grid": "lightbeam-grid-widget",
   "light_beam_grid": "lightbeam-grid-widget",
   "alch:mirror-grid": "lightbeam-grid-widget",
-  "alch:statue": "north-statue-widget",
-  "alch:statue-pose": "north-statue-widget",
-  "alchStatuePose": "north-statue-widget",
+
+  // von dem fix branch
+  "alch:transmuter": "transmuter-widget",
+  "flask_transfer_puzzle": "flask-transfer-widget",
   "alch:flask-transfer": "flask-transfer-widget",
-  "alchFlaskTransfer": "flask-transfer-widget",
+  "statue_pose_puzzle": "statue-widget",
+  "alch:statue": "statue-widget",
 };
