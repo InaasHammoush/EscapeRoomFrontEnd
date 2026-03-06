@@ -247,7 +247,11 @@
   }
 
   .head {
-    top: -1%; left: 35%; width: 25%; height: 30%; z-index: 3;
+    top: 5%;
+    left: 35%;
+    width: 25%;
+    height: 17%;
+    z-index: 3;
   }
 
   .left-arm {
@@ -315,13 +319,13 @@
   }
 
   .ear-zone-left {
-    top: 18%;
+    top: 8%;
     left: 35%;
   }
 
   .ear-zone-right {
-    top: 18%;
-    right: 35%;
+    top: 8%;
+    right: 39%;
   }
 
   /* --- REWARD NOTE --- */
