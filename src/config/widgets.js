@@ -16,4 +16,10 @@ export const WIDGET_REGISTRY = {
   // Alchemist Puzzles
   "mortar_puzzle":      "mortar-widget",
   "transmuter_puzzle":  "transmuter-widget",
+
+  // Final Corridor
+  "final_word_input": "final-door-widget",
+  "final_sync_plates": "final-door-widget",
+  "final_door_panel": "final-door-widget",
+  "final_rune_hint": "final-door-widget",
 };

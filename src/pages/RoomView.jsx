@@ -17,12 +17,36 @@ import "../components/svelte/FrameHint.svelte";
 import "../components/svelte/RecipeHint.svelte";
 import "../components/svelte/Mortar.svelte";
 import "../components/svelte/Transmuter.svelte";
+import "../components/svelte/FinalDoorInput.svelte";
 
 import HUD from "../components/HUD.jsx";
 import InventoryBar from "../components/inventory/InventoryBar.jsx";
 import { normalizeInventory, applyInventoryIntent } from "../state/inventoryAdapter.js";
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
+
+const WIDGET_STATE_KEYS = {
+  // Alchemist widgets -> backend public keys
+  mortar_puzzle: "alchMortarEssence",
+  transmuter_puzzle: "alchKeyTransmutation",
+  portrait_books_puzzle: "alchPortraitBooks",
+  flask_transfer_puzzle: "alchFlaskTransfer",
+  west_codebox_puzzle: "alchWestCodeboxJigsaw",
+  north_hierarchy_note_puzzle: "alchNorthHierarchyNote",
+  statue_pose_puzzle: "alchStatuePose",
+  east_sliding_lock_puzzle: "alchEastSlidingLock",
+  east_door_sync_puzzle: "alchEastDoorSync",
+  light_beam_grid_puzzle: "alchLightBeamGrid",
+
+  // Wizard misc aliases
+  transformation_table_puzzle: "wizard_transformation_table",
+
+  // Final corridor widget aliases
+  final_word_input: "finalCorridor",
+  final_sync_plates: "finalCorridor",
+  final_door_panel: "finalCorridor",
+  final_rune_hint: "finalCorridor",
+};
 
 export default function RoomView({ mode = "solo" }) {
   const { sessionId, roomId } = useParams();
@@ -145,7 +169,8 @@ export default function RoomView({ mode = "solo" }) {
     if (!tagName) return;
 
     const el = widgetRefs.current[activeWidget];
-    const puzzleData = gameState[activeWidget];
+    const stateKey = WIDGET_STATE_KEYS[activeWidget] || activeWidget;
+    const puzzleData = gameState[stateKey];
 
     if (el && puzzleData) {
       // Generic prop passing
@@ -197,7 +222,13 @@ export default function RoomView({ mode = "solo" }) {
       {/* Background & Click Layer */}
       {images[viewIndex] && <img src={images[viewIndex]} className="absolute inset-0 w-full h-full object-contain select-none z-0" />}
       <div className="absolute inset-0 z-10 pointer-events-none">
-        <InteractionLayer viewIndex={viewIndex} roomId={roomId} socket={getSocket()} roomType={roomType} />
+        <InteractionLayer
+          viewIndex={viewIndex}
+          roomId={roomId}
+          socket={getSocket()}
+          roomType={roomType}
+          gameState={gameState}
+        />
       </div>
 
       {/* Generic Inventory Bar */}
