@@ -20,6 +20,9 @@ export const WIDGET_REGISTRY = {
   "alch:mortar": "mortar-widget",
   "mortar_puzzle": "mortar-widget",
   "transmuter_puzzle":  "transmuter-widget",
+  "portrait_books_puzzle": "portrait-widget",
+  "alch:portrait": "portrait-widget",
+  "alch_portrait": "portrait-widget",
   // Backend activeWidget keys (current index.js)
   "west_codebox_puzzle": "west-jigsaw-widget",
   "east_sliding_lock_puzzle": "east-codebox-widget",

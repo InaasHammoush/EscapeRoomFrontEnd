@@ -5,7 +5,7 @@
   import bgImg from "../../assets/alchemist/north_statue_empty.png";
   import bodyImg from "../../assets/alchemist/statue_body_nothing.png";
   import flammaNoteImg from "../../assets/alchemist/flamma.png";
-  import featherStatueImg from "../../assets/alchemist/feather_statue.png";
+  import featherStatueImg from "../../assets/alchemist/feather.png";
   
   // Head States
   import headDown from "../../assets/alchemist/head_down.png";

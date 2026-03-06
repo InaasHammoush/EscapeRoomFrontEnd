@@ -15,18 +15,16 @@ export const renderAlchemistLabSouthWall = (app, { roomId, socket, normX, normY,
   portraitHotspot.eventMode = "static";
   portraitHotspot.cursor = "pointer";
 
-    document.dispatchEvent(
-      new CustomEvent("intent", {
-        detail: {
-          objectId: "alch:statue-pose",
-          verb: "take",
-          data: { item: "FEATHER" },
-        },
-        bubbles: true,
-        composed: true,
-      })
-    );
-  
+  portraitHotspot.on("pointertap", () => {
+    if (!socket) return;
+
+      socket.emit("interact", {
+        roomId,
+        actionId: crypto.randomUUID(),
+        objectId: "trigger_portrait_books",
+        verb: "INTERACT",
+      });
+    });
 
   stage.addChild(portraitHotspot);
 

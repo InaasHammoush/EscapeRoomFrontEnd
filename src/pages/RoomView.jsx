@@ -24,6 +24,7 @@ import "../components/svelte/StatuePose.svelte";
 import "../components/svelte/MerlinScale.svelte";
 import "../components/svelte/DoorSeal.svelte";
 import "../components/svelte/Mortar.svelte"; 
+import "../components/svelte/Portrait.svelte";
 
 import HUD from "../components/HUD.jsx";
 import InventoryBar from "../components/inventory/InventoryBar.jsx";
@@ -36,6 +37,9 @@ const WIDGET_STATE_ALIASES = Object.freeze({
   "alch:transmuter": ["alch:transmuter", "alchKeyTransmutation", "transmuter_puzzle"],
   "alch:mortar": ["alch:mortar", "alchMortarEssence", "mortar_puzzle"],
   mortar_puzzle: ["mortar_puzzle", "alch:mortar", "alchMortarEssence"],
+  portrait_books_puzzle: ["alchPortrait", "alch_portrait", "alchPortraitBooks", "portrait_books_puzzle"],
+  "alch:portrait": ["alchPortrait", "alch_portrait", "alchPortraitBooks", "portrait_books_puzzle"],
+  alch_portrait: ["alchPortrait", "alch_portrait", "alchPortraitBooks", "portrait_books_puzzle"],
   flask_transfer_puzzle: ["flask_transfer_puzzle", "alch:flask-transfer", "alchFlaskTransfer"],
   "alch:flask-transfer": ["alch:flask-transfer", "alchFlaskTransfer", "flask_transfer_puzzle"],
   statue_pose_puzzle: ["statue_pose_puzzle", "alch:statue", "alchStatuePose"],
@@ -222,6 +226,24 @@ function getPuzzleStateByWidget(gameState, activeWidget) {
       "puzzle_light_beam_grid",
       "light_beam_grid",
     ],
+    portrait_books_puzzle: [
+      "alchPortrait",
+      "alch_portrait",
+      "alchPortraitBooks",
+      "portrait_books_puzzle",
+    ],
+    "alch:portrait": [
+      "alchPortrait",
+      "alch_portrait",
+      "alchPortraitBooks",
+      "portrait_books_puzzle",
+    ],
+    alch_portrait: [
+      "alchPortrait",
+      "alch_portrait",
+      "alchPortraitBooks",
+      "portrait_books_puzzle",
+    ],
     "alch:statue": [
       "alchStatuePose",
       "alch:statue-pose",
@@ -345,11 +367,6 @@ export default function RoomView({ mode = "solo" }) {
       setActiveWidget(normalizeActiveWidgetKey(snapshotWidget));
     }
     if (publicState) {
-      const statueFeather = readStatueFeatherFromPayload(publicState);
-      if (statueFeather) {
-        setStatueFeatherPlaced(statueFeather.placed);
-        if (statueFeather.side) setStatueFeatherSide(statueFeather.side);
-      }
       if (hasWestRoseReady(publicState)) westRoseRewardGranted.current = true;
       setEastDoorSolved(hasEastDoorSolved(publicState));
       setGameState(publicState);
@@ -369,11 +386,6 @@ export default function RoomView({ mode = "solo" }) {
   // --- DELTA UPDATE ---
   const onPuzzleUpdate = useCallback((msg) => {
     if (!msg?.diff) return;
-    const statueFeather = readStatueFeatherFromPayload(msg.diff);
-    if (statueFeather) {
-      setStatueFeatherPlaced(statueFeather.placed);
-      if (statueFeather.side) setStatueFeatherSide(statueFeather.side);
-    }
     if (hasWestRoseReady(msg.diff)) westRoseRewardGranted.current = true;
     if (hasEastDoorSolved(msg.diff)) setEastDoorSolved(true);
 
@@ -530,26 +542,10 @@ export default function RoomView({ mode = "solo" }) {
   useEffect(() => {
     const handleIntent = (e) => {
       const { objectId, verb, data, canonicalObjectId } = e.detail || {};
-      const objectLower = String(objectId || "").toLowerCase();
-      const verbLower = String(verb || "").toLowerCase();
-      const canonicalLower = String(canonicalObjectId || "").toLowerCase();
-      const isStatueIntent =
-        objectLower === "puzzle_statue_pose" ||
-        objectLower === "alch:statue-pose" ||
-        canonicalLower === "alch:statue-pose";
+
       if (verb === "CLOSE") {
         setActiveWidget(null);
         return;
-      }
-
-      if (isStatueIntent && verbLower === "insert") {
-        const itemNorm = String(data?.item || "").trim().toUpperCase().replace(/\s+/g, "_");
-        if (itemNorm === "FEATHER" || itemNorm === "FEATHER_STATUE") {
-          const sideRaw = String(data?.side || data?.ear || "").toLowerCase();
-          const side = sideRaw.includes("right") ? "right" : "left";
-          setStatueFeatherPlaced(true);
-          setStatueFeatherSide(side);
-        }
       }
 
       // Optimistic Update

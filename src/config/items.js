@@ -11,7 +11,7 @@ import goldenKeyImg from "../assets/alchemist/goldkey.png";
 import charcoalPenImg from "../assets/alchemist/charcoal_pen.png";
 import goldNuggetImg from "../assets/alchemist/goldnugget.png";
 import matchesImg from "../assets/alchemist/matchbox.png";
-import featherStatueImg from "../assets/alchemist/feather_statue.png";
+import featherStatueImg from "../assets/alchemist/feather.png";
 import flammaNoteImg from "../assets/alchemist/flamma.png";
 
 // Import Wizard Items 
@@ -67,7 +67,7 @@ export const ITEM_UI_CONFIG = {
     sizeClass: "h-12 w-12",
     offsetClass: "",
   },
-  FEATHER_STATUE: {
+  FEATHER: {
     sizeClass: "h-12 w-12",
     offsetClass: "",
   },

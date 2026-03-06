@@ -1,9 +1,6 @@
 import * as PIXI from "pixi.js";
 
-export const renderAlchemistLabNorthWall = (
-  app,
-  { normX, normY, scaleX, scaleY }
-) => {
+export const renderAlchemistLabNorthWall = (app, { roomId, socket, gameState, normX, normY, scaleX, scaleY }) => {
   const stage = app.stage;
   
   const drawerHotspot = new PIXI.Graphics()
@@ -20,21 +17,10 @@ export const renderAlchemistLabNorthWall = (
 
   drawerHotspot.on("pointertap", () => {
     console.log("North drawer hotspot clicked!");
-    document.dispatchEvent(
-      new CustomEvent("intent", {
-        detail: {
-          objectId: "alch:south-drawer",
-          verb: "take",
-          data: { item: "HIRACHY" },
-        },
-        bubbles: true,
-        composed: true,
-      })
-    );
   });
 
   stage.addChild(drawerHotspot);
-  
+
   const statue = new PIXI.Graphics()
     .rect(
       normX(269),
