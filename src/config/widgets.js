@@ -22,7 +22,8 @@ export const WIDGET_REGISTRY = {
   "transmuter_puzzle":  "transmuter-widget",
   "portrait_books_puzzle": "portrait-widget",
   "alch:portrait": "portrait-widget",
-  "alch_portrait": "portrait-widget",
+  "alch_drawer_puzzle": "drawer-widget",
+  "alch:drawer": "drawer-widget",
   // Backend activeWidget keys (current index.js)
   "west_codebox_puzzle": "west-jigsaw-widget",
   "east_sliding_lock_puzzle": "east-codebox-widget",

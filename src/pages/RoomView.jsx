@@ -25,6 +25,7 @@ import "../components/svelte/MerlinScale.svelte";
 import "../components/svelte/DoorSeal.svelte";
 import "../components/svelte/Mortar.svelte"; 
 import "../components/svelte/Portrait.svelte";
+import "../components/svelte/Drawer.svelte";
 
 import HUD from "../components/HUD.jsx";
 import InventoryBar from "../components/inventory/InventoryBar.jsx";
@@ -40,6 +41,8 @@ const WIDGET_STATE_ALIASES = Object.freeze({
   portrait_books_puzzle: ["alchPortrait", "alch_portrait", "alchPortraitBooks", "portrait_books_puzzle"],
   "alch:portrait": ["alchPortrait", "alch_portrait", "alchPortraitBooks", "portrait_books_puzzle"],
   alch_portrait: ["alchPortrait", "alch_portrait", "alchPortraitBooks", "portrait_books_puzzle"],
+  alch_drawer_puzzle: ["alch_drawer_puzzle", "alch:drawer"],
+  "alch:drawer": ["alch_drawer_puzzle", "alch:drawer"],
   flask_transfer_puzzle: ["flask_transfer_puzzle", "alch:flask-transfer", "alchFlaskTransfer"],
   "alch:flask-transfer": ["alch:flask-transfer", "alchFlaskTransfer", "flask_transfer_puzzle"],
   statue_pose_puzzle: ["statue_pose_puzzle", "alch:statue", "alchStatuePose"],
@@ -243,6 +246,14 @@ function getPuzzleStateByWidget(gameState, activeWidget) {
       "alch_portrait",
       "alchPortraitBooks",
       "portrait_books_puzzle",
+    ],
+    alch_drawer_puzzle: [
+      "alch_drawer_puzzle",
+      "alch:drawer",
+    ],
+    "alch:drawer": [
+      "alch_drawer_puzzle",
+      "alch:drawer",
     ],
     "alch:statue": [
       "alchStatuePose",

@@ -6,7 +6,7 @@ import blueLiquidImg from "../assets/alchemist/blue_liquid.png";
 import greenLiquidImg from "../assets/alchemist/green_liquid.png";
 import emptyBottleImg from "../assets/alchemist/empty_bottle.png";
 import burningRoseWholeImg from "../assets/alchemist/burningrose_whole.png";
-import hirachyImg from "../assets/alchemist/hirachy.png";
+import hierarchyImg from "../assets/alchemist/hirachy.png";
 import goldenKeyImg from "../assets/alchemist/goldkey.png";
 import charcoalPenImg from "../assets/alchemist/charcoal_pen.png";
 import goldNuggetImg from "../assets/alchemist/goldnugget.png";
@@ -34,7 +34,7 @@ export const ITEM_IMAGES = {
   EMPTY_BOTTLE: emptyBottleImg,
   BURNINGROSE_WHOLE: burningRoseWholeImg,
   BURNING_ROSE_WHOLE: burningRoseWholeImg,
-  HIRACHY: hirachyImg,
+  HIERARCHY: hierarchyImg,
   GOLDEN_KEY: goldenKeyImg,
   COAL_BLOCK: charcoalPenImg,
   GOLD_NUGGET: goldNuggetImg,

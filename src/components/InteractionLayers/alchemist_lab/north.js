@@ -16,7 +16,13 @@ export const renderAlchemistLabNorthWall = (app, { roomId, socket, gameState, no
   drawerHotspot.cursor = "pointer";
 
   drawerHotspot.on("pointertap", () => {
-    console.log("North drawer hotspot clicked!");
+    if (!socket) return;
+    socket.emit("interact", {
+      roomId,
+      actionId: crypto.randomUUID(),
+      objectId: "trigger_drawer",
+      verb: "INTERACT",
+    });
   });
 
   stage.addChild(drawerHotspot);
