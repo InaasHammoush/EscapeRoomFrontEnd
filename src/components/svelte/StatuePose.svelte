@@ -46,14 +46,14 @@
     armLeftDown;
 
   $: currentRightArm = 
-    pose.rightArm === 'ON_CHEST' ? armRightChest :
-    pose.rightArm === 'UP' ? armRightUp :
+    pose.rightArm === 'HALF_UP' ? armRightChest :
+    pose.rightArm === 'FULL_UP' ? armRightUp :
     armRightDown;
 
   // --- INTERACTION LOGIC ---
   const headStates = ['DOWN', 'FORWARD', 'UP'];
   const leftArmStates = ['DOWN', 'HALF_UP', 'UP'];
-  const rightArmStates = ['DOWN', 'ON_CHEST', 'UP'];
+  const rightArmStates = ['DOWN', 'HALF_UP', 'FULL_UP'];
 
   function togglePart(part, currentVal, stateArray) {
     if (solved) return; // Lock interactions once solved
@@ -134,8 +134,8 @@
         src={currentRightArm} 
         alt="Right Arm" 
         class="statue-part right-arm" 
-        class:right-arm-half-up={pose.rightArm === 'ON_CHEST'}
-        class:right-arm-up={pose.rightArm === 'UP'}
+        class:right-arm-half-up={pose.rightArm === 'HALF_UP'}
+        class:right-arm-up={pose.rightArm === 'FULL_UP'}
         class:interactive={!solved}
         on:click={() => togglePart('rightArm', pose.rightArm, rightArmStates)} 
       />
@@ -331,8 +331,8 @@
   /* --- REWARD NOTE --- */
   .note-reward {
     position: absolute;
-    top: 25%; /* Positioned near the mouth */
-    left: 45%;
+    top: 15%; /* Positioned near the mouth */
+    left: 43%;
     width: 10%;
     height: auto;
     cursor: pointer;

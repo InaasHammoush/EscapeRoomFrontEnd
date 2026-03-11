@@ -109,66 +109,6 @@ function hasEastDoorSolved(payload) {
   return false;
 }
 
-function getFlaskTransferState(payload) {
-  if (!payload || typeof payload !== "object") return null;
-  return (
-    payload.alchFlaskTransfer ||
-    payload.flask_transfer_puzzle ||
-    payload.puzzle_flask_transfer ||
-    payload["alch:flask-transfer"] ||
-    null
-  );
-}
-
-function stripLeakedFlaskRewardsAtStart(items, payload) {
-  if (!Array.isArray(items)) return [];
-  const flask = getFlaskTransferState(payload);
-  if (!flask) return items;
-
-  const solved = !!flask.solved;
-  const moves = Number(flask.moves || 0);
-  const output = flask.output || {};
-  const rewardsOpen =
-    !!output.coalBlockReady ||
-    !!output.moonwortReady ||
-    !!output.matchesReady ||
-    !!output.greenLiquidReady;
-
-  // Only scrub at true initial state. Once progressed/solved, trust backend inventory.
-  if (solved || moves > 0 || rewardsOpen) return items;
-
-  const leaked = new Set(["MOONWORT", "GREEN_LIQUID", "MATCHES", "COAL_BLOCK", "CHARCOAL_PEN"]);
-  return items.filter((entry) => !leaked.has(String(entry?.item || "").trim().toUpperCase()));
-}
-
-function withSolvedFlaskRewards(items, payload) {
-  const next = Array.isArray(items) ? [...items] : [];
-  const flask = getFlaskTransferState(payload);
-  if (!flask) return next;
-
-  const output = flask.output || {};
-  const rewardReady = {
-    MOONWORT: !!output.moonwortReady,
-    GREEN_LIQUID: !!output.greenLiquidReady,
-    MATCHES: !!output.matchesReady,
-    CHARCOAL_PEN: !!output.coalBlockReady,
-  };
-  if (!Object.values(rewardReady).some(Boolean)) return next;
-
-  const ensure = (name, aliases = []) => {
-    const wanted = new Set([String(name).toUpperCase(), ...aliases.map((v) => String(v).toUpperCase())]);
-    const exists = next.some((entry) => wanted.has(String(entry?.item || "").trim().toUpperCase()));
-    if (!exists) next.push({ item: name, count: 1 });
-  };
-
-  if (rewardReady.MOONWORT) ensure("MOONWORT");
-  if (rewardReady.GREEN_LIQUID) ensure("GREEN_LIQUID");
-  if (rewardReady.MATCHES) ensure("MATCHES");
-  if (rewardReady.CHARCOAL_PEN) ensure("CHARCOAL_PEN", ["COAL_BLOCK"]);
-
-  return next;
-}
-
 function normalizeActiveWidgetKey(value) {
   if (value === null || value === undefined) return value;
   const raw = String(value);
@@ -254,6 +194,21 @@ function getPuzzleStateByWidget(gameState, activeWidget) {
     "alch:drawer": [
       "alch_drawer_puzzle",
       "alch:drawer",
+    ],
+    transmuter_puzzle: [
+      "alchKeyTransmutation",
+      "alch:transmuter",
+      "transmuter_puzzle",
+    ],
+    "alch:transmuter": [
+      "alchKeyTransmutation",
+      "alch:transmuter",
+      "transmuter_puzzle",
+    ],
+    alchKeyTransmutation: [
+      "alchKeyTransmutation",
+      "alch:transmuter",
+      "transmuter_puzzle",
     ],
     "alch:statue": [
       "alchStatuePose",
@@ -382,11 +337,9 @@ export default function RoomView({ mode = "solo" }) {
       setEastDoorSolved(hasEastDoorSolved(publicState));
       setGameState(publicState);
       if (publicState.inventory?.items) {
-        const startItems = stripLeakedFlaskRewardsAtStart(publicState.inventory.items, publicState);
-        const solvedRewardItems = withSolvedFlaskRewards(startItems, publicState);
         setInventory(
           withWestRoseReward(
-            normalizeInventory(solvedRewardItems, pendingFlags.current),
+            normalizeInventory(publicState.inventory.items, pendingFlags.current),
             westRoseRewardGranted.current
           )
         );
@@ -435,13 +388,9 @@ export default function RoomView({ mode = "solo" }) {
     }
 
     if (msg.diff?.inventory?.items) {
-      const solvedRewardItems = withSolvedFlaskRewards(msg.diff.inventory.items, {
-        ...gameState,
-        ...msg.diff,
-      });
       setInventory(
         withWestRoseReward(
-          normalizeInventory(solvedRewardItems, pendingFlags.current),
+          normalizeInventory(msg.diff.inventory.items, pendingFlags.current),
           westRoseRewardGranted.current
         )
       );
