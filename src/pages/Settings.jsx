@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Page from "../components/Layout/Page";
 import { api } from "../state/api";
 import { useAuthUser } from "../state/authUser";
 import { useNavigate } from "react-router-dom";
+import { readMusicSettings, writeMusicSettings } from "../state/musicSettings";
 
 export default function Settings() {
   const applyTheme = (name) =>
@@ -14,6 +15,8 @@ export default function Settings() {
   const [hintsEnabled, setHintsEnabled] = useState(true);
   const [brightness, setBrightness] = useState(100);
   const [colorIntensity, setColorIntensity] = useState(100);
+  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicVolume, setMusicVolume] = useState(0.8);
 
   // change-password form state
   const [showChangePwd, setShowChangePwd] = useState(false);
@@ -30,6 +33,43 @@ export default function Settings() {
   const [emailBusy, setEmailBusy] = useState(false);
   const [emailMsg, setEmailMsg] = useState("");
   const [emailErr, setEmailErr] = useState("");
+
+  useEffect(() => {
+    const settings = readMusicSettings();
+    setMusicEnabled(settings.enabled);
+    setMusicVolume(settings.volume);
+
+    const onSettings = (event) => {
+      if (!event?.detail) return;
+      setMusicEnabled(event.detail.enabled !== false);
+      setMusicVolume(Number(event.detail.volume ?? 0.8));
+    };
+    const onStorage = (event) => {
+      if (event.key !== "musicSettings") return;
+      const latest = readMusicSettings();
+      setMusicEnabled(latest.enabled);
+      setMusicVolume(latest.volume);
+    };
+
+    window.addEventListener("music:settings", onSettings);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("music:settings", onSettings);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
+  const onToggleMusic = () => {
+    const nextEnabled = !musicEnabled;
+    setMusicEnabled(nextEnabled);
+    writeMusicSettings({ enabled: nextEnabled, volume: musicVolume });
+  };
+
+  const onMusicVolumeChange = (event) => {
+    const nextVolume = Number(event.target.value);
+    setMusicVolume(nextVolume);
+    writeMusicSettings({ enabled: musicEnabled, volume: nextVolume });
+  };
 
   const submitChangePassword = async (e) => {
     e.preventDefault();
@@ -232,6 +272,32 @@ export default function Settings() {
           <button className="btn rounded-2xl" onClick={() => applyTheme("light")}>
             Light
           </button>
+        </div>
+      </section>
+
+      {/* === SOUND SETTINGS === */}
+      <section className="mb-12 space-y-3">
+        <h3 className="text-xl font-semibold mb-3">Sound Settings</h3>
+
+        <button
+          type="button"
+          className="btn btn-outline rounded-2xl"
+          onClick={onToggleMusic}
+        >
+          {musicEnabled ? "Music: On" : "Music: Off"}
+        </button>
+
+        <div className="mt-3">
+          <label className="label-text">Music Volume</label>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={musicVolume}
+            className="range ml-3 max-w-72"
+            onChange={onMusicVolumeChange}
+          />
         </div>
       </section>
 

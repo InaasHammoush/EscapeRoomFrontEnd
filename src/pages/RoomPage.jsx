@@ -9,6 +9,12 @@ function LibraryScene({ role }) { return <div className="opacity-80">Library ({r
 function CorridorScene() { return <div className="opacity-80">Corridor — final door here</div>; }
 function LaboratoryScene({ role }) { return <div className="opacity-80">Laboratory ({role})</div>; }
 
+const ROOM_ID_TO_KEY = {
+  Library: "wizard_library",
+  Corridor: "corridor",
+  Laboratory: "alchemist_lab",
+};
+
 export default function RoomPage({ mode: modeProp }) {
   const { sessionId, roomId, role } = useParams();
   const navigate = useNavigate();
@@ -56,6 +62,14 @@ export default function RoomPage({ mode: modeProp }) {
       default:           return <div>Unknown room: {roomId}</div>;
     }
   }, [roomId, role, mode]);
+
+  useEffect(() => {
+    const roomKey = ROOM_ID_TO_KEY[roomId] || null;
+    if (!roomKey) return;
+    window.dispatchEvent(
+      new CustomEvent("music:room", { detail: { roomKey } })
+    );
+  }, [roomId]);
 
 
   const buildPath = (targetRoomId) => {
