@@ -1,6 +1,7 @@
 // src/components/inventory/InventoryBar.jsx
 import { useEffect, useState } from "react";
 import { getInventoryImage } from "../../config/items.js";
+import { getInventoryUi } from "../../config/items.js";
 import inventoryEmptyImg from "../../assets/alchemist/inventory_empty.png";
 
 export default function InventoryBar({ inventory = [] }) {

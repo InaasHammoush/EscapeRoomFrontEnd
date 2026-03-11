@@ -5,6 +5,14 @@ import moonwortImg from "../assets/alchemist/moonwort.png";
 import blueLiquidImg from "../assets/alchemist/blue_liquid.png";
 import greenLiquidImg from "../assets/alchemist/green_liquid.png";
 import emptyBottleImg from "../assets/alchemist/empty_bottle.png";
+import burningRoseWholeImg from "../assets/alchemist/burningrose_whole.png";
+import hierarchyImg from "../assets/alchemist/hirachy.png";
+import goldenKeyImg from "../assets/alchemist/goldkey.png";
+import charcoalPenImg from "../assets/alchemist/charcoal_pen.png";
+import goldNuggetImg from "../assets/alchemist/goldnugget.png";
+import matchesImg from "../assets/alchemist/matchbox.png";
+import featherStatueImg from "../assets/alchemist/feather.png";
+import flammaNoteImg from "../assets/alchemist/flamma.png";
 
 // Import Wizard Items 
 import bluePowderImg from "../assets/wizard_library/bluePowder.png";
@@ -24,6 +32,15 @@ export const ITEM_IMAGES = {
   BLUE_LIQUID: blueLiquidImg,
   GREEN_LIQUID: greenLiquidImg,
   EMPTY_BOTTLE: emptyBottleImg,
+  BURNINGROSE_WHOLE: burningRoseWholeImg,
+  BURNING_ROSE_WHOLE: burningRoseWholeImg,
+  HIERARCHY: hierarchyImg,
+  GOLDEN_KEY: goldenKeyImg,
+  COAL_BLOCK: charcoalPenImg,
+  GOLD_NUGGET: goldNuggetImg,
+  MATCHES : matchesImg,
+  FEATHER: featherStatueImg,
+  NOTE_FLAMMA: flammaNoteImg,
   
   // Wizard
   BLUE_POWDER: bluePowderImg,
@@ -36,6 +53,39 @@ export const ITEM_IMAGES = {
   CHEST_KEY: chestKeyImg,
   RECIPE: recipeImg,
 };
+
+export const ITEM_UI_CONFIG = {
+  BURNINGROSE_WHOLE: {
+    sizeClass: "h-16 w-16",
+    offsetClass: "-mt-4",
+  },
+  BURNING_ROSE_WHOLE: {
+    sizeClass: "h-16 w-16",
+    offsetClass: "-mt-4",
+  },
+  FEATHER: {
+    sizeClass: "h-12 w-12",
+    offsetClass: "",
+  },
+  FEATHER: {
+    sizeClass: "h-12 w-12",
+    offsetClass: "",
+  },
+  NOTE_FLAMMA: {
+    sizeClass: "h-12 w-12",
+    offsetClass: "",
+  },
+  HIRACHY: {
+    sizeClass: "h-10 w-10",
+    offsetClass: "",
+  },
+};
+
+export function getInventoryUi(itemName) {
+  if (!itemName) return { sizeClass: "h-25 w-25", offsetClass: "" };
+  const key = String(itemName).trim().toUpperCase().replace(/\s+/g, "_");
+  return ITEM_UI_CONFIG[key] || { sizeClass: "h-25 w-25", offsetClass: "" };
+}
 
 export function getInventoryImage(itemName) {
   if (!itemName) return null;
