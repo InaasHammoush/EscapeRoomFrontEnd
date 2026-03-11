@@ -163,6 +163,13 @@ export default function RoomView({ mode = "solo" }) {
     }
   }, [gameState, activeWidget, inventory]);
 
+  useEffect(() => {
+    if (!roomType) return;
+    window.dispatchEvent(
+      new CustomEvent("music:room", { detail: { roomKey: roomType } })
+    );
+  }, [roomType]);
+
   // --- INTENT LISTENER ---
   useEffect(() => {
     const handleIntent = (e) => {

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { MUSIC_TRACKS, isRoomRoute } from "../../config/audioTracks";
+import { MUSIC_TRACKS, getRoomTrack, isRoomRoute } from "../../config/audioTracks";
 import { readMusicSettings } from "../../state/musicSettings";
 
-function trackForPath(pathname) {
-  return isRoomRoute(pathname) ? MUSIC_TRACKS.inRoom : MUSIC_TRACKS.mainWebsite;
+function trackForPath(pathname, roomKey) {
+  if (isRoomRoute(pathname)) return getRoomTrack(roomKey) || MUSIC_TRACKS.inRoom;
+  return MUSIC_TRACKS.mainWebsite;
 }
 
 export default function BackgroundMusicManager() {
@@ -13,7 +14,8 @@ export default function BackgroundMusicManager() {
   const sourceRef = useRef("");
   const [needsGesture, setNeedsGesture] = useState(false);
   const [settings, setSettings] = useState(() => readMusicSettings());
-  const track = useMemo(() => trackForPath(pathname), [pathname]);
+  const [roomKey, setRoomKey] = useState(null);
+  const track = useMemo(() => trackForPath(pathname, roomKey), [pathname, roomKey]);
 
   const tryPlay = useCallback(async () => {
     const audio = audioRef.current;
@@ -42,11 +44,18 @@ export default function BackgroundMusicManager() {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !track) return;
+    const inRoom = isRoomRoute(pathname);
 
     const onError = () => {
-      if (sourceRef.current === MUSIC_TRACKS.mainWebsite.src) return;
-      audio.src = MUSIC_TRACKS.mainWebsite.src;
-      sourceRef.current = MUSIC_TRACKS.mainWebsite.src;
+      if (inRoom) {
+        if (sourceRef.current === MUSIC_TRACKS.inRoom.src) return;
+        audio.src = MUSIC_TRACKS.inRoom.src;
+        sourceRef.current = MUSIC_TRACKS.inRoom.src;
+      } else {
+        if (sourceRef.current === MUSIC_TRACKS.mainWebsite.src) return;
+        audio.src = MUSIC_TRACKS.mainWebsite.src;
+        sourceRef.current = MUSIC_TRACKS.mainWebsite.src;
+      }
       audio.load();
       void tryPlay();
     };
@@ -75,7 +84,7 @@ export default function BackgroundMusicManager() {
       window.removeEventListener("keydown", tryPlay);
       audio.removeEventListener("error", onError);
     };
-  }, [settings.enabled, settings.volume, track, tryPlay]);
+  }, [pathname, settings.enabled, settings.volume, track, tryPlay]);
 
   useEffect(() => {
     const onSettings = (event) => {
@@ -92,6 +101,21 @@ export default function BackgroundMusicManager() {
       window.removeEventListener("storage", onStorage);
     };
   }, []);
+
+  useEffect(() => {
+    const onRoom = (event) => {
+      const nextKey = event?.detail?.roomKey || null;
+      setRoomKey(nextKey);
+    };
+    window.addEventListener("music:room", onRoom);
+    return () => {
+      window.removeEventListener("music:room", onRoom);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isRoomRoute(pathname)) setRoomKey(null);
+  }, [pathname]);
 
   if (!settings.enabled || !needsGesture) return null;
 
