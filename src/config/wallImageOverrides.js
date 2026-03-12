@@ -1,3 +1,5 @@
+
+
 const WALL_IMAGE_OVERRIDE_RULES = [
   {
     roomType: "wizard_library",
@@ -24,6 +26,41 @@ const WALL_IMAGE_OVERRIDE_RULES = [
     when: (gameState) => !!gameState?.bookshelf_puzzle?.solved,
     image: "/rooms/wizard_library/north_books_solved.png",
   },
+  {
+    roomType: "alchemist_lab",
+    viewIndex: 1,
+    when: (gameState) =>
+      !!(
+        gameState?.alchDoorState?.open ||
+        gameState?.alchEastDoorSync?.opened
+      ),
+    image: "/rooms/alchemist_lab/final_door_open.png",
+    fit: "cover",
+  },
+  {
+    roomType: "alchemist_lab",
+    viewIndex: 1,
+    when: (gameState) =>
+      !!(
+        (gameState?.alchEastSlidingLock?.solved ||
+          gameState?.puzzle_east_sliding_lock?.solved) &&
+        (gameState?.alchLightBeamGrid?.solved ||
+          gameState?.puzzle_light_beam_grid?.solved)
+      ),
+    image: "/rooms/alchemist_lab/final_door_closed_runes.png",
+    fit: "cover",
+  },
+  {
+    roomType: "alchemist_lab",
+    viewIndex: 1,
+    when: (gameState) =>
+      !!(
+        gameState?.alchEastSlidingLock?.solved ||
+        gameState?.puzzle_east_sliding_lock?.solved
+      ),
+    image: "/rooms/alchemist_lab/final_door_closed.png",
+    fit: "cover",
+  },
 ];
 
 export function resolveWallImage(baseImage, { roomType, viewIndex, gameState } = {}) {
@@ -34,5 +71,8 @@ export function resolveWallImage(baseImage, { roomType, viewIndex, gameState } =
       entry.when(gameState)
   );
 
-  return rule?.image || baseImage;
+  return {
+    src: rule?.image || baseImage,
+    fit: rule?.fit || "contain",
+  };
 }
