@@ -55,6 +55,21 @@ const WALL_IMAGE_OVERRIDE_RULES = [
     viewIndex: 1,
     when: (gameState) =>
       !!(
+        (gameState?.alchLightBeamGrid?.solved ||
+          gameState?.puzzle_light_beam_grid?.solved) &&
+        !(
+          gameState?.alchEastSlidingLock?.solved ||
+          gameState?.puzzle_east_sliding_lock?.solved
+        )
+      ),
+    image: "/rooms/alchemist_lab/final_door_only_rune.png",
+    fit: "cover",
+  },
+  {
+    roomType: "alchemist_lab",
+    viewIndex: 1,
+    when: (gameState) =>
+      !!(
         gameState?.alchEastSlidingLock?.solved ||
         gameState?.puzzle_east_sliding_lock?.solved
       ),
