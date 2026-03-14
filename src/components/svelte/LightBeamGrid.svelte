@@ -46,6 +46,12 @@
   $: phaseUpper = phase.toUpperCase();
   $: renderedBeamSegments = buildRenderedBeam(beamSegments, beamHitGoal, goalX, goalY);
   $: showBeam = phaseUpper === "SIMULATED" || phaseUpper === "SOLVED";
+  $: activeRunes = Number.isFinite(Number(puzzle?.progress?.activeRunes))
+    ? Number(puzzle.progress.activeRunes)
+    : runes.filter((r) => r.active).length;
+  $: totalRunes = Number.isFinite(Number(puzzle?.progress?.totalRunes))
+    ? Number(puzzle.progress.totalRunes)
+    : runes.length;
 
   function runeImage(id) {
     if (id === "R1") return rune1Src;
@@ -257,6 +263,7 @@
   >
     <button class="close-btn" on:click={close} aria-label="Close mirror grid">x</button>
     <div class="board-wrap">
+      <p class="puzzle-hint">The lightbeam needs to hit all the runes.</p>
       <div class="board-image-wrap">
         <img
           src={mirrorGridSrc}
@@ -344,6 +351,7 @@
         <button class="control-btn" on:click={simulate}>simulate</button>
         <button class="control-btn" on:click={reset}>reset</button>
       </div>
+      <p class="progress-text">{activeRunes} / {totalRunes} runes hit</p>
     </div>
   </div>
 </div>
@@ -376,6 +384,19 @@
   .board-wrap {
     position: relative;
     width: min(62vw, 420px);
+  }
+
+  .puzzle-hint {
+    margin: 0 0 10px;
+    padding: 8px 12px;
+    text-align: center;
+    color: #f4e4bc;
+    font-size: 14px;
+    line-height: 1.35;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(139, 115, 85, 0.45);
+    border-radius: 6px;
+    background: rgba(22, 18, 14, 0.45);
   }
 
   .board-image-wrap {
@@ -431,6 +452,19 @@
     justify-content: center;
     gap: 10px;
     pointer-events: auto;
+  }
+
+  .progress-text {
+    margin: 10px 0 0;
+    padding: 7px 12px;
+    text-align: center;
+    color: #d8c79f;
+    font-size: 13px;
+    line-height: 1.3;
+    pointer-events: none;
+    border: 1px solid rgba(139, 115, 85, 0.38);
+    border-radius: 6px;
+    background: rgba(22, 18, 14, 0.38);
   }
 
   .control-btn {

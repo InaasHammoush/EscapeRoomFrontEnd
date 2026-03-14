@@ -144,9 +144,9 @@
   */
   
   .scroll {
-    top: 30%; /* Position vertically inside the open drawer gap */
-    left: 20%; /* Position horizontally */
-    width: 50%; /* Scale the scroll image appropriately */
+    top: 20%; /* Position vertically inside the open drawer gap */
+    left: 40%; /* Position horizontally */
+    width: 20%; /* Scale the scroll image appropriately */
     transform: rotate(-5deg); /* Slight angle for realism */
     animation: fadeIn 0.5s ease-out forwards;
   }

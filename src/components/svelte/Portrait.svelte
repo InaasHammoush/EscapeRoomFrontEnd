@@ -14,6 +14,7 @@
   $: featherTaken = puzzle?.featherTaken || false;
   $: goldTaken = puzzle?.goldTaken || false;
   $: solved = puzzle?.solved || false;
+  $: currentAspectRatio = opened ? "1264 / 843" : "1665 / 1228";
 
   // --- INTERACTION LOGIC ---
   function openPortrait() {
@@ -48,7 +49,7 @@
 </script>
 
 <div class="modal-overlay" on:click={closeWidget}>
-  <div class="widget-wrapper" on:click|stopPropagation>
+  <div class="widget-wrapper" style={`aspect-ratio: ${currentAspectRatio};`} on:click|stopPropagation>
     <button class="close-btn" on:click={closeWidget}>✕</button>
 
     <div class="portrait-container">
@@ -95,17 +96,15 @@
 
   .widget-wrapper {
     position: relative; 
-    width: 80vw;
-    max-width: 600px; /* Portrait images are usually narrow */
-    aspect-ratio: 2/3; /* Adjust to match your JPG aspect ratio */
+    width: min(68vw, 720px);
     border-radius: 8px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.9);
     background: #0a0a0a; border: 4px solid #8b7355; /* Fancy frame border */
   }
 
   .close-btn {
-    position: absolute; top: 15px; right: 15px; width: 40px; height: 40px;
+    position: absolute; top: 12px; right: 12px; width: 34px; height: 34px;
     border-radius: 50%; background: rgba(0, 0, 0, 0.8); color: #f4e4bc; border: 2px solid #8b7355;
-    cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 30;
+    cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; z-index: 30;
     transition: transform 0.2s;
   }
   .close-btn:hover { background: black; transform: scale(1.1); }
@@ -118,7 +117,12 @@
   }
 
   .main-bg {
-    width: 100%; height: 100%; object-fit: cover; pointer-events: none; user-select: none;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
   }
 
   .closed-view {
@@ -152,15 +156,15 @@
   */
   
   .feather {
-    top: 35%; /* Mid-height shelf */
-    left: 45%;
-    width: 15%; /* Adjust size */
+    top: 17%; /* Mid-height shelf */
+    left: 58%;
+    width: 5%; /* Adjust size */
     transform: rotate(20deg); /* Slanted slightly */
   }
 
   .gold {
     top: 65%; /* Lower shelf */
-    right: 30%;
-    width: 12%; /* Small nugget */
+    right: 38%;
+    width: 5%; /* Small nugget */
   }
 </style>
