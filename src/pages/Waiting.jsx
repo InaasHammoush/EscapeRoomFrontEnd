@@ -82,9 +82,9 @@ export default function Waiting() {
       if (mine && mine !== myRole) setMyRole(mine);
 
       // Redirect when ready
-      if (payload.ready) {
+      if (payload.ready && payload.roomId) {
         const roleToUse = mine || "A";
-        nav(`/coop/${lobbyId}/room/Library/role/${roleToUse}`, { replace: true });
+        nav(`/coop/${lobbyId}/room/${payload.roomId}/role/${roleToUse}`, { replace: true });
       }
     };
 

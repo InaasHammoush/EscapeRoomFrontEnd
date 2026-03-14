@@ -9,8 +9,8 @@ const CH = new BroadcastChannel("MOCK_SIO");
 
 function key(ns, sessionId){ return `MOCK_SIO__${ns}__${sessionId}`; }
 function readSess(ns, sessionId){
-  try { return JSON.parse(localStorage.getItem(key(ns, sessionId))) || { players:{}, ready:false, clues:[] }; }
-  catch { return { players:{}, ready:false, clues:[] }; }
+  try { return JSON.parse(localStorage.getItem(key(ns, sessionId))) || { players:{}, ready:false, clues:[], roomId:null }; }
+  catch { return { players:{}, ready:false, clues:[], roomId:null }; }
 }
 function writeSess(ns, sessionId, sess){
   localStorage.setItem(key(ns, sessionId), JSON.stringify(sess));
@@ -84,6 +84,9 @@ function handleClient(ns, sessionId, sock, evt, payload){
     case "lobby:setRole":
       sess.players[sock.id] = { id: sock.id, role: payload.role };
       sess.ready = haveAB(sess.players);
+      if (sess.ready && !sess.roomId) {
+        sess.roomId = (crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2, 10));
+      }
       writeSess(ns, sessionId, sess); // notifies all tabs
       break;
 
@@ -107,7 +110,8 @@ function snapshotFor(ns, sessionId, perspectiveId){
   return {
     players: Object.values(sess.players),
     ready: sess.ready,
-    myRole: (sess.players[perspectiveId]?.role) || null
+    myRole: (sess.players[perspectiveId]?.role) || null,
+    roomId: sess.roomId || null
   };
 }
 

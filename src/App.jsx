@@ -78,7 +78,7 @@ export default function App() {
         {/* <Route path="/solo/:sessionId/room/:roomId/view" element={<RoomView />} /> */}
 
         {/* Multiplayer Mode */}
-        <Route path="/coop/:sessionId/room/:roomId/role/:role" element={<RoomPage mode="coop" />} />
+        <Route path="/coop/:sessionId/room/:roomId/role/:role" element={<RoomView mode="coop" />} />
       </Routes>
     </div>
   );

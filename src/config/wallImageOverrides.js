@@ -2,6 +2,13 @@ const WALL_IMAGE_OVERRIDE_RULES = [
   {
     roomType: "wizard_library",
     viewIndex: 1,
+    when: (gameState) =>
+      !!gameState?.door_seal?.openable && !!gameState?.alchDoorState?.open,
+    image: "/rooms/wizard_library/eastOpen.png",
+  },
+  {
+    roomType: "wizard_library",
+    viewIndex: 1,
     when: (gameState) => !!gameState?.tictactoe_scroll?.solved,
     image: "/rooms/wizard_library/eastNoScroll.png",
   },
