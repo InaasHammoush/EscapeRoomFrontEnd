@@ -44,6 +44,8 @@ export const WIDGET_REGISTRY = {
   "alchEastCodeboxJigsaw": "east-codebox-widget",
   "alch_east_codebox_jigsaw": "east-codebox-widget",
   "east_codebox_jigsaw": "east-codebox-widget",
+  "alch_east_door": "alch-east-door-widget",
+  "east_door_sync_puzzle": "alch-east-door-widget",
   "alchLightBeamGrid": "lightbeam-grid-widget",
   "alch_light_beam_grid": "lightbeam-grid-widget",
   "light_beam_grid": "lightbeam-grid-widget",

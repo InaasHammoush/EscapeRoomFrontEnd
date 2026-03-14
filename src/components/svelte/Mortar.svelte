@@ -124,6 +124,11 @@
 
       {#if isGrinding || isCombining}
         <div class="pestle-wrapper" style="animation-duration: {isCombining ? '2.5s' : '2s'};">
+          <div
+            class="impact-glow"
+            class:grinding={isGrinding}
+            class:combining={isCombining}
+          ></div>
           <img 
             src={pestleImg} 
             alt="Pestle" 
@@ -218,6 +223,30 @@
     animation: toolFadeInOut ease-in-out forwards; 
   }
 
+  .impact-glow {
+    position: absolute;
+    left: -68%;
+    bottom: -18%;
+    width: 200%;
+    height: 86%;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    background:
+      radial-gradient(circle, rgba(255, 242, 122, 0.84) 0%, rgba(255, 219, 84, 0.56) 34%, rgba(255, 191, 40, 0.3) 58%, rgba(255, 170, 0, 0.12) 72%, rgba(0, 0, 0, 0) 84%);
+    filter: blur(18px);
+    mix-blend-mode: screen;
+    transform: scale(0.8);
+  }
+
+  .impact-glow.grinding {
+    animation: grindGlowPulse 0.6s infinite ease-in-out;
+  }
+
+  .impact-glow.combining {
+    animation: stirGlowPulse 0.8s infinite ease-in-out;
+  }
+
   /* 2. The Image: Anchors the rotation at the tip inside the bowl */
   .pestle {
     width: 100%;
@@ -265,5 +294,19 @@
     50% { transform: rotate(-40deg) translateX(0); }
     75% { transform: rotate(-20deg) translateX(15px); }
     100% { transform: rotate(0deg) translateX(0); }
+  }
+
+  @keyframes grindGlowPulse {
+    0% { opacity: 0.12; transform: scale(0.8); }
+    25% { opacity: 0.25; transform: scale(0.88); }
+    50% { opacity: 0.88; transform: scale(1.08); }
+    75% { opacity: 0.35; transform: scale(0.93); }
+    100% { opacity: 0.12; transform: scale(0.8); }
+  }
+
+  @keyframes stirGlowPulse {
+    0% { opacity: 0.18; transform: scale(0.86); }
+    50% { opacity: 0.55; transform: scale(1.02); }
+    100% { opacity: 0.18; transform: scale(0.86); }
   }
 </style>

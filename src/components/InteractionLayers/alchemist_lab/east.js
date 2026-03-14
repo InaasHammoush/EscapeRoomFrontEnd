@@ -1,9 +1,16 @@
 import * as PIXI from "pixi.js";
 
-export const renderAlchemistLabEastWall = (app, { roomId, socket, normX, normY, scaleX, scaleY, eastDoorSolved = false }) => {
+export const renderAlchemistLabEastWall = (app, { roomId, socket, gameState, normX, normY, scaleX, scaleY }) => {
   const stage = app.stage;
-
-  console.log(" Rendering alchemist_lab east wall. Socket available?", !!socket);
+  const slidingSolved = !!(
+    gameState?.alchEastSlidingLock?.solved ||
+    gameState?.puzzle_east_sliding_lock?.solved
+  );
+  const keyInserted = !!gameState?.alchEastDoorSync?.keyInserted;
+  const doorOpen = !!(
+    gameState?.alchDoorState?.open ||
+    gameState?.alchEastDoorSync?.opened
+  );
 
   // LightBeamGrid hotspot
   const mirrorGrid = new PIXI.Graphics()
@@ -30,13 +37,7 @@ export const renderAlchemistLabEastWall = (app, { roomId, socket, normX, normY, 
 
   stage.addChild(mirrorGrid);
 
-  if (eastDoorSolved) {
-    console.log("East codebox solved; hotspot hidden.");
-    return;
-  }
-
-  // East codebox hotspot
-  const eastCodebox = new PIXI.Graphics()
+  const eastHotspot = new PIXI.Graphics()
     .rect(
       normX(408),
       normY(342),
@@ -45,18 +46,22 @@ export const renderAlchemistLabEastWall = (app, { roomId, socket, normX, normY, 
     )
     .fill({ color: 0x00ff00, alpha: 0.3 });
 
-  eastCodebox.eventMode = "static";
-  eastCodebox.cursor = "pointer";
+  eastHotspot.eventMode = "static";
+  eastHotspot.cursor = "pointer";
 
-  eastCodebox.on("pointertap", () => {
+  eastHotspot.on("pointertap", () => {
     if (!socket) return;
+    const objectId = !slidingSolved
+      ? "trigger_east_sliding_lock"
+      : (keyInserted && !doorOpen ? "alch:east-door-switch" : "trigger_east_door");
+    const verb = !slidingSolved || (!keyInserted || doorOpen) ? "INTERACT" : "press";
     socket.emit("interact", {
       roomId,
       actionId: crypto.randomUUID(),
-      objectId: "trigger_east_sliding_lock",
-      verb: "INTERACT",
+      objectId,
+      verb,
     });
   });
 
-  stage.addChild(eastCodebox);
+  stage.addChild(eastHotspot);
 };
