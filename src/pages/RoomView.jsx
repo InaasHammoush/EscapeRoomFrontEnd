@@ -661,7 +661,13 @@ export default function RoomView({ mode = "solo" }) {
       </div>
 
       {/* Generic Inventory Bar */}
-      <InventoryBar inventory={inventory} />
+      <InventoryBar
+        inventory={inventory}
+        mode={mode}
+        role={role}
+        roomType={roomType}
+        activeChamber={gameState?.activeChamber}
+      />
 
       {/* Dynamic Widget Rendering */}
       {WidgetTag && (
