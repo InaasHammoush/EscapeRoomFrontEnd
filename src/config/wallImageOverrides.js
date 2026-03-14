@@ -4,8 +4,7 @@ const WALL_IMAGE_OVERRIDE_RULES = [
   {
     roomType: "wizard_library",
     viewIndex: 1,
-    when: (gameState) =>
-      !!gameState?.door_seal?.openable && !!gameState?.alchDoorState?.open,
+    when: (gameState) => !!gameState?.door_seal?.opened,
     image: "/rooms/wizard_library/eastOpen.png",
   },
   {

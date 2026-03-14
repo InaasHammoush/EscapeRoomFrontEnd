@@ -3,6 +3,8 @@ import * as PIXI from "pixi.js";
 export const renderWizardLibraryEastWall = (app, { roomId, socket, gameState, normX, normY, scaleX, scaleY }) => {
   const stage = app.stage;
   const scrollSolved = !!gameState?.tictactoe_scroll?.solved;
+  const doorOpenable = !!gameState?.door_seal?.openable;
+  const doorOpened = !!gameState?.door_seal?.opened;
 
   if (!scrollSolved) {
     const scrollTrigger = new PIXI.Graphics()
@@ -43,6 +45,16 @@ export const renderWizardLibraryEastWall = (app, { roomId, socket, gameState, no
   doorTrigger.cursor = "pointer";
 
   doorTrigger.on("pointertap", () => {
+    if (doorOpenable && !doorOpened) {
+      socket.emit("interact", {
+        roomId,
+        actionId: crypto.randomUUID(),
+        objectId: "puzzle_door_seal",
+        verb: "OPEN",
+      });
+      return;
+    }
+
     socket.emit("interact", {
       roomId,
       actionId: crypto.randomUUID(),
