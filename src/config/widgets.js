@@ -20,14 +20,7 @@ export const WIDGET_REGISTRY = {
   "alch:mortar": "mortar-widget",
   "mortar_puzzle": "mortar-widget",
   "transmuter_puzzle":  "transmuter-widget",
-<<<<<<< HEAD
 
-  // Final Corridor
-  "final_word_input": "final-door-widget",
-  "final_sync_plates": "final-door-widget",
-  "final_door_panel": "final-door-widget",
-  "final_rune_hint": "final-door-widget",
-=======
   "portrait_books_puzzle": "portrait-widget",
   "alch:portrait": "portrait-widget",
   "alch_drawer_puzzle": "drawer-widget",
@@ -65,5 +58,4 @@ export const WIDGET_REGISTRY = {
   "alch:flask-transfer": "flask-transfer-widget",
   "statue_pose_puzzle": "statue-widget",
   "alch:statue": "statue-widget",
->>>>>>> main
 };
