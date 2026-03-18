@@ -36,6 +36,8 @@ import { resolveWallImage } from "../config/wallImageOverrides.js";
 import { readMusicSettings, writeMusicSettings } from "../state/musicSettings.js";
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
+const DEFAULT_STATUE_FEATHER_PLACED = false;
+const DEFAULT_STATUE_FEATHER_SIDE = "left";
 const WIDGET_STATE_ALIASES = Object.freeze({
   transmuter_puzzle: ["transmuter_puzzle", "alch:transmuter", "alchKeyTransmutation"],
   "alch:transmuter": ["alch:transmuter", "alchKeyTransmutation", "transmuter_puzzle"],
@@ -50,6 +52,11 @@ const WIDGET_STATE_ALIASES = Object.freeze({
   "alch:flask-transfer": ["alch:flask-transfer", "alchFlaskTransfer", "flask_transfer_puzzle"],
   statue_pose_puzzle: ["statue_pose_puzzle", "alch:statue", "alchStatuePose"],
   "alch:statue": ["alch:statue", "alchStatuePose", "statue_pose_puzzle"],
+  transformation_table_puzzle: ["wizard_transformation_table", "transformation_table_puzzle"],
+  final_word_input: ["finalCorridor", "final_word_input"],
+  final_sync_plates: ["finalCorridor", "final_sync_plates"],
+  final_door_panel: ["finalCorridor", "final_door_panel"],
+  final_rune_hint: ["finalCorridor", "final_rune_hint"],
 });
 
 function withWestRoseReward(items, includeRose = false) {
@@ -264,39 +271,6 @@ function getPuzzleStateByWidget(gameState, activeWidget) {
   return undefined;
 }
 
-const WIDGET_STATE_ALIASES = {
-  // Alchemist widgets -> backend public keys
-  mortar_puzzle: ["alchMortarEssence", "mortar_puzzle"],
-  transmuter_puzzle: ["alchKeyTransmutation", "transmuter_puzzle"],
-  portrait_books_puzzle: ["alchPortraitBooks", "portrait_books_puzzle"],
-  flask_transfer_puzzle: ["alchFlaskTransfer", "flask_transfer_puzzle"],
-  west_codebox_puzzle: ["alchWestCodeboxJigsaw", "west_codebox_puzzle"],
-  north_hierarchy_note_puzzle: ["alchNorthHierarchyNote", "north_hierarchy_note_puzzle"],
-  statue_pose_puzzle: ["alchStatuePose", "statue_pose_puzzle"],
-  east_sliding_lock_puzzle: ["alchEastSlidingLock", "east_sliding_lock_puzzle"],
-  east_door_sync_puzzle: ["alchEastDoorSync", "east_door_sync_puzzle"],
-  light_beam_grid_puzzle: [
-    "alchLightBeamGrid",
-    "alch:mirror-grid",
-    "light_beam_grid_puzzle",
-    "puzzle_light_beam_grid",
-  ],
-
-  // Wizard misc aliases
-  transformation_table_puzzle: ["wizard_transformation_table", "transformation_table_puzzle"],
-
-  // Final corridor widget aliases
-  final_word_input: ["finalCorridor", "final_word_input"],
-  final_sync_plates: ["finalCorridor", "final_sync_plates"],
-  final_door_panel: ["finalCorridor", "final_door_panel"],
-  final_rune_hint: ["finalCorridor", "final_rune_hint"],
-};
-
-function getPuzzleStateByWidget(state, widgetId) {
-  if (!state || !widgetId) return undefined;
-  return state[widgetId];
-}
-
 export default function RoomView({ mode = "solo" }) {
   const { sessionId, roomId } = useParams();
   const navigate = useNavigate();
@@ -310,8 +284,8 @@ export default function RoomView({ mode = "solo" }) {
   const [roomType, setRoomType] = useState(initialSoloChoice);
   const [gameState, setGameState] = useState({});
   const [activeWidget, setActiveWidget] = useState(null);
-  const [statueFeatherPlaced, setStatueFeatherPlaced] = useState(false);
-  const [statueFeatherSide, setStatueFeatherSide] = useState("left");
+  const statueFeatherPlaced = DEFAULT_STATUE_FEATHER_PLACED;
+  const statueFeatherSide = DEFAULT_STATUE_FEATHER_SIDE;
   
   // Inventory State
   const [inventory, setInventory] = useState([]);
@@ -575,6 +549,8 @@ export default function RoomView({ mode = "solo" }) {
   const baseWallImage = images[viewIndex];
   const wallImage = resolveWallImage(baseWallImage, { roomType, viewIndex, gameState });
   const wallImageFitClass = wallImage?.fit === "cover" ? "object-cover" : "object-contain";
+  const wallImageAspectRatio = wallImage?.aspectRatio || 1920 / 1080;
+  const wallImageFit = wallImage?.fit || "contain";
 
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
@@ -591,6 +567,8 @@ export default function RoomView({ mode = "solo" }) {
         <img
           src={wallImage.src}
           className={`absolute inset-0 w-full h-full ${wallImageFitClass} select-none z-0`}
+          alt=""
+          draggable={false}
         />
       )}
       <div className="absolute inset-0 z-10 pointer-events-none">
@@ -600,6 +578,8 @@ export default function RoomView({ mode = "solo" }) {
           socket={getSocket()}
           roomType={roomType}
           gameState={gameState}
+          wallImageAspectRatio={wallImageAspectRatio}
+          wallImageFit={wallImageFit}
         />
       </div>
 

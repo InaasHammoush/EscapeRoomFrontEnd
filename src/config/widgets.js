@@ -14,8 +14,13 @@ export const WIDGET_REGISTRY = {
   "transformation_table_puzzle": "transformation-table-widget",
   "vase_puzzle":       "vase-widget",
   "door_seal":         "door-seal-widget",
-  
 
+  // Final Corridor
+  "final_word_input": "final-door-widget",
+  "final_sync_plates": "final-door-widget",
+  "final_door_panel": "final-door-widget",
+  "final_rune_hint": "final-door-widget",
+  
   // Alchemist Puzzles
   "alch:mortar": "mortar-widget",
   "mortar_puzzle": "mortar-widget",
