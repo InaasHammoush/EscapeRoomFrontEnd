@@ -25,28 +25,38 @@ import { normalizeInventory, applyInventoryIntent } from "../state/inventoryAdap
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
 
-const WIDGET_STATE_KEYS = {
+const WIDGET_STATE_ALIASES = {
   // Alchemist widgets -> backend public keys
-  mortar_puzzle: "alchMortarEssence",
-  transmuter_puzzle: "alchKeyTransmutation",
-  portrait_books_puzzle: "alchPortraitBooks",
-  flask_transfer_puzzle: "alchFlaskTransfer",
-  west_codebox_puzzle: "alchWestCodeboxJigsaw",
-  north_hierarchy_note_puzzle: "alchNorthHierarchyNote",
-  statue_pose_puzzle: "alchStatuePose",
-  east_sliding_lock_puzzle: "alchEastSlidingLock",
-  east_door_sync_puzzle: "alchEastDoorSync",
-  light_beam_grid_puzzle: "alchLightBeamGrid",
+  mortar_puzzle: ["alchMortarEssence", "mortar_puzzle"],
+  transmuter_puzzle: ["alchKeyTransmutation", "transmuter_puzzle"],
+  portrait_books_puzzle: ["alchPortraitBooks", "portrait_books_puzzle"],
+  flask_transfer_puzzle: ["alchFlaskTransfer", "flask_transfer_puzzle"],
+  west_codebox_puzzle: ["alchWestCodeboxJigsaw", "west_codebox_puzzle"],
+  north_hierarchy_note_puzzle: ["alchNorthHierarchyNote", "north_hierarchy_note_puzzle"],
+  statue_pose_puzzle: ["alchStatuePose", "statue_pose_puzzle"],
+  east_sliding_lock_puzzle: ["alchEastSlidingLock", "east_sliding_lock_puzzle"],
+  east_door_sync_puzzle: ["alchEastDoorSync", "east_door_sync_puzzle"],
+  light_beam_grid_puzzle: [
+    "alchLightBeamGrid",
+    "alch:mirror-grid",
+    "light_beam_grid_puzzle",
+    "puzzle_light_beam_grid",
+  ],
 
   // Wizard misc aliases
-  transformation_table_puzzle: "wizard_transformation_table",
+  transformation_table_puzzle: ["wizard_transformation_table", "transformation_table_puzzle"],
 
   // Final corridor widget aliases
-  final_word_input: "finalCorridor",
-  final_sync_plates: "finalCorridor",
-  final_door_panel: "finalCorridor",
-  final_rune_hint: "finalCorridor",
+  final_word_input: ["finalCorridor", "final_word_input"],
+  final_sync_plates: ["finalCorridor", "final_sync_plates"],
+  final_door_panel: ["finalCorridor", "final_door_panel"],
+  final_rune_hint: ["finalCorridor", "final_rune_hint"],
 };
+
+function getPuzzleStateByWidget(state, widgetId) {
+  if (!state || !widgetId) return undefined;
+  return state[widgetId];
+}
 
 export default function RoomView({ mode = "solo" }) {
   const { sessionId, roomId } = useParams();
@@ -169,8 +179,22 @@ export default function RoomView({ mode = "solo" }) {
     if (!tagName) return;
 
     const el = widgetRefs.current[activeWidget];
-    const stateKey = WIDGET_STATE_KEYS[activeWidget] || activeWidget;
-    const puzzleData = gameState[stateKey];
+    let puzzleData = getPuzzleStateByWidget(gameState, activeWidget);
+    const isLightBeamTag = tagName === "lightbeam-grid-widget";
+    if (puzzleData === undefined && isLightBeamTag) {
+      puzzleData =
+        gameState?.alchLightBeamGrid ??
+        gameState?.["alch:mirror-grid"] ??
+        gameState?.light_beam_grid_puzzle ??
+        gameState?.puzzle_light_beam_grid;
+    }
+
+    if (puzzleData === undefined) {
+      const candidateKeys = WIDGET_STATE_ALIASES[activeWidget] || [activeWidget];
+      puzzleData = candidateKeys
+        .map((key) => gameState?.[key])
+        .find((value) => value !== undefined);
+    }
 
     if (el && puzzleData) {
       // Generic prop passing

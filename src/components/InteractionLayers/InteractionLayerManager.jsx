@@ -46,8 +46,12 @@ export default function InteractionLayer({ viewIndex, roomId, socket, roomType, 
     const app = appRef.current;
     if (!app) return;
     // Remove and destroy previous hotspots to avoid accumulating Graphics/listeners.
-    const previousChildren = app.stage.removeChildren();
-    previousChildren.forEach((child) => child.destroy({ children: true }));
+    const oldChildren = app.stage.removeChildren();
+    oldChildren.forEach((child) => {
+      if (child && typeof child.destroy === "function") {
+        child.destroy({ children: true });
+      }
+    });
 
     // 1. Calculate the Image's actual displayed area
     // Assuming a target aspect ratio for your room images (e.g., 16:9 or 4:3)
