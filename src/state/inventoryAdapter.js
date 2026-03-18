@@ -5,8 +5,21 @@
  * This keeps the UI snappy before the server responds.
  */
 export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
+  const toCanonicalItem = (value) => {
+    const raw = String(value || "").trim().toUpperCase().replace(/\s+/g, "_");
+    const aliases = {
+      COALBLOCK: "COAL_BLOCK",
+      BLUELIQUID: "BLUE_LIQUID",
+      GREENLIQUID: "GREEN_LIQUID",
+      GOLDNUGGET: "GOLD_NUGGET",
+      GOLDKEY: "GOLD_KEY",
+    };
+    return aliases[raw] || raw;
+  };
+
   const { objectId, verb, data } = intent || {};
-  const itemUpper = String(data?.item || "").toUpperCase();
+  const verbLower = String(verb || "").toLowerCase();
+  const itemUpper = toCanonicalItem(data?.item);
   const isMortar = objectId === "alch:mortar" || objectId === "puzzle_mortar";
   
   // Clone inventory to avoid mutation
@@ -14,7 +27,10 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
   let nextPending = { ...pendingFlags }; // Generic flags object
 
   // Helper to find items
-  const findIdx = (name) => nextInv.findIndex((e) => String(e.item).toUpperCase() === name);
+  const findIdx = (name) => {
+    const wanted = toCanonicalItem(name);
+    return nextInv.findIndex((e) => toCanonicalItem(e?.item) === wanted);
+  };
 
   // Helper to remove/decrement
   const consume = (name) => {
@@ -24,25 +40,45 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
     else nextInv.splice(idx, 1);
   };
 
+  // Helper to add/increment
+  const award = (name) => {
+    const idx = findIdx(name);
+    if (idx === -1) {
+      nextInv.push({ item: name, count: 1 });
+      return;
+    }
+    nextInv[idx] = { ...nextInv[idx], count: Number(nextInv[idx].count || 0) + 1 };
+  };
+
   // --- RULE 1: Generic Consumption (Any puzzle asking to INSERT/PLACE consumes the item) ---
   // This covers the Wizard Table (Rose) and Mortar (Moonwort) automatically.
-  if (verb === "insert" || verb === "PLACE" || verb === "SPRINKLE") {
+  if (verbLower === "insert" || verbLower === "place" || verbLower === "sprinkle") {
     // Exception: Green Liquid is special (swaps bottle), so we skip generic consumption for it
     if (itemUpper !== "GREEN_LIQUID") {
         consume(itemUpper);
     }
   }
 
+  // If these items are used, do not force them back via pending flags.
+  if (verbLower === "insert" || verbLower === "place" || verbLower === "sprinkle") {
+    if (itemUpper === "MOONWORT") nextPending.flaskMoonwortTaken = false;
+    if (itemUpper === "GREEN_LIQUID") nextPending.flaskGreenLiquidTaken = false;
+    if (itemUpper === "MATCHES") nextPending.flaskMatchesTaken = false;
+    if (itemUpper === "COAL_BLOCK" || itemUpper === "CHARCOAL_PEN") nextPending.flaskCharcoalTaken = false;
+    if (itemUpper === "GOLD_NUGGET") nextPending.statueGoldNuggetTaken = false;
+    if (itemUpper === "BLUE_LIQUID") nextPending.mortarBottleSwap = false;
+  }
+
   // --- RULE 2: Alchemist's Specific Bottle Logic ---
   // (We keep this specific because it's a complex swap, not just a consume)
-  if (isMortar && verb === "insert" && itemUpper === "GREEN_LIQUID") {
+  if (isMortar && verbLower === "insert" && itemUpper === "GREEN_LIQUID") {
     nextPending.mortarBottleSwap = true;
     const idx = findIdx("GREEN_LIQUID");
     if (idx !== -1) nextInv[idx] = { ...nextInv[idx], item: "EMPTY_BOTTLE" };
   }
 
   // --- RULE 3: Bottle Refill ---
-  if (isMortar && verb === "take" && itemUpper === "BLUE_LIQUID") {
+  if (isMortar && verbLower === "take" && itemUpper === "BLUE_LIQUID") {
     nextPending.mortarBottleSwap = false;
     const emptyIdx = findIdx("EMPTY_BOTTLE");
     if (emptyIdx >= 0) {
@@ -50,6 +86,14 @@ export function applyInventoryIntent(prevInventory, pendingFlags, intent) {
     } else {
       nextInv.push({ item: "BLUE_LIQUID", count: 1 });
     }
+  }
+
+  // --- RULE 4: Recipe Chest ---
+  if (objectId === "puzzle_recipe_hint" && verb === "PLACE" && itemUpper === "CHEST_KEY") {
+    consume("CHEST_KEY");
+  }
+  if (objectId === "puzzle_recipe_hint" && verb === "TAKE") {
+    award("RECIPE");
   }
 
   return { nextInventory: nextInv, nextPending };

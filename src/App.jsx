@@ -20,14 +20,14 @@ import ResetPassword from "./pages/ResetPassword";
 import RoomView from "./pages/RoomView";
 import DeleteAccount from "./pages/DeleteAccount";
 import RecoverAccount from "./pages/RecoverAccount";
+import BackgroundMusicManager from "./components/audio/BackgroundMusicManager";
+import { isRoomRoute } from "./config/audioTracks";
 
 export default function App() {
   const { pathname } = useLocation();
 
   // Hide TopBar inside room views (solo + coop)
-  const hideTopBar =
-    /^\/solo\/[^/]+\/room\/[^/]+/.test(pathname) ||
-    /^\/coop\/[^/]+\/room\/[^/]+\/role\/[^/]+/.test(pathname);
+  const hideTopBar = isRoomRoute(pathname);
 
     useEffect(() => {
       const s = getSocket();
@@ -40,6 +40,7 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen">
+        <BackgroundMusicManager />
         <video
                 autoPlay
                 loop

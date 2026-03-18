@@ -1,8 +1,7 @@
 <svelte:options customElement="frame-hint-widget" />
 
 <script>
-  import hintImg from "../../assets/wizard_library/candles.png"; //TODO: just for testing, replace with actual hint image
-
+  import hintImg from "../../assets/wizard_library/frame_hint.jpeg"; 
   function closeWidget() {
     // Sends the CLOSE intent. The RoomView catches this and unmounts the widget.
     document.dispatchEvent(new CustomEvent('intent', {

@@ -12,14 +12,58 @@ export const WIDGET_REGISTRY = {
   "frame_hint":        "frame-hint-widget",
   "recipe_hint":       "recipe-hint-widget",
   "transformation_table_puzzle": "transformation-table-widget",
+  "vase_puzzle":       "vase-widget",
+  "door_seal":         "door-seal-widget",
+  
 
   // Alchemist Puzzles
-  "mortar_puzzle":      "mortar-widget",
+  "alch:mortar": "mortar-widget",
+  "mortar_puzzle": "mortar-widget",
   "transmuter_puzzle":  "transmuter-widget",
+<<<<<<< HEAD
 
   // Final Corridor
   "final_word_input": "final-door-widget",
   "final_sync_plates": "final-door-widget",
   "final_door_panel": "final-door-widget",
   "final_rune_hint": "final-door-widget",
+=======
+  "portrait_books_puzzle": "portrait-widget",
+  "alch:portrait": "portrait-widget",
+  "alch_drawer_puzzle": "drawer-widget",
+  "alch:drawer": "drawer-widget",
+  // Backend activeWidget keys (current index.js)
+  "west_codebox_puzzle": "west-jigsaw-widget",
+  "east_sliding_lock_puzzle": "east-codebox-widget",
+  "light_beam_grid_puzzle": "lightbeam-grid-widget",
+  // New backend IDs
+  "puzzle_west_codebox": "west-jigsaw-widget",
+  "puzzle_east_sliding_lock": "east-codebox-widget",
+  "puzzle_light_beam_grid": "lightbeam-grid-widget",
+  "puzzle_flask_transfer": "flask-transfer-widget",
+  // Legacy aliases kept for compatibility
+  "alchWestCodeboxJigsaw": "west-jigsaw-widget",
+  "alch_west_codebox_jigsaw": "west-jigsaw-widget",
+  "west_codebox_jigsaw": "west-jigsaw-widget",
+  "alchEastCodebox": "east-codebox-widget",
+  "alchEastSlidingLock": "east-codebox-widget",
+  "alch_east_sliding_lock": "east-codebox-widget",
+  "east_sliding_lock": "east-codebox-widget",
+  "alchEastCodeboxJigsaw": "east-codebox-widget",
+  "alch_east_codebox_jigsaw": "east-codebox-widget",
+  "east_codebox_jigsaw": "east-codebox-widget",
+  "alch_east_door": "alch-east-door-widget",
+  "east_door_sync_puzzle": "alch-east-door-widget",
+  "alchLightBeamGrid": "lightbeam-grid-widget",
+  "alch_light_beam_grid": "lightbeam-grid-widget",
+  "light_beam_grid": "lightbeam-grid-widget",
+  "alch:mirror-grid": "lightbeam-grid-widget",
+
+  // von dem fix branch
+  "alch:transmuter": "transmuter-widget",
+  "flask_transfer_puzzle": "flask-transfer-widget",
+  "alch:flask-transfer": "flask-transfer-widget",
+  "statue_pose_puzzle": "statue-widget",
+  "alch:statue": "statue-widget",
+>>>>>>> main
 };

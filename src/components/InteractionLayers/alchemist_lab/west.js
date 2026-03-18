@@ -8,8 +8,8 @@ export const renderAlchemistLabWestWall = (app, { roomId, socket, normX, normY, 
   // Mortar Puzzle Hotspot
   const mortar = new PIXI.Graphics()
     .rect(
-      normX(550),   
-      normY(412),  
+      normX(545),   
+      normY(400),  
       scaleX(70),  // width
       scaleY(80)   // height
     )
@@ -43,10 +43,10 @@ export const renderAlchemistLabWestWall = (app, { roomId, socket, normX, normY, 
   // Transmuter Puzzle Hotspot
   const transmuter = new PIXI.Graphics()
     .rect(
-      normX(470),
-      normY(499),
-      scaleX(70), // width
-      scaleY(80)  // height
+      normX(460),
+      normY(480),
+      scaleX(80), // width
+      scaleY(85)  // height
     )
     .fill({ color: 0x00ff00, alpha: 0.3 });
 
@@ -74,4 +74,31 @@ export const renderAlchemistLabWestWall = (app, { roomId, socket, normX, normY, 
 
   stage.addChild(transmuter);
   console.log("Transmuter hotspot added to stage");
+
+  // West Codebox + Jigsaw hotspot
+  const westJigsaw = new PIXI.Graphics()
+    .rect(
+      normX(372),
+      normY(655),
+      scaleX(250), // width
+      scaleY(220)  // height
+    )
+    .fill({ color: 0x00ff00, alpha: 0.3 });
+
+  westJigsaw.eventMode = "static";
+  westJigsaw.cursor = "pointer";
+
+  westJigsaw.on("pointertap", () => {
+    console.log("West jigsaw hotspot clicked!");
+    if (!socket) return;
+    socket.emit("interact", {
+      roomId,
+      actionId: crypto.randomUUID(),
+      objectId: "trigger_west_codebox",
+      verb: "INTERACT",
+    });
+  });
+
+  stage.addChild(westJigsaw);
+  console.log("West jigsaw hotspot added to stage");
 };
