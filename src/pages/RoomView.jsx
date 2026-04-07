@@ -16,6 +16,7 @@ import "../components/svelte/FrameHint.svelte";
 import "../components/svelte/KeyVase.svelte";
 import "../components/svelte/RecipeHint.svelte";
 import "../components/svelte/Transmuter.svelte";
+import "../components/svelte/FinalDoorInput.svelte";
 import "../components/svelte/WestJigsaw.svelte";
 import "../components/svelte/EastCodebox.svelte";
 import "../components/svelte/LightBeamGrid.svelte";
@@ -35,6 +36,8 @@ import { resolveWallImage } from "../config/wallImageOverrides.js";
 import { readMusicSettings, writeMusicSettings } from "../state/musicSettings.js";
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
+const DEFAULT_STATUE_FEATHER_PLACED = false;
+const DEFAULT_STATUE_FEATHER_SIDE = "left";
 const WIDGET_STATE_ALIASES = Object.freeze({
   transmuter_puzzle: ["transmuter_puzzle", "alch:transmuter", "alchKeyTransmutation"],
   "alch:transmuter": ["alch:transmuter", "alchKeyTransmutation", "transmuter_puzzle"],
@@ -49,6 +52,11 @@ const WIDGET_STATE_ALIASES = Object.freeze({
   "alch:flask-transfer": ["alch:flask-transfer", "alchFlaskTransfer", "flask_transfer_puzzle"],
   statue_pose_puzzle: ["statue_pose_puzzle", "alch:statue", "alchStatuePose"],
   "alch:statue": ["alch:statue", "alchStatuePose", "statue_pose_puzzle"],
+  transformation_table_puzzle: ["wizard_transformation_table", "transformation_table_puzzle"],
+  final_word_input: ["finalCorridor", "final_word_input"],
+  final_sync_plates: ["finalCorridor", "final_sync_plates"],
+  final_door_panel: ["finalCorridor", "final_door_panel"],
+  final_rune_hint: ["finalCorridor", "final_rune_hint"],
 });
 
 function withWestRoseReward(items, includeRose = false) {
@@ -276,8 +284,8 @@ export default function RoomView({ mode = "solo" }) {
   const [roomType, setRoomType] = useState(initialSoloChoice);
   const [gameState, setGameState] = useState({});
   const [activeWidget, setActiveWidget] = useState(null);
-  const [statueFeatherPlaced, setStatueFeatherPlaced] = useState(false);
-  const [statueFeatherSide, setStatueFeatherSide] = useState("left");
+  const statueFeatherPlaced = DEFAULT_STATUE_FEATHER_PLACED;
+  const statueFeatherSide = DEFAULT_STATUE_FEATHER_SIDE;
   
   // Inventory State
   const [inventory, setInventory] = useState([]);
@@ -435,7 +443,9 @@ export default function RoomView({ mode = "solo" }) {
 
     if (puzzleData === undefined) {
       const candidateKeys = WIDGET_STATE_ALIASES[activeWidget] || [activeWidget];
-      puzzleData = candidateKeys.map((key) => gameState[key]).find(Boolean);
+      puzzleData = candidateKeys
+        .map((key) => gameState?.[key])
+        .find((value) => value !== undefined);
     }
 
     if (el && puzzleData) {
@@ -539,6 +549,8 @@ export default function RoomView({ mode = "solo" }) {
   const baseWallImage = images[viewIndex];
   const wallImage = resolveWallImage(baseWallImage, { roomType, viewIndex, gameState });
   const wallImageFitClass = wallImage?.fit === "cover" ? "object-cover" : "object-contain";
+  const wallImageAspectRatio = wallImage?.aspectRatio || 1920 / 1080;
+  const wallImageFit = wallImage?.fit || "contain";
 
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
@@ -555,10 +567,20 @@ export default function RoomView({ mode = "solo" }) {
         <img
           src={wallImage.src}
           className={`absolute inset-0 w-full h-full ${wallImageFitClass} select-none z-0`}
+          alt=""
+          draggable={false}
         />
       )}
       <div className="absolute inset-0 z-10 pointer-events-none">
-        <InteractionLayer viewIndex={viewIndex} roomId={roomId} socket={getSocket()} roomType={roomType} gameState={gameState} />
+        <InteractionLayer
+          viewIndex={viewIndex}
+          roomId={roomId}
+          socket={getSocket()}
+          roomType={roomType}
+          gameState={gameState}
+          wallImageAspectRatio={wallImageAspectRatio}
+          wallImageFit={wallImageFit}
+        />
       </div>
 
       {/* Generic Inventory Bar */}
