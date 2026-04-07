@@ -41,7 +41,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Optional: Adds a nice dark frame behind the paper/hint */
     background: rgba(20, 15, 10, 0.9);
     padding: 20px;
     border-radius: 8px;

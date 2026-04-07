@@ -50,7 +50,7 @@
         {hasAshKey ? "Insert Ash Key" : "Ash Key Required"}
       </button>
     {:else if isOpenable}
-      <p class="status">The seal breaks. The way forward is open.</p>
+      <p class="status">The seal breaks. Close this view and click the door.</p>
     {:else}
       <p class="status">The key fits, but something still blocks the door.</p>
     {/if}

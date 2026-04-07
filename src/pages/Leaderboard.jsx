@@ -1,24 +1,104 @@
+import { useEffect, useMemo, useState } from "react";
 import Page from "../components/Layout/Page";
 
+const API_BASE = import.meta.env.VITE_BACKEND_URL || window.location.origin;
+
+function formatSeconds(rawSeconds) {
+  const seconds = Number(rawSeconds);
+  if (!Number.isFinite(seconds) || seconds < 0) return "—";
+  const total = Math.floor(seconds);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const secs = total % 60;
+  const mm = String(minutes).padStart(2, "0");
+  const ss = String(secs).padStart(2, "0");
+  return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
 export default function Leaderboard() {
-  const rows = [
-    { rank: 1, user: "bobby-is-the-best", time: "20:15" },
-    { rank: 2, user: "alice-for-the-win", time: "23:00" },
-  ];
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    setError(null);
+
+    fetch(`${API_BASE}/api/leaderboard/time`, { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("LEADERBOARD_FETCH_FAILED");
+        return res.json();
+      })
+      .then((data) => {
+        if (!alive) return;
+        const list = Array.isArray(data?.leaderboard) ? data.leaderboard : [];
+        setRows(list);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (!alive) return;
+        console.error("Leaderboard fetch failed", err);
+        setError("Could not load leaderboard data.");
+        setLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const tableRows = useMemo(
+    () =>
+      rows.map((entry, index) => ({
+        rank: index + 1,
+        user: entry?.username || "Unknown",
+        best: formatSeconds(entry?.best_time),
+        avg: formatSeconds(entry?.avg_time),
+        runs: Number(entry?.completed_runs || 0),
+      })),
+    [rows]
+  );
+
   return (
     <Page>
-      <div className="bg-base-100/10 rounded-2xl p-6 shadow">
+      <div className="bg-base-100/10 rounded-2xl p-6 shadow text-white">
         <h2 className="text-2xl font-bold mb-4">Leaderboard</h2>
-        <div className="overflow-x-auto">
-          <table className="table">
-            <thead><tr><th>#</th><th>User</th><th>Best Time</th></tr></thead>
-            <tbody>
-              {rows.map(r=>(
-                <tr key={r.rank}><td>{r.rank}</td><td>{r.user}</td><td>{r.time}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {loading && <p className="text-base-content/70">Loading leaderboard...</p>}
+        {error && <p className="text-error">{error}</p>}
+        {!loading && !error && (
+          <div className="overflow-x-auto">
+            <table className="table text-white">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>User</th>
+                  <th>Best Time</th>
+                  <th>Avg Time</th>
+                  <th>Runs</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableRows.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="text-center text-base-content/70">
+                      No leaderboard entries yet.
+                    </td>
+                  </tr>
+                )}
+                {tableRows.map((r) => (
+                  <tr key={`${r.user}-${r.rank}`}>
+                    <td>{r.rank}</td>
+                    <td>{r.user}</td>
+                    <td>{r.best}</td>
+                    <td>{r.avg}</td>
+                    <td>{r.runs}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </Page>
   );

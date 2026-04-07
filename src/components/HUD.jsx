@@ -1,5 +1,16 @@
 // src/components/HUD.jsx
-export default function HUD({ onHome, onTurnLeft, onTurnRight, onToggleMusic, musicEnabled = true }) {
+export default function HUD({
+  onHome,
+  onTurnLeft,
+  onTurnRight,
+  onToggleMusic,
+  musicEnabled = true,
+  onSwitchRoom,
+  switchRoomLabel = "Switch Room",
+  onGoCorridor,
+  corridorLabel = "Go to Corridor",
+  timerLabel,
+}) {
   return (
     <div className="pointer-events-none">
       <button
@@ -26,6 +37,32 @@ export default function HUD({ onHome, onTurnLeft, onTurnRight, onToggleMusic, mu
           </svg>
         )}
       </button>
+
+      {onSwitchRoom && (
+        <button
+          onClick={onSwitchRoom}
+          className="absolute top-4 right-28 z-30 btn btn-sm bg-black/60 text-white border-white/30 pointer-events-auto"
+          title={switchRoomLabel}
+        >
+          {switchRoomLabel}
+        </button>
+      )}
+
+      {onGoCorridor && (
+        <button
+          onClick={onGoCorridor}
+          className="absolute top-4 right-4 z-30 btn btn-sm bg-black/70 text-white border-white/40 pointer-events-auto"
+          title={corridorLabel}
+        >
+          {corridorLabel}
+        </button>
+      )}
+
+      {timerLabel && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 px-3 py-1 rounded-full bg-black/70 text-white border border-white/30 text-xs font-semibold tracking-wide">
+          {timerLabel}
+        </div>
+      )}
 
       <div className="absolute inset-x-0 bottom-10 flex justify-between px-10 z-20 pointer-events-none">
         <button

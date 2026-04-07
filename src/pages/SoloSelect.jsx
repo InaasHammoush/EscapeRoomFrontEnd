@@ -19,7 +19,7 @@ const SOLO_CHOICES = [
  */
 async function createRoom(socket, roomName) {
   return new Promise((resolve, reject) => {
-    socket.emit("create_room", { roomName }, (res) => {
+    socket.emit("create_room", { roomName, mode: "solo", startingChamber: roomName }, (res) => {
       if (!res || !res.ok) {
         console.error("Failed creating room:", res?.error);
         reject(res?.error || "create_room_failed");

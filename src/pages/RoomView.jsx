@@ -59,6 +59,7 @@ const WIDGET_STATE_ALIASES = Object.freeze({
   final_rune_hint: ["finalCorridor", "final_rune_hint"],
 });
 
+
 function withWestRoseReward(items, includeRose = false) {
   const next = Array.isArray(items) ? [...items] : [];
   if (!includeRose) return next;
@@ -272,7 +273,7 @@ function getPuzzleStateByWidget(gameState, activeWidget) {
 }
 
 export default function RoomView({ mode = "solo" }) {
-  const { sessionId, roomId } = useParams();
+  const { sessionId, roomId, role } = useParams();
   const navigate = useNavigate();
 
   const [socketReady, setSocketReady] = useState(false);
@@ -283,7 +284,9 @@ export default function RoomView({ mode = "solo" }) {
   const [images, setImages] = useState([]);
   const [roomType, setRoomType] = useState(initialSoloChoice);
   const [gameState, setGameState] = useState({});
+  const [timerNow, setTimerNow] = useState(Date.now());
   const [activeWidget, setActiveWidget] = useState(null);
+  const [eastDoorSolved, setEastDoorSolved] = useState(false);
   const statueFeatherPlaced = DEFAULT_STATUE_FEATHER_PLACED;
   const statueFeatherSide = DEFAULT_STATUE_FEATHER_SIDE;
   
@@ -312,12 +315,16 @@ export default function RoomView({ mode = "solo" }) {
     const st = msg?.roomState || msg?.snapshot?.state;
     if (!st) return;
     const publicState = st.public || st;
-    const snapshotWidget = st?.activeWidget ?? publicState?.activeWidget;
+    const hasSnapshotWidget =
+      st && Object.prototype.hasOwnProperty.call(st, "activeWidget");
+    const snapshotWidget = hasSnapshotWidget ? st.activeWidget : publicState?.activeWidget;
 
     if (st.viewIndex !== undefined) setViewIndex(st.viewIndex);
     if (st.roomType) setRoomType(st.roomType);
     if (Array.isArray(st.views)) loadImages(st.views);
-    if (snapshotWidget !== undefined) {
+    if (hasSnapshotWidget) {
+      setActiveWidget(normalizeActiveWidgetKey(snapshotWidget));
+    } else if (snapshotWidget !== undefined) {
       setActiveWidget(normalizeActiveWidgetKey(snapshotWidget));
     }
     if (publicState) {
@@ -390,32 +397,56 @@ export default function RoomView({ mode = "solo" }) {
     if (delta?.viewIndex !== undefined) setViewIndex(delta.viewIndex);
   }, []);
 
+  const onRoomChanged = useCallback((msg) => {
+    const diff = msg?.diff || msg;
+    if (!diff) return;
+    if (diff.viewIndex !== undefined) setViewIndex(diff.viewIndex);
+    if (diff.roomType) setRoomType(diff.roomType);
+    if (Array.isArray(diff.views)) loadImages(diff.views);
+    setGameState((prev) => ({ ...prev, ...diff }));
+  }, [loadImages]);
+
+  const onRoomState = useCallback((snapshot) => {
+    if (!snapshot) return;
+    onSnapshot({ snapshot });
+  }, [onSnapshot]);
+
   // --- SOCKET SETUP ---
   useEffect(() => {
     let s = getSocket();
-    if (!s) s = connectSocket({ mode, sessionId, role: "player", roomType: initialSoloChoice });
+    if (!s) s = connectSocket({ mode, sessionId, role, roomType: initialSoloChoice });
     
     const onConnect = () => setSocketReady(true);
     if (s.connected) setSocketReady(true);
     else s.on("connect", onConnect);
 
     s.on("state:snapshot", onSnapshot);
+    s.on("room_state", onRoomState);
     s.on("puzzle_update", onPuzzleUpdate);
     s.on("state:viewChanged", onViewChanged);
+    s.on("state:roomChanged", onRoomChanged);
 
     return () => {
       s.off("state:snapshot", onSnapshot);
+      s.off("room_state", onRoomState);
       s.off("puzzle_update", onPuzzleUpdate);
       s.off("state:viewChanged", onViewChanged);
+      s.off("state:roomChanged", onRoomChanged);
     };
-  }, [mode, sessionId, roomId, onSnapshot, onPuzzleUpdate, onViewChanged]);
+  }, [mode, sessionId, roomId, onSnapshot, onRoomState, onPuzzleUpdate, onViewChanged, onRoomChanged]);
 
   // --- JOIN & READY ---
   useEffect(() => {
     if (!socketReady || !roomId) return;
     const s = getSocket();
     pendingFlags.current = {};
-    s.emit("join_room", { roomId, name: "Solo Player" }, (res) => {
+    const name = mode === "solo" ? "Solo Player" : "Player";
+    const normalizedRole =
+      role ? String(role).trim().toUpperCase() : null;
+    const payload = normalizedRole
+      ? { roomId, name, role: normalizedRole }
+      : { roomId, name };
+    s.emit("join_room", payload, (res) => {
       if (res?.ok && res.snapshot) onSnapshot(res);
       else setLoading(false);
     });
@@ -481,7 +512,38 @@ export default function RoomView({ mode = "solo" }) {
     ) {
       setActiveWidget(null);
     }
-  }, [gameState, activeWidget]);
+  }, [eastDoorSolved, activeWidget]);
+
+
+
+  useEffect(() => {
+    const startedAt = Number(gameState?.game?.startedAt || 0);
+    const endedAt = Number(gameState?.game?.endedAt || 0);
+    if (!startedAt) return;
+    if (endedAt) {
+      setTimerNow(endedAt);
+      return;
+    }
+    const id = setInterval(() => setTimerNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [gameState?.game?.startedAt, gameState?.game?.endedAt]);
+
+  const formatElapsed = (ms) => {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const seconds = total % 60;
+    const mm = String(minutes).padStart(2, "0");
+    const ss = String(seconds).padStart(2, "0");
+    if (hours > 0) return `${hours}:${mm}:${ss}`;
+    return `${mm}:${ss}`;
+  };
+
+  useEffect(() => {
+    const onEastSolved = () => setEastDoorSolved(true);
+    document.addEventListener("east-sliding-solved", onEastSolved);
+    return () => document.removeEventListener("east-sliding-solved", onEastSolved);
+  }, []);
 
   useEffect(() => {
     if (!roomType) return;
@@ -517,6 +579,30 @@ export default function RoomView({ mode = "solo" }) {
   }, [roomId, inventory]);
 
   const turn = (dir) => getSocket()?.emit("intent:turn", { roomId, direction: dir });
+  const switchRoom = () => {
+    const socket = getSocket();
+    if (!socket || !roomId) return;
+    const current = gameState?.activeChamber || roomType;
+    const target = current === "wizard_library" ? "alchemist_lab" : "wizard_library";
+    socket.emit("intent:switch_room", { roomId, chamber: target }, (res) => {
+      if (!res?.ok) {
+        console.warn("switch_room failed", res);
+        return;
+      }
+      if (res?.diff) onRoomChanged(res);
+    });
+  };
+  const goCorridor = () => {
+    const socket = getSocket();
+    if (!socket || !roomId) return;
+    socket.emit("intent:switch_room", { roomId, chamber: "corridor" }, (res) => {
+      if (!res?.ok) {
+        console.warn("switch_room failed", res);
+        return;
+      }
+      if (res?.diff) onRoomChanged(res);
+    });
+  };
   const toggleMusic = () => {
     const current = readMusicSettings();
     const nextEnabled = !current.enabled;
@@ -548,6 +634,15 @@ export default function RoomView({ mode = "solo" }) {
   const WidgetTag = activeWidget ? WIDGET_REGISTRY[activeWidget] : null;
   const baseWallImage = images[viewIndex];
   const wallImage = resolveWallImage(baseWallImage, { roomType, viewIndex, gameState });
+  const canSwitchRoom = gameState?.mode === "solo" || mode === "solo";
+  const corridorUnlocked = !!gameState?.corridorUnlocked;
+  const switchRoomLabel = (gameState?.activeChamber || roomType) === "wizard_library"
+    ? "Go to Lab"
+    : "Go to Library";
+  const startedAtMs = Number(gameState?.game?.startedAt || 0);
+  const endedAtMs = Number(gameState?.game?.endedAt || 0);
+  const elapsedMs = startedAtMs ? (endedAtMs || timerNow) - startedAtMs : null;
+  const timerLabel = startedAtMs ? `Time ${formatElapsed(elapsedMs)}` : null;
   const wallImageFitClass = wallImage?.fit === "cover" ? "object-cover" : "object-contain";
   const wallImageAspectRatio = wallImage?.aspectRatio || 1920 / 1080;
   const wallImageFit = wallImage?.fit || "contain";
@@ -560,6 +655,10 @@ export default function RoomView({ mode = "solo" }) {
         onTurnRight={() => turn("RIGHT")} 
         onToggleMusic={toggleMusic}
         musicEnabled={musicEnabled}
+        onSwitchRoom={canSwitchRoom ? switchRoom : null}
+        switchRoomLabel={switchRoomLabel}
+        onGoCorridor={canSwitchRoom && corridorUnlocked ? goCorridor : null}
+        timerLabel={timerLabel}
       />
       
       {/* Background & Click Layer */}
@@ -584,7 +683,13 @@ export default function RoomView({ mode = "solo" }) {
       </div>
 
       {/* Generic Inventory Bar */}
-      <InventoryBar inventory={inventory} />
+      <InventoryBar
+        inventory={inventory}
+        mode={mode}
+        role={role}
+        roomType={roomType}
+        activeChamber={gameState?.activeChamber}
+      />
 
       {/* Dynamic Widget Rendering */}
       {WidgetTag && (

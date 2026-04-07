@@ -3,8 +3,17 @@ import { useEffect, useState } from "react";
 import { getInventoryImage } from "../../config/items.js";
 import { getInventoryUi } from "../../config/items.js";
 import inventoryEmptyImg from "../../assets/alchemist/inventory_empty.png";
+import inventoryWizardImg from "../../assets/wizard_library/inventory_wizard.png";
 
-export default function InventoryBar({ inventory = [] }) {
+const inventoryMixImg = "/inventory_mix.png";
+
+export default function InventoryBar({
+  inventory = [],
+  mode = "solo",
+  role = null,
+  roomType = null,
+  activeChamber = null,
+}) {
   const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
@@ -19,13 +28,29 @@ export default function InventoryBar({ inventory = [] }) {
   }, [selectedItem]);
 
   const selectedImage = selectedItem ? getInventoryImage(selectedItem.item) : null;
+  const normalizedMode = String(mode || "").trim().toLowerCase();
+  const chamber = String(activeChamber || roomType || "").trim().toLowerCase();
+  const roleKey = String(role || "").trim().toUpperCase();
+
+  const inventoryFrame =
+    normalizedMode === "solo"
+      ? inventoryMixImg
+      : chamber.includes("wizard")
+      ? inventoryWizardImg
+      : chamber.includes("alchemist")
+      ? inventoryEmptyImg
+      : roleKey === "A" || roleKey === "WIZARD" || roleKey === "WIZARD_LIBRARY"
+      ? inventoryWizardImg
+      : roleKey === "B" || roleKey === "ALCHEMIST" || roleKey === "ALCHEMIST_LAB"
+      ? inventoryEmptyImg
+      : inventoryEmptyImg;
 
   return (
     <>
       <div className="absolute left-[-250px] right-20 top-1/2 -translate-y-1/2 -translate-y-[470px] z-[60] py-2 px-2 pointer-events-none">
         <div className="relative w-[36rem] h-[55rem]">
           <img
-            src={inventoryEmptyImg}
+            src={inventoryFrame}
             alt="Inventory"
             className="absolute inset-0 w-full h-full object-contain opacity-95 rotate-90"
           />
