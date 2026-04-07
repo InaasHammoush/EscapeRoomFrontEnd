@@ -94,10 +94,10 @@
 
   .grid-layout {
     position: absolute;
-    top: 33%;
-    left: 31%;   
+    top: 44%;
+    left: 30%;   
     width: 38%;
-    height: 36%;
+    height: 38%;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
@@ -111,7 +111,7 @@
   .mark { width: 75%; height: 75%; object-fit: contain; }
 
   .close-btn {
-    position: absolute; top: 12%; right: 12%;
+    position: absolute; top: 15%; right: 3%;
     width: 32px; height: 32px; border-radius: 50%;
     background: #2c1810; color: #f4e4bc; border: none; cursor: pointer;
   }
