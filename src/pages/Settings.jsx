@@ -12,9 +12,6 @@ export default function Settings() {
   const { user } = useAuthUser();
   const navigate = useNavigate();
 
-  const [hintsEnabled, setHintsEnabled] = useState(true);
-  const [brightness, setBrightness] = useState(100);
-  const [colorIntensity, setColorIntensity] = useState(100);
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.8);
 
@@ -301,44 +298,6 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* === GAME SETTINGS === */}
-      <section className="mb-12 space-y-3">
-        <h3 className="text-xl font-semibold mb-3">Game Settings</h3>
-
-        <label className="label cursor-pointer w-fit">
-          <span className="label-text mr-3">Hints</span>
-          <input
-            type="checkbox"
-            className="toggle"
-            checked={hintsEnabled}
-            onChange={() => setHintsEnabled(!hintsEnabled)}
-          />
-        </label>
-
-        <div className="mt-3 mb-6">
-          <label className="label-text">Object Lighting</label>
-          <input
-            type="range"
-            min="30"
-            max="150"
-            value={brightness}
-            className="range ml-3"
-            onChange={(e) => setBrightness(e.target.value)}
-          />
-        </div>
-
-        <div className="mt-3">
-          <label className="label-text">Object Color Intensity</label>
-          <input
-            type="range"
-            min="50"
-            max="150"
-            value={colorIntensity}
-            className="range ml-3"
-            onChange={(e) => setColorIntensity(e.target.value)}
-          />
-        </div>
-      </section>
     </Page>
   );
 }
