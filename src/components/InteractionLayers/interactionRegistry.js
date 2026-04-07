@@ -4,6 +4,7 @@ import { renderAlchemistLabEastWall } from "./alchemist_lab/east";
 import { renderWizardLibrarySouthWall } from "./wizard_library/south";
 import { renderWizardLibraryWestWall } from "./wizard_library/west";
 import { renderAlchemistLabWestWall } from "./alchemist_lab/west";
+import { renderCorridorEastWall } from "./corridor/east";
 import { renderAlchemistLabNorthWall } from "./alchemist_lab/north";
 import { renderAlchemistLabSouthWall } from "./alchemist_lab/south";
 
@@ -21,6 +22,25 @@ const registry = {
     1: renderAlchemistLabEastWall,
     2: renderAlchemistLabSouthWall,
     3: renderAlchemistLabWestWall,
+  },
+  corridor: {
+    0: null,
+    1: renderCorridorEastWall,
+    2: null,
+    3: null,
+  },
+  final_corridor: {
+    0: null,
+    1: renderCorridorEastWall,
+    2: null,
+    3: null,
+  },
+  // Fallback when backend still uses default room type while serving corridor images
+  default: {
+    0: null,
+    1: renderCorridorEastWall,
+    2: null,
+    3: null,
   },
 };
 

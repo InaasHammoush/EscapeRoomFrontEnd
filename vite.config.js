@@ -2,7 +2,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 
-const API = "http://localhost:8081";
+// Backend ist über Caddy erreichbar (Port 80)
+const API = "http://127.0.0.1";
 
 export default defineConfig({
   plugins: [svelte({
@@ -17,3 +18,5 @@ export default defineConfig({
     },
   },
 });
+
+

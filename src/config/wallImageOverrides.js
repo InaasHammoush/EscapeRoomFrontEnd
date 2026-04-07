@@ -1,4 +1,7 @@
+import finalCorridorDoorImage from "../assets/final_corridor/final_corridor_door.png";
 
+const DEFAULT_WALL_ASPECT_RATIO = 1920 / 1080;
+const FINAL_CORRIDOR_ASPECT_RATIO = 1394 / 768;
 
 const WALL_IMAGE_OVERRIDE_RULES = [
   {
@@ -82,6 +85,30 @@ const WALL_IMAGE_OVERRIDE_RULES = [
     image: "/rooms/alchemist_lab/final_door_closed.png",
     fit: "cover",
   },
+  {
+    roomType: "corridor",
+    viewIndex: 1,
+    when: () => true,
+    image: finalCorridorDoorImage,
+    fit: "contain",
+    aspectRatio: FINAL_CORRIDOR_ASPECT_RATIO,
+  },
+  {
+    roomType: "final_corridor",
+    viewIndex: 1,
+    when: () => true,
+    image: finalCorridorDoorImage,
+    fit: "contain",
+    aspectRatio: FINAL_CORRIDOR_ASPECT_RATIO,
+  },
+  {
+    roomType: "default",
+    viewIndex: 1,
+    when: (gameState) => !!gameState?.finalCorridor,
+    image: finalCorridorDoorImage,
+    fit: "contain",
+    aspectRatio: FINAL_CORRIDOR_ASPECT_RATIO,
+  },
 ];
 
 export function resolveWallImage(baseImage, { roomType, viewIndex, gameState } = {}) {
@@ -95,5 +122,6 @@ export function resolveWallImage(baseImage, { roomType, viewIndex, gameState } =
   return {
     src: rule?.image || baseImage,
     fit: rule?.fit || "contain",
+    aspectRatio: rule?.aspectRatio || DEFAULT_WALL_ASPECT_RATIO,
   };
 }
