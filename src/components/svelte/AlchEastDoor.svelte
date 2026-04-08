@@ -6,6 +6,7 @@
 
   export let puzzle = null;
   export let inventory = [];
+  export let gameMode = "solo";
   let keyholeActive = false;
 
   $: hasGoldenKey = Array.isArray(inventory) && inventory.some(
@@ -16,6 +17,7 @@
   $: runesActivated = !!puzzle?.runesActivated;
   $: mechanismTriggered = !!puzzle?.mechanismTriggered;
   $: doorOpen = !!(puzzle?.open || puzzle?.opened);
+  $: showCoopHint = gameMode === "coop" && keyInserted;
   $: doorImage = keyInserted ? doorSolvedImg : doorCloseupImg;
 
   function emitIntent(objectId, verb, data = {}) {
@@ -93,6 +95,10 @@
     {:else}
       <p class="status-text">A heavy lock plate blocks the way.</p>
     {/if}
+
+    {#if showCoopHint}
+      <p class="coop-hint">Co-op: open both doors at the same time.</p>
+    {/if}
   </div>
 </div>
 
@@ -154,6 +160,13 @@
     margin: 0;
     color: #e8d6b3;
     text-align: center;
+  }
+
+  .coop-hint {
+    margin: 0;
+    color: #d9c7a3;
+    text-align: center;
+    font-size: 0.9rem;
   }
 
   .close-btn {

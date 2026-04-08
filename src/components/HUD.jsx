@@ -64,23 +64,29 @@ export default function HUD({
         </div>
       )}
 
-      <div className="absolute inset-x-0 bottom-10 flex justify-between px-10 z-20 pointer-events-none">
-        <button
-          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white pointer-events-auto"
-          onClick={onTurnLeft}
-          title="Turn Left"
-        >
-          {"\u27F2"}
-        </button>
+      {(typeof onTurnLeft === "function" || typeof onTurnRight === "function") && (
+        <div className="absolute inset-x-0 bottom-10 flex justify-between px-10 z-20 pointer-events-none">
+          {typeof onTurnLeft === "function" && (
+            <button
+              className="btn btn-circle btn-lg btn-outline bg-black/40 text-white pointer-events-auto"
+              onClick={onTurnLeft}
+              title="Turn Left"
+            >
+              {"\u27F2"}
+            </button>
+          )}
 
-        <button
-          className="btn btn-circle btn-lg btn-outline bg-black/40 text-white pointer-events-auto"
-          onClick={onTurnRight}
-          title="Turn Right"
-        >
-          {"\u27F3"}
-        </button>
-      </div>
+          {typeof onTurnRight === "function" && (
+            <button
+              className="btn btn-circle btn-lg btn-outline bg-black/40 text-white pointer-events-auto"
+              onClick={onTurnRight}
+              title="Turn Right"
+            >
+              {"\u27F3"}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

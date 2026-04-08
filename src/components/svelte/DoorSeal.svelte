@@ -6,9 +6,11 @@
 
   export let puzzle = null;
   export let inventory = [];
+  export let gameMode = "solo";
 
   $: hasKeyInserted = !!puzzle?.hasKey;
   $: isOpenable = !!puzzle?.openable;
+  $: showCoopHint = gameMode === "coop" && hasKeyInserted;
   $: hasAshKey = Array.isArray(inventory) && inventory.some(
     (entry) => String(entry?.item || "").toUpperCase() === "ASH_KEY" && Number(entry?.count || 0) > 0
   );
@@ -53,6 +55,10 @@
       <p class="status">The seal breaks. Close this view and click the door.</p>
     {:else}
       <p class="status">The key fits, but something still blocks the door.</p>
+    {/if}
+
+    {#if showCoopHint}
+      <p class="coop-hint">Co-op: open both doors at the same time.</p>
     {/if}
   </div>
 </div>
@@ -102,6 +108,13 @@
     margin: 0;
     color: #e8d6b3;
     text-align: center;
+  }
+
+  .coop-hint {
+    margin: 0;
+    color: #d9c7a3;
+    text-align: center;
+    font-size: 0.9rem;
   }
 
   .close-btn {
