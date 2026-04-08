@@ -493,10 +493,11 @@ export default function RoomView({ mode = "solo" }) {
       el.grid = puzzleData;
       el.puzzle = puzzleData;
       el.inventory = inventory;
+      el.gameMode = gameState?.mode || mode;
       el.featherSideHint = statueFeatherSide;
       el.featherPlacedHint = statueFeatherPlaced;
     }
-  }, [gameState, activeWidget, inventory, statueFeatherSide, statueFeatherPlaced]);
+  }, [gameState, activeWidget, inventory, statueFeatherSide, statueFeatherPlaced, mode]);
 
   useEffect(() => {
     const slidingSolved = !!(
@@ -634,8 +635,16 @@ export default function RoomView({ mode = "solo" }) {
   const WidgetTag = activeWidget ? WIDGET_REGISTRY[activeWidget] : null;
   const baseWallImage = images[viewIndex];
   const wallImage = resolveWallImage(baseWallImage, { roomType, viewIndex, gameState });
-  const canSwitchRoom = gameState?.mode === "solo" || mode === "solo";
   const corridorUnlocked = !!gameState?.corridorUnlocked;
+  const isSoloMode = (gameState?.mode === "solo" || mode === "solo");
+  const canSwitchRoom =
+    isSoloMode &&
+    roomType !== "corridor" &&
+    !corridorUnlocked;
+  const canGoCorridor =
+    isSoloMode &&
+    roomType !== "corridor" &&
+    corridorUnlocked;
   const switchRoomLabel = (gameState?.activeChamber || roomType) === "wizard_library"
     ? "Go to Lab"
     : "Go to Library";
@@ -646,21 +655,22 @@ export default function RoomView({ mode = "solo" }) {
   const wallImageFitClass = wallImage?.fit === "cover" ? "object-cover" : "object-contain";
   const wallImageAspectRatio = wallImage?.aspectRatio || 1920 / 1080;
   const wallImageFit = wallImage?.fit || "contain";
+  const canTurn = roomType !== "corridor";
 
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
       <HUD 
         onHome={exitToHome} 
-        onTurnLeft={() => turn("LEFT")} 
-        onTurnRight={() => turn("RIGHT")} 
+        onTurnLeft={canTurn ? () => turn("LEFT") : null} 
+        onTurnRight={canTurn ? () => turn("RIGHT") : null} 
         onToggleMusic={toggleMusic}
         musicEnabled={musicEnabled}
         onSwitchRoom={canSwitchRoom ? switchRoom : null}
         switchRoomLabel={switchRoomLabel}
-        onGoCorridor={canSwitchRoom && corridorUnlocked ? goCorridor : null}
+        onGoCorridor={canGoCorridor ? goCorridor : null}
         timerLabel={timerLabel}
       />
-      
+
       {/* Background & Click Layer */}
       {wallImage?.src && (
         <img

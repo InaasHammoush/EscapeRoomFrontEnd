@@ -58,7 +58,7 @@ export default function Auth() {
   };
 
   return (
-    <Page>
+    <Page showAuthBar={false}>
       <div className="h-[70vh] grid place-items-center">
         <div className="bg-base-100/10 rounded-2xl p-6 shadow w-[min(90vw,420px)]">
           <div className="flex items-center justify-between mb-4">
@@ -160,3 +160,4 @@ export default function Auth() {
     </Page>
   );
 }
+
