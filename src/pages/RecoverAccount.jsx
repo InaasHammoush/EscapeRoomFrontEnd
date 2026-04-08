@@ -29,7 +29,7 @@ export default function RecoverAccount() {
   };
 
   return (
-    <Page>
+    <Page showAuthBar={false}>
       <div className="h-[70vh] grid place-items-center">
         <div className="bg-base-100/10 rounded-2xl p-6 shadow w-[min(90vw,420px)] text-center space-y-4">
           <h2 className="text-2xl font-bold">Recover account</h2>
@@ -68,3 +68,4 @@ export default function RecoverAccount() {
     </Page>
   );
 }
+

@@ -45,7 +45,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <Page>
+    <Page showAuthBar={false}>
       <div className="h-[70vh] grid place-items-center">
         <div className="bg-base-100/10 rounded-2xl p-6 shadow w-[min(90vw,420px)]">
           <h2 className="text-xl font-bold mb-4">Set a new password</h2>
@@ -99,3 +99,4 @@ export default function ResetPassword() {
     </Page>
   );
 }
+

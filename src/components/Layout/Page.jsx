@@ -37,10 +37,10 @@ function AuthStatusBar() {
 }
 
 // Page Layout
-export default function Page({ children, center = false }) {
+export default function Page({ children, center = false, showAuthBar = true }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <AuthStatusBar />
+      {showAuthBar && <AuthStatusBar />}
 
       <main
         className={
@@ -56,3 +56,4 @@ export default function Page({ children, center = false }) {
     </div>
   );
 }
+

@@ -1,7 +1,6 @@
 // src/components/inventory/InventoryBar.jsx
 import { useEffect, useState } from "react";
-import { getInventoryImage } from "../../config/items.js";
-import { getInventoryUi } from "../../config/items.js";
+import { getInventoryImage, getInventoryUi } from "../../config/items.js";
 import inventoryEmptyImg from "../../assets/alchemist/inventory_empty.png";
 import inventoryWizardImg from "../../assets/wizard_library/inventory_wizard.png";
 
@@ -15,6 +14,7 @@ export default function InventoryBar({
   activeChamber = null,
 }) {
   const [selectedItem, setSelectedItem] = useState(null);
+  const [hoveredItemKey, setHoveredItemKey] = useState(null);
 
   useEffect(() => {
     if (!selectedItem) return;
@@ -28,6 +28,7 @@ export default function InventoryBar({
   }, [selectedItem]);
 
   const selectedImage = selectedItem ? getInventoryImage(selectedItem.item) : null;
+  const selectedLabel = selectedItem ? getInventoryUi(selectedItem.item).displayName : "";
   const normalizedMode = String(mode || "").trim().toLowerCase();
   const chamber = String(activeChamber || roomType || "").trim().toLowerCase();
   const roleKey = String(role || "").trim().toUpperCase();
@@ -56,20 +57,31 @@ export default function InventoryBar({
           />
 
           <div className="absolute inset-0 grid grid-cols-1 auto-rows-[2.4rem] gap-4 place-items-center content-start px-3 pt-47 pb-2 pointer-events-none">
-            {inventory.map((item) => {
+            {inventory.map((item, index) => {
               const iconSrc = getInventoryImage(item.item);
               if (!iconSrc) return null;
 
+              const itemKey = `${item.item}:${index}`;
+              const itemUi = getInventoryUi(item.item);
+              const isHovered = hoveredItemKey === itemKey;
+
               return (
                 <div
-                  key={item.item}
-                  className="h-[3rem] w-[3rem] flex items-center justify-center pointer-events-none"
+                  key={itemKey}
+                  className="relative h-[3rem] w-[3rem] flex items-center justify-center pointer-events-none"
                 >
                   <img
                     src={iconSrc}
-                    alt={item.item}
-                    className="h-full w-full max-h-full max-w-full object-contain pointer-events-auto cursor-grab select-none"
+                    alt={itemUi.displayName}
+                    title={itemUi.displayName}
+                    className={`h-full w-full max-h-full max-w-full object-contain pointer-events-auto cursor-grab select-none transition-all duration-200 ease-out ${
+                      isHovered
+                        ? "-translate-y-1 scale-[1.08] brightness-110 drop-shadow-[0_8px_18px_rgba(244,228,188,0.38)]"
+                        : "scale-100 brightness-100"
+                    } active:scale-[1.04]`}
                     draggable
+                    onMouseEnter={() => setHoveredItemKey(itemKey)}
+                    onMouseLeave={() => setHoveredItemKey((current) => (current === itemKey ? null : current))}
                     onClick={() => setSelectedItem(item)}
                     onDragStart={(e) => {
                       const dragKey = String(item.item || "")
@@ -81,7 +93,6 @@ export default function InventoryBar({
                       e.dataTransfer.setData("application/x-inventory-item", dragKey);
                       e.dataTransfer.setData("text/plain", item.item);
 
-                      // pretty drag preview
                       const dragPreview = document.createElement("img");
                       dragPreview.src = iconSrc;
                       dragPreview.style.width = "96px";
@@ -96,7 +107,16 @@ export default function InventoryBar({
                       e.dataTransfer.setDragImage(dragPreview, 48, 48);
                       setTimeout(() => dragPreview.remove(), 0);
                     }}
+                    onDragEnd={() => setHoveredItemKey((current) => (current === itemKey ? null : current))}
                   />
+
+                  <div
+                    className={`pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded-full border border-[#8b7355]/80 bg-[rgba(20,15,10,0.92)] px-3 py-1 text-xs tracking-[0.18em] text-[#f4e4bc] shadow-[0_8px_22px_rgba(0,0,0,0.32)] transition-all duration-200 ease-out ${
+                      isHovered ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0"
+                    }`}
+                  >
+                    {itemUi.displayName}
+                  </div>
                 </div>
               );
             })}
@@ -124,10 +144,10 @@ export default function InventoryBar({
 
             <img
               src={selectedImage}
-              alt={`${selectedItem.item} closeup`}
+              alt={`${selectedLabel} closeup`}
               className="max-w-[80vw] max-h-[75vh] object-contain select-none"
             />
-            <p className="mt-3 text-center text-[#f4e4bc] tracking-wide">{selectedItem.item}</p>
+            <p className="mt-3 text-center text-[#f4e4bc] tracking-[0.2em] uppercase">{selectedLabel}</p>
           </div>
         </div>
       )}

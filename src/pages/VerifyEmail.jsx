@@ -36,7 +36,7 @@ export default function VerifyEmail() {
   }, [token]);
 
   return (
-    <Page>
+    <Page showAuthBar={false}>
       <div className="h-[70vh] grid place-items-center">
         <div className="bg-base-100/10 rounded-2xl p-6 shadow w-[min(90vw,420px)] text-center space-y-4">
           {status === "loading" && (
@@ -78,3 +78,4 @@ export default function VerifyEmail() {
     </Page>
   );
 }
+
