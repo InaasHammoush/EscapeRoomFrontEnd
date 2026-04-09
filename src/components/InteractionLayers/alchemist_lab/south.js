@@ -10,7 +10,7 @@ export const renderAlchemistLabSouthWall = (app, { roomId, socket, normX, normY,
       scaleX(220),
       scaleY(520)
     )
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
   portraitHotspot.eventMode = "static";
   portraitHotspot.cursor = "pointer";
@@ -35,7 +35,7 @@ export const renderAlchemistLabSouthWall = (app, { roomId, socket, normX, normY,
       scaleX(270),
       scaleY(550)
     )
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
   flasks.eventMode = "static";
   flasks.cursor = "pointer";

@@ -121,7 +121,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="widget-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>✕</button>
+    <button class="close-btn" on:click={closeWidget}>x</button>
 
     <div 
       class="ritual-area"
@@ -185,7 +185,7 @@
   .ritual-area {
     position: relative;
     width: 100%;
-    aspect-ratio: 16/9;
+    aspect-ratio: 1394 / 768;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -359,3 +359,4 @@
     100% { filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9)); }
   }
 </style>
+

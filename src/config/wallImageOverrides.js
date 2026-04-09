@@ -44,7 +44,7 @@ const WALL_IMAGE_OVERRIDE_RULES = [
         gameState?.alchEastDoorSync?.opened
       ),
     image: "/rooms/alchemist_lab/final_door_open.png",
-    fit: "cover",
+    fit: "contain",
   },
   {
     roomType: "alchemist_lab",
@@ -57,7 +57,7 @@ const WALL_IMAGE_OVERRIDE_RULES = [
           gameState?.puzzle_light_beam_grid?.solved)
       ),
     image: "/rooms/alchemist_lab/final_door_closed_runes.png",
-    fit: "cover",
+    fit: "contain",
   },
   {
     roomType: "alchemist_lab",
@@ -72,7 +72,7 @@ const WALL_IMAGE_OVERRIDE_RULES = [
         )
       ),
     image: "/rooms/alchemist_lab/final_door_only_rune.png",
-    fit: "cover",
+    fit: "contain",
   },
   {
     roomType: "alchemist_lab",
@@ -83,7 +83,7 @@ const WALL_IMAGE_OVERRIDE_RULES = [
         gameState?.puzzle_east_sliding_lock?.solved
       ),
     image: "/rooms/alchemist_lab/final_door_closed.png",
-    fit: "cover",
+    fit: "contain",
   },
   {
     roomType: "corridor",

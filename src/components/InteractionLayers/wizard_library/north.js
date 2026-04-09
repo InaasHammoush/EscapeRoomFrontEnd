@@ -10,7 +10,7 @@ export const renderWizardLibraryNorthWall = (app, { roomId, socket, normX, normY
       scaleX(150), 
       scaleY(180)
     ) 
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
     bookShelf.eventMode = "static";
     bookShelf.cursor = "pointer";
@@ -31,7 +31,7 @@ export const renderWizardLibraryNorthWall = (app, { roomId, socket, normX, normY
     scaleX(160), 
     scaleY(180)
   ) 
-  .fill({ color: 0x00ff00, alpha: 0.3 });
+  .fill({ color: 0xffffff, alpha: 0.001 });
 
   candles.eventMode = "static";
   candles.cursor = "pointer";
@@ -52,7 +52,7 @@ export const renderWizardLibraryNorthWall = (app, { roomId, socket, normX, normY
     scaleX(50), 
     scaleY(120)
   ) 
-  .fill({ color: 0x00ff00, alpha: 0.3 });
+  .fill({ color: 0xffffff, alpha: 0.001 });
 
   keyVase.eventMode = "static";
   keyVase.cursor = "pointer";

@@ -66,7 +66,7 @@
       </div>
     </div>
 
-    <button class="close-btn" on:click={close}>✕</button>
+    <button class="close-btn" on:click={close}>x</button>
   </div>
 </div>
 
@@ -76,7 +76,7 @@
     align-items: center; justify-content: center;
     background: rgba(0,0,0,0.7); backdrop-filter: blur(2px);
   }
-  .scroll-wrapper { position: relative; width: 720px; aspect-ratio: 4/3; }
+  .scroll-wrapper { position: relative; width: min(88vw, 720px); max-height: 90vh; aspect-ratio: 2528 / 1686; }
   .bg-scroll { width: 100%; height: 100%; object-fit: contain; }
   
   .content-overlay {
@@ -153,3 +153,4 @@
     transform: scale(1.02);
   }
 </style>
+

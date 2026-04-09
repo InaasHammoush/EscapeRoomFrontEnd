@@ -15,7 +15,7 @@
 <div class="modal-overlay" on:click={closeWidget}>
   
   <div class="hint-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>✕</button>
+    <button class="close-btn" on:click={closeWidget}>x</button>
     
     <img src={hintImg} alt="Frame Hint" class="hint-image" />
   </div>
