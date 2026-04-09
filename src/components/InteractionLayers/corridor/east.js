@@ -5,6 +5,8 @@ function emitInteract(socket, payload) {
   socket.emit("interact", payload);
 }
 
+const SHOW_DEBUG_OVERLAYS = false;
+
 function makeRoundedRect({
   x,
   y,
@@ -58,15 +60,8 @@ function makeDiamond({
 }
 
 function makeHitTarget({ x, y, w, h, radius = 18, cursor = "pointer", onTap }) {
-  const target = makeRoundedRect({
-    x,
-    y,
-    w,
-    h,
-    radius,
-    fillColor: 0xffffff,
-    fillAlpha: 0.001,
-  });
+  const target = new PIXI.Container();
+  target.hitArea = new PIXI.RoundedRectangle(x, y, w, h, radius);
   target.eventMode = "static";
   target.cursor = cursor;
   target.on("pointertap", onTap);
@@ -135,7 +130,7 @@ export const renderCorridorEastWall = (
   const radius = Math.max(10, Math.round(Math.min(scaleX(18), scaleY(18))));
   const strokeWidth = Math.max(2, Math.round(scaleX(2)));
 
-  if (finalDoorOpen) {
+  if (SHOW_DEBUG_OVERLAYS && finalDoorOpen) {
     const doorFrame = makeRoundedRect({
       x: normX(360),
       y: normY(118),
@@ -179,29 +174,31 @@ export const renderCorridorEastWall = (
     stage.addChild(seamGlow);
   }
 
-  renderRuneCluster(stage, {
-    normX,
-    normY,
-    scaleX,
-    scaleY,
-    x: 386,
-    yStart: 228,
-    lit: wizardRunesLit,
-    activeColor: 0x5eead4,
-  });
+  if (SHOW_DEBUG_OVERLAYS) {
+    renderRuneCluster(stage, {
+      normX,
+      normY,
+      scaleX,
+      scaleY,
+      x: 386,
+      yStart: 228,
+      lit: wizardRunesLit,
+      activeColor: 0x5eead4,
+    });
 
-  renderRuneCluster(stage, {
-    normX,
-    normY,
-    scaleX,
-    scaleY,
-    x: 614,
-    yStart: 228,
-    lit: alchemistRunesLit,
-    activeColor: 0xfbbf24,
-  });
+    renderRuneCluster(stage, {
+      normX,
+      normY,
+      scaleX,
+      scaleY,
+      x: 614,
+      yStart: 228,
+      lit: alchemistRunesLit,
+      activeColor: 0xfbbf24,
+    });
+  }
 
-  if (leftPlatePressed || finalDoorOpen) {
+  if (SHOW_DEBUG_OVERLAYS && (leftPlatePressed || finalDoorOpen)) {
     const leftPlate = makeRoundedRect({
       x: normX(284),
       y: normY(432),
@@ -217,7 +214,7 @@ export const renderCorridorEastWall = (
     stage.addChild(leftPlate);
   }
 
-  if (rightPlatePressed || finalDoorOpen) {
+  if (SHOW_DEBUG_OVERLAYS && (rightPlatePressed || finalDoorOpen)) {
     const rightPlate = makeRoundedRect({
       x: normX(618),
       y: normY(432),
