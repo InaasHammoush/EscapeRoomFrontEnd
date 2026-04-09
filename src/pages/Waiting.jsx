@@ -145,9 +145,9 @@ export default function Waiting() {
         <div className="bg-base-100/10 rounded-2xl p-4">
           <h3 className="font-semibold mb-2">Players</h3>
           <ul className="space-y-1">
-            {players.map((p) => (
+            {players.map((p, index) => (
               <li key={p.id} className="opacity-80">
-                {p.id.slice(-4)} · Role: {p.role || "-"}
+                player{index + 1} · Role: {p.role || "-"}
               </li>
             ))}
             {players.length === 0 && <li className="opacity-60">No one connected yet…</li>}
