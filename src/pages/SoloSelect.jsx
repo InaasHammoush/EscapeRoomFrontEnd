@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import Page from "../components/Layout/Page";
 import { useGameMode } from "../state/gameMode";
@@ -9,8 +9,11 @@ import { connectSocket, getSocket } from "../state/socket";
 
 // Room options
 const SOLO_CHOICES = [
-  { id: "wizard_library", title: "Wizard’s Library", note: "Spellbooks and runes" },
-  { id: "alchemist_lab",  title: "Alchemist’s Laboratory", note: "Potions and crystals" },
+  {
+    id: "wizard_library",
+    title: "Wizard's Library & Alchemist's Laboratory",
+    note: "Full escape room experience across both chambers.",
+  },
 ];
 
 /**
@@ -37,7 +40,7 @@ export default function SoloSelect() {
   const [loadingRoom, setLoadingRoom] = useState(null); // which room is currently loading?
 
   /**
-   * Main entry point when the user clicks “Play”.
+   * Main entry point when the user clicks �Play�.
    */
   const startSolo = async (choice) => {
     try {
@@ -81,9 +84,9 @@ export default function SoloSelect() {
 
   return (
     <Page>
-      <h2 className="text-2xl font-bold mb-4">Choose Your Solo Room</h2>
+      <h2 className="text-2xl font-bold mb-4">Choose Your Room</h2>
 
-      <div className="grid sm:grid-cols-2 gap-6">
+      <div className="grid gap-6">
         {SOLO_CHOICES.map((c) => (
           <div
             key={c.id}

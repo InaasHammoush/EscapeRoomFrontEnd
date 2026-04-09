@@ -15,6 +15,13 @@ function formatSeconds(rawSeconds) {
   return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
+function formatDate(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString();
+}
+
 export default function Leaderboard() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,9 +60,8 @@ export default function Leaderboard() {
       rows.map((entry, index) => ({
         rank: index + 1,
         user: entry?.username || "Unknown",
-        best: formatSeconds(entry?.best_time),
-        avg: formatSeconds(entry?.avg_time),
-        runs: Number(entry?.completed_runs || 0),
+        time: formatSeconds(entry?.escape_time_seconds),
+        completedAt: formatDate(entry?.completed_at),
       })),
     [rows]
   );
@@ -69,19 +75,18 @@ export default function Leaderboard() {
         {!loading && !error && (
           <div className="overflow-x-auto">
             <table className="table text-white">
-              <thead>
+              <thead className="!text-white">
                 <tr>
-                  <th>#</th>
-                  <th>User</th>
-                  <th>Best Time</th>
-                  <th>Avg Time</th>
-                  <th>Runs</th>
+                  <th className="!text-white">#</th>
+                  <th className="!text-white">User</th>
+                  <th className="!text-white">Escape Time</th>
+                  <th className="!text-white">Completed At</th>
                 </tr>
               </thead>
               <tbody>
                 {tableRows.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="text-center text-base-content/70">
+                    <td colSpan={4} className="text-center text-base-content/70">
                       No leaderboard entries yet.
                     </td>
                   </tr>
@@ -90,9 +95,8 @@ export default function Leaderboard() {
                   <tr key={`${r.user}-${r.rank}`}>
                     <td>{r.rank}</td>
                     <td>{r.user}</td>
-                    <td>{r.best}</td>
-                    <td>{r.avg}</td>
-                    <td>{r.runs}</td>
+                    <td>{r.time}</td>
+                    <td>{r.completedAt}</td>
                   </tr>
                 ))}
               </tbody>

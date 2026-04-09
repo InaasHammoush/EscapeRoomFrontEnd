@@ -7,6 +7,10 @@ export const MUSIC_TRACKS = {
     src: "/audio/main-site.wav",
     volume: 0.35,
   },
+  credits: {
+    src: "/audio/credits.wav",
+    volume: 0.35,
+  },
 };
 
 export const ROOM_TRACKS = {
@@ -30,6 +34,10 @@ export const ROOM_TRACKS = {
 
 export function isRoomRoute(pathname = "") {
   return pathname.includes("/room/");
+}
+
+export function isCreditsRoute(pathname = "") {
+  return pathname.startsWith("/credits");
 }
 
 export function getRoomTrack(roomKey) {

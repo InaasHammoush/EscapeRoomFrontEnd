@@ -20,6 +20,7 @@ import ResetPassword from "./pages/ResetPassword";
 import RoomView from "./pages/RoomView";
 import DeleteAccount from "./pages/DeleteAccount";
 import RecoverAccount from "./pages/RecoverAccount";
+import Credits from "./pages/Credits";
 import BackgroundMusicManager from "./components/audio/BackgroundMusicManager";
 import { isRoomRoute } from "./config/audioTracks";
 
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="/waiting/:lobbyId" element={<Waiting />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/credits" element={<Credits />} />
         <Route path="/404" element={<NotFound />} />
 
 
