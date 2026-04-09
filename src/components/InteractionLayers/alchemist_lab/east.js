@@ -20,7 +20,7 @@ export const renderAlchemistLabEastWall = (app, { roomId, socket, gameState, nor
       scaleX(180),
       scaleY(300)
     )
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
   mirrorGrid.eventMode = "static";
   mirrorGrid.cursor = "pointer";
@@ -44,7 +44,7 @@ export const renderAlchemistLabEastWall = (app, { roomId, socket, gameState, nor
       scaleX(190),
       scaleY(290)
     )
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
   eastHotspot.eventMode = "static";
   eastHotspot.cursor = "pointer";

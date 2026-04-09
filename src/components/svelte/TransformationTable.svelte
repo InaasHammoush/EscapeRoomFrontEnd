@@ -193,7 +193,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="table-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>✕</button>
+    <button class="close-btn" on:click={closeWidget}>âœ•</button>
 
     <img src={tableBg} alt="Transformation Table" class="table-bg" />
 
@@ -255,7 +255,7 @@
     background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px); z-index: 50;
   }
   .table-wrapper {
-    position: relative; height: 90vh; aspect-ratio: 16/10; max-width: 95vw;
+    position: relative; width: min(95vw, calc(90vh * 951 / 584)); aspect-ratio: 951 / 584;
     display: flex; justify-content: center; align-items: center;
     border-radius: 8px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
   }
@@ -375,3 +375,4 @@
     100% { opacity: 0; transform: translateY(-11%) scale(1.15); }
   }
 </style>
+

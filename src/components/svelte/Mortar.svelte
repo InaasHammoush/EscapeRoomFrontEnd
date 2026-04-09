@@ -27,6 +27,12 @@
     greenLiquidInserted ? mortarGreenImg :
     essenceReady ? mortarMoonwortImg :
     mortarEmptyImg;
+  $: currentAspectRatio =
+    blueLiquidTaken ? "1024 / 590" :
+    blueLiquidReady ? "1361 / 784" :
+    greenLiquidInserted ? "1361 / 784" :
+    essenceReady ? "1372 / 784" :
+    "1024 / 590";
 
   // --- LOCAL ANIMATION AUTOMATION ---
   let isGrinding = false;
@@ -111,9 +117,9 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="widget-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>✕</button>
+    <button class="close-btn" on:click={closeWidget}>âœ•</button>
 
-    <div class="mortar-area">
+    <div class="mortar-area" style={`aspect-ratio: ${currentAspectRatio};`}>
       <img src={currentBg} alt="Mortar State" class="mortar-bg" />
       
       <div class="bowl-interior" on:dragover={handleDragOver} on:drop={handleDrop}>
@@ -168,7 +174,7 @@
   .mortar-area {
     position: relative;
     width: 100%;
-    aspect-ratio: 16/9;
+    aspect-ratio: 1361 / 784;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -310,3 +316,7 @@
     100% { opacity: 0.18; transform: scale(0.86); }
   }
 </style>
+
+
+
+

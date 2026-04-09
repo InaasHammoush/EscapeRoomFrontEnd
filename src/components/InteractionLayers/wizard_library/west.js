@@ -10,7 +10,7 @@ export const renderWizardLibraryWestWall = (app, { roomId, socket, normX, normY,
       scaleX(350), 
       scaleY(300)
     ) 
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
     tablePuzzle.eventMode = "static";
     tablePuzzle.cursor = "pointer";
@@ -31,7 +31,7 @@ export const renderWizardLibraryWestWall = (app, { roomId, socket, normX, normY,
       scaleX(190), 
       scaleY(290)
     ) 
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
     recipeHint.eventMode = "static";
     recipeHint.cursor = "pointer";

@@ -719,6 +719,15 @@ export default function RoomView({ mode = "solo" }) {
       />
 
       {/* Background & Click Layer */}
+      {wallImage?.src && wallImageFit === "contain" && (
+        <img
+          src={wallImage.src}
+          className="absolute inset-0 w-full h-full object-cover scale-105 blur-xl opacity-55 brightness-110 saturate-90 select-none z-0 pointer-events-none"
+          alt=""
+          draggable={false}
+          aria-hidden="true"
+        />
+      )}
       {wallImage?.src && (
         <img
           ref={wallImageRef}

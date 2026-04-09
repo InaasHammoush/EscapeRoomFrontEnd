@@ -51,7 +51,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="widget-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>✕</button>
+    <button class="close-btn" on:click={closeWidget}>âœ•</button>
 
     <div class="drawer-container">
       {#if !opened}
@@ -89,7 +89,7 @@
     position: relative; 
     width: 90vw;
     max-width: 600px;
-    aspect-ratio: 16/10; /* Adjust to match your JPG aspect ratio */
+    aspect-ratio: 1536 / 1024; /* Match the actual background image aspect ratio */
     border-radius: 8px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.9);
     background: #1a1510; border: 2px solid #4a3b2c;
   }
@@ -138,7 +138,7 @@
     transform: scale(1.03);
   }
 
-  /* 🛠️ POSITIONING TUNING 🛠️
+  /* ðŸ› ï¸ POSITIONING TUNING ðŸ› ï¸
      Adjust these percentage values until the scroll sits perfectly 
      inside the dark slot of the open drawer image.
   */

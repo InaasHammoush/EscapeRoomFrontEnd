@@ -81,7 +81,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="shelf-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>✕</button>
+    <button class="close-btn" on:click={closeWidget}>âœ•</button>
 
     <img src={shelfBg} alt="Bookshelf" class="shelf-bg" />
 
@@ -121,9 +121,8 @@
 
   .shelf-wrapper {
     position: relative;
-    height: 90vh;
-    aspect-ratio: 3/4; 
-    max-width: 95vw;
+    width: min(95vw, calc(90vh * 1024 / 1230));
+    aspect-ratio: 1024 / 1230;
     display: flex;
     justify-content: center;
   }
@@ -206,3 +205,4 @@
   }
   .grabbable:active { cursor: grabbing; transform: scale(0.98); }
 </style>
+

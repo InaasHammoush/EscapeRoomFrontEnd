@@ -13,7 +13,7 @@ export const renderAlchemistLabWestWall = (app, { roomId, socket, normX, normY, 
       scaleX(70),  // width
       scaleY(80)   // height
     )
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
   mortar.eventMode = "static";
   mortar.cursor = "pointer";
@@ -48,7 +48,7 @@ export const renderAlchemistLabWestWall = (app, { roomId, socket, normX, normY, 
       scaleX(80), // width
       scaleY(85)  // height
     )
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
   transmuter.eventMode = "static";
   transmuter.cursor = "pointer";
@@ -83,7 +83,7 @@ export const renderAlchemistLabWestWall = (app, { roomId, socket, normX, normY, 
       scaleX(250), // width
       scaleY(220)  // height
     )
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
   westJigsaw.eventMode = "static";
   westJigsaw.cursor = "pointer";

@@ -32,7 +32,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="widget-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>✕</button>
+    <button class="close-btn" on:click={closeWidget}>âœ•</button>
 
     <img src={vaseBg} alt="Vase" class="bg-image" />
 
@@ -56,9 +56,8 @@
 
   .widget-wrapper {
     position: relative; 
-    height: 85vh; 
-    aspect-ratio: 16/9; /* Match your background image aspect ratio */
-    max-width: 95vw;
+    width: min(95vw, calc(85vh * 1024 / 565));
+    aspect-ratio: 1024 / 565; /* Match the actual background image aspect ratio */
     display: flex; justify-content: center; align-items: center;
     border-radius: 8px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
     background: #0a0a0a;
@@ -94,3 +93,4 @@
     /* transform: rotate(70deg) scale(1.1); */
   }
 </style>
+

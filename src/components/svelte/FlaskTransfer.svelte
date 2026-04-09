@@ -76,7 +76,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="widget-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>✕</button>
+    <button class="close-btn" on:click={closeWidget}>âœ•</button>
 
     <div class="scene-area">
       <img src={currentBg} alt="Alchemist Bench" class="bg-image" />
@@ -143,7 +143,7 @@
   .scene-area {
     position: relative;
     width: 100%;
-    aspect-ratio: 16/10;
+    aspect-ratio: 1536 / 1024;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -264,3 +264,4 @@
   }
 
 </style>
+
