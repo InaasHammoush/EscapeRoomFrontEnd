@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { connectSocket, getSocket } from "../state/socket";
 import Page from "../components/Layout/Page";
@@ -22,6 +22,7 @@ export default function Waiting() {
   const [players, setPlayers] = useState([]);   // [{id, role}]
   const [status, setStatus] = useState("waiting"); // 'waiting' | 'ready'
   const [myRole, setMyRole] = useState(null);  // A | B | null
+  const roleInitializedRef = useRef(false);
 
  //  Fallback polling: ping lobby status until ready (and on tab focus)
  useEffect(() => {
@@ -57,6 +58,10 @@ export default function Waiting() {
 
   // Connect (idempotent) and subscribe — ONLY for coop
   useEffect(() => {
+    roleInitializedRef.current = false;
+  }, [lobbyId, queryRole]);
+
+  useEffect(() => {
     if (!lobbyId) return;
 
     // If the guard above is about to redirect, don't connect here
@@ -79,7 +84,9 @@ export default function Waiting() {
         payload.myRole ||
         plist.find((p) => p.id === s.id)?.role ||
         null;
-      if (mine && mine !== myRole) setMyRole(mine);
+      if (mine) {
+        setMyRole((prev) => (prev === mine ? prev : mine));
+      }
 
       // Redirect when ready
       if (payload.ready && payload.roomId) {
@@ -99,9 +106,10 @@ export default function Waiting() {
     s.on("lobby:error", onError);
 
     // If a role was provided via ?role=… send it once
-    if (queryRole) {
+    if (queryRole && !roleInitializedRef.current) {
       s.emit("lobby:setRole", { sessionId: lobbyId, role: queryRole });
       setMyRole(queryRole);
+      roleInitializedRef.current = true;
     }
 
     return () => {
@@ -109,7 +117,7 @@ export default function Waiting() {
       s.off("lobby:status", onStatus);
       s.off("lobby:error", onError);
     };
-  }, [lobbyId, queryRole, nav, myRole, mode]);
+  }, [lobbyId, queryRole, nav, mode]);
 
 
   const chooseRole = (role) => {
