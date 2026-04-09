@@ -17,7 +17,6 @@
     DRAGON_SCALE: { label: "Dragon Scale", src: draconScaleImg, className: "dragon-scale", left: "50%", top: "53%", rot: "12deg", delay: "0.75s", scale: 0.4 }
   };
 
-  const DEFAULT_IMAGE_RATIO = 694 / 537;
   const LEFT_FLOAT_ITEMS = ["WAND", "STONE"];
   const RIGHT_FLOAT_ITEMS = ["HORN", "DRAGON_SCALE"];
 
@@ -27,22 +26,9 @@
   $: left = puzzle?.left || [];
   $: right = puzzle?.right || [];
   $: solved = Boolean(puzzle?.solved);
-
   let shellEl;
-  let imageRatio = DEFAULT_IMAGE_RATIO;
-  let shellStyle = `--shell-aspect:${DEFAULT_IMAGE_RATIO};`;
-  let sceneMetrics = { width: 694, height: 537 };
-  let sceneStyle = [
-    "inset:0;",
-    "--floating-item-size:132px;",
-    "--tray-item-size:48px;",
-    "--float-bob:10px;",
-    "--tray-bob:7px;"
-  ].join("");
-
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
+  let sceneStyle = "inset:0;";
+  let imageRatio = 16 / 10;
 
   function emitMove(item, to) {
     document.dispatchEvent(
@@ -73,6 +59,7 @@
     event.dataTransfer.setData("application/x-merlin-item", item);
     event.dataTransfer.setData("text/plain", item);
 
+    // Use a clean drag preview to avoid transformed/squished browser snapshots.
     const dragPreview = document.createElement("img");
     dragPreview.src = meta.src;
     dragPreview.style.width = "96px";
@@ -109,12 +96,10 @@
   }
 
   function trayStyle(index) {
-    const spread = clamp(sceneMetrics.width * 0.05, 20, 42);
-    const lift = clamp(sceneMetrics.height * 0.01, 3, 7);
-    const offset = (index - 0.5) * spread;
-    const vertical = index % 2 ? -lift : lift * 0.35;
+    const offset = (index - 0.5) * 34;
+    const lift = index % 2 ? -5 : 2;
     const rot = index % 2 ? "8deg" : "-7deg";
-    return `--tray-transform:translate(-50%, -50%) translateX(${offset}px) translateY(${vertical}px) rotate(${rot});`;
+    return `--tray-transform:translate(-50%, -50%) translateX(${offset}px) translateY(${lift}px) rotate(${rot});`;
   }
 
   function handleOverlayKeydown(event) {
@@ -147,34 +132,14 @@
       sceneTop = (shellH - sceneH) / 2;
     }
 
-    sceneMetrics = { width: sceneW, height: sceneH };
-
-    const floatingItemSize = clamp(sceneW * 0.19, 92, 176);
-    const trayItemSize = clamp(sceneW * 0.068, 40, 64);
-    const floatBob = clamp(sceneH * 0.018, 6, 12);
-    const trayBob = clamp(sceneH * 0.013, 4, 8);
-
-    sceneStyle = [
-      `left:${sceneLeft}px;`,
-      `top:${sceneTop}px;`,
-      `width:${sceneW}px;`,
-      `height:${sceneH}px;`,
-      `--floating-item-size:${floatingItemSize}px;`,
-      `--tray-item-size:${trayItemSize}px;`,
-      `--float-bob:${floatBob}px;`,
-      `--tray-bob:${trayBob}px;`
-    ].join("");
+    sceneStyle = `left:${sceneLeft}px;top:${sceneTop}px;width:${sceneW}px;height:${sceneH}px;`;
   }
 
   onMount(() => {
-    let destroyed = false;
-
     const img = new Image();
     img.onload = () => {
-      if (destroyed) return;
       if (img.naturalWidth && img.naturalHeight) {
         imageRatio = img.naturalWidth / img.naturalHeight;
-        shellStyle = `--shell-aspect:${imageRatio};`;
       }
       updateSceneBounds();
     };
@@ -186,7 +151,6 @@
     setTimeout(updateSceneBounds, 0);
 
     return () => {
-      destroyed = true;
       ro.disconnect();
       window.removeEventListener("resize", updateSceneBounds);
     };
@@ -204,7 +168,6 @@
   <div
     class="puzzle-shell"
     bind:this={shellEl}
-    style={shellStyle}
     role="dialog"
     aria-modal="true"
     tabindex="-1"
@@ -327,10 +290,9 @@
 
   .puzzle-shell {
     position: relative;
-    width: min(82vw, 980px);
-    max-width: 980px;
+    width: min(78vw, 980px);
     max-height: 82vh;
-    aspect-ratio: var(--shell-aspect, 694 / 537);
+    aspect-ratio: 16 / 10;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 20px 55px rgba(0, 0, 0, 0.6);
@@ -415,7 +377,7 @@
   }
 
   .floating-item {
-    width: var(--floating-item-size, 132px);
+    width: clamp(110px, 13vw, 176px);
     animation: hover-float 2.8s ease-in-out infinite;
     animation-delay: var(--hover-delay);
     transform: translateX(-50%) rotate(var(--rot)) scale(var(--item-scale, 1));
@@ -425,8 +387,8 @@
   .tray-item {
     left: 50%;
     top: 44%;
-    width: var(--tray-item-size, 48px);
-    height: var(--tray-item-size, 48px);
+    width: clamp(42px, 4.2vw, 64px);
+    height: clamp(42px, 4.2vw, 64px);
     object-fit: contain;
     transform: var(--tray-transform);
     animation: tray-hover 2.2s ease-in-out infinite;
@@ -453,7 +415,7 @@
       transform: translateX(-50%) translateY(0) rotate(var(--rot)) scale(var(--item-scale, 1));
     }
     50% {
-      transform: translateX(-50%) translateY(calc(var(--float-bob, 10px) * -1)) rotate(var(--rot)) scale(var(--item-scale, 1));
+      transform: translateX(-50%) translateY(-10px) rotate(var(--rot)) scale(var(--item-scale, 1));
     }
   }
 
@@ -462,22 +424,43 @@
       margin-top: 0;
     }
     50% {
-      margin-top: calc(var(--tray-bob, 7px) * -1);
+      margin-top: -7px;
     }
   }
 
   @media (max-width: 900px) {
     .puzzle-shell {
-      width: 92vw;
-      max-height: 80vh;
+      width: 88vw;
+      max-height: 78vh;
+      aspect-ratio: 4 / 3;
     }
 
-    .close-btn {
-      top: 10px;
-      right: 10px;
-      width: 32px;
-      height: 32px;
-      font-size: 16px;
+    .tray-zone {
+      top: 53%;
+      width: 28%;
+      height: 36%;
+    }
+
+    .left-zone {
+      left: 8%;
+    }
+
+    .right-zone {
+      right: 8%;
+    }
+
+    .floating-zone {
+      top: 6%;
+      width: 26%;
+      height: 45%;
+    }
+
+    .floating-left {
+      left: 2%;
+    }
+
+    .floating-right {
+      right: 2%;
     }
   }
 </style>

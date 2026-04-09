@@ -32,7 +32,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="widget-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>âœ•</button>
+    <button class="close-btn" on:click={closeWidget}>x</button>
 
     <img src={vaseBg} alt="Vase" class="bg-image" />
 

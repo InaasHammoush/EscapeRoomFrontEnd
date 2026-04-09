@@ -81,7 +81,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="shelf-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>âœ•</button>
+    <button class="close-btn" on:click={closeWidget}>x</button>
 
     <img src={shelfBg} alt="Bookshelf" class="shelf-bg" />
 

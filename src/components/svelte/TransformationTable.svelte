@@ -193,7 +193,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="table-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>âœ•</button>
+    <button class="close-btn" on:click={closeWidget}>x</button>
 
     <img src={tableBg} alt="Transformation Table" class="table-bg" />
 

@@ -90,6 +90,7 @@ export default function InteractionLayer({
   const pixiContainerRef = useRef(null);
   const appRef = useRef(null);
   const [containerBounds, setContainerBounds] = useState(() => readContainerBounds(null));
+  const [layerVersion, setLayerVersion] = useState(0);
 
   const measureContainer = useCallback(() => {
     const nextBounds = readContainerBounds(pixiContainerRef.current);
@@ -159,6 +160,7 @@ export default function InteractionLayer({
       appRef.current = app;
       if (pixiContainerRef.current) pixiContainerRef.current.appendChild(app.canvas);
       measureContainer();
+      setLayerVersion((version) => version + 1);
     };
 
     initPixi();
@@ -192,7 +194,7 @@ export default function InteractionLayer({
 
   useEffect(() => {
     updateLayer();
-  }, [updateLayer]);
+  }, [layerVersion, updateLayer]);
 
   useEffect(() => {
     const handleDebugClick = (event) => {

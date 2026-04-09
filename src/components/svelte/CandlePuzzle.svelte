@@ -47,7 +47,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="widget-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>âœ•</button>
+    <button class="close-btn" on:click={closeWidget}>x</button>
 
     <img src={candlesBg} alt="Candles Altar" class="bg-image" />
 

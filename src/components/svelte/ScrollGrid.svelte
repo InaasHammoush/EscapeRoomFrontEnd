@@ -66,7 +66,7 @@
       </div>
     </div>
 
-    <button class="close-btn" on:click={close}>âœ•</button>
+    <button class="close-btn" on:click={close}>x</button>
   </div>
 </div>
 
