@@ -39,7 +39,7 @@ async function doFetch(path, { method = "GET", body, headers, credentials } = {}
   return data;
 }
 
-async function refreshAccessToken() {
+export async function refreshSession() {
   const res = await fetch(BASE + "/token/refresh", {
     method: "POST",
     credentials: "include",
@@ -49,6 +49,11 @@ async function refreshAccessToken() {
   if (!res.ok || !data?.accessToken) throw new Error("REFRESH_FAILED");
 
   setToken(data.accessToken);
+  return data;
+}
+
+export async function refreshAccessToken() {
+  const data = await refreshSession();
   return data.accessToken;
 }
 

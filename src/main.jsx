@@ -5,18 +5,18 @@ import { GameModeProvider } from "./state/gameMode.jsx";
 import ErrorBoundary from "./components/dev/ErrorBoundary";
 import './index.css'
 import App from './App.jsx'
-import { AuthUserProvider } from "./state/authUser";
+import { SessionProvider } from "./state/session";
 
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
         <ErrorBoundary>
-            <AuthUserProvider>
+            <SessionProvider>
                 <GameModeProvider>
                     <App />
                 </GameModeProvider>
-            </AuthUserProvider>
+            </SessionProvider>
         </ErrorBoundary>
     </BrowserRouter>
   </StrictMode>,
