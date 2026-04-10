@@ -14,7 +14,7 @@ export const renderWizardLibraryEastWall = (app, { roomId, socket, gameState, no
         scaleX(130),
         scaleY(105)
       )
-      .fill({ color: 0x00ff00, alpha: 0.3 });
+      .fill({ color: 0xffffff, alpha: 0.001 });
 
     scrollTrigger.eventMode = "static";
     scrollTrigger.cursor = "pointer";
@@ -39,7 +39,7 @@ export const renderWizardLibraryEastWall = (app, { roomId, socket, gameState, no
       scaleX(310),
       scaleY(620)
     )
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
   doorTrigger.eventMode = "static";
   doorTrigger.cursor = "pointer";

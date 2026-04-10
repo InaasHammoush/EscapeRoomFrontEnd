@@ -64,7 +64,7 @@
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="widget-wrapper" on:click|stopPropagation>
     <button class="close-btn" on:click={closeWidget}>
-      {activeBookImg ? "←" : "✕"}
+      {activeBookImg ? "←" : "x"}
     </button>
 
     {#if activeBookImg}

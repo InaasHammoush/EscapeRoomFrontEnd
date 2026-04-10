@@ -47,7 +47,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="widget-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>✕</button>
+    <button class="close-btn" on:click={closeWidget}>x</button>
 
     <img src={candlesBg} alt="Candles Altar" class="bg-image" />
 
@@ -87,9 +87,8 @@
   .widget-wrapper {
     position: relative;
     /* Aspect ratio based on background image */
-    aspect-ratio: 1/1; 
-    height: 85vh;
-    max-width: 95vw;
+    width: min(95vw, 85vh);
+    aspect-ratio: 1 / 1;
     display: flex;
     justify-content: center;
     box-shadow: 0 0 50px rgba(0,0,0,0.8);
@@ -181,3 +180,4 @@
     100% { box-shadow: inset 0 0 30px rgba(255, 215, 0, 0.1); }
   }
 </style>
+

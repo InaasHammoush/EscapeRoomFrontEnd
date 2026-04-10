@@ -10,7 +10,7 @@ export const renderAlchemistLabNorthWall = (app, { roomId, socket, gameState, no
       scaleX(300),
       scaleY(320)
     )
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
   drawerHotspot.eventMode = "static";
   drawerHotspot.cursor = "pointer";
@@ -34,7 +34,7 @@ export const renderAlchemistLabNorthWall = (app, { roomId, socket, gameState, no
       scaleX(200),
       scaleY(780)
     )
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
   statue.eventMode = "static";
   statue.cursor = "pointer";

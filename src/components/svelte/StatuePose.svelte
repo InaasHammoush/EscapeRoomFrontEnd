@@ -112,7 +112,7 @@
 
 <div class="modal-overlay" on:click={closeWidget}>
   <div class="widget-wrapper" on:click|stopPropagation>
-    <button class="close-btn" on:click={closeWidget}>✕</button>
+    <button class="close-btn" on:click={closeWidget}>x</button>
 
     <img src={bgImg} alt="Wall Background" class="bg-image" />
 

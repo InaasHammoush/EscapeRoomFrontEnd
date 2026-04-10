@@ -111,6 +111,32 @@ function normalizeActiveWidgetKey(value) {
   return aliases[lowered] || raw;
 }
 
+function mergePublicState(prev, diff) {
+  if (!diff || typeof diff !== "object") return prev;
+
+  const next = { ...prev, ...diff };
+
+  if (diff.game && typeof diff.game === "object") {
+    next.game = { ...(prev?.game || {}), ...diff.game };
+  }
+
+  if (diff.finalCorridor && typeof diff.finalCorridor === "object") {
+    next.finalCorridor = { ...(prev?.finalCorridor || {}), ...diff.finalCorridor };
+    if (diff.finalCorridor.plates && typeof diff.finalCorridor.plates === "object") {
+      next.finalCorridor.plates = {
+        ...(prev?.finalCorridor?.plates || {}),
+        ...diff.finalCorridor.plates,
+      };
+    }
+  }
+
+  if (diff.chambers && typeof diff.chambers === "object") {
+    next.chambers = { ...(prev?.chambers || {}), ...diff.chambers };
+  }
+
+  return next;
+}
+
 function getPuzzleStateByWidget(gameState, activeWidget) {
   if (!gameState || !activeWidget) return undefined;
   if (activeWidget === "alch_east_door" || activeWidget === "east_door_sync_puzzle") {
@@ -304,6 +330,8 @@ export default function RoomView({ mode = "solo" }) {
 
   // Refs for Web Components
   const widgetRefs = useRef({});
+  const wallImageRef = useRef(null);
+  const [measuredWallAspectRatio, setMeasuredWallAspectRatio] = useState(null);
 
   const exitToHome = () => {
     if (!confirm("Leave the room and return to home?")) return;
@@ -346,6 +374,29 @@ export default function RoomView({ mode = "solo" }) {
     setImages(files);
     setLoading(false);
   }, []);
+
+  const baseWallImage = images[viewIndex];
+  const wallImage = resolveWallImage(baseWallImage, { roomType, viewIndex, gameState });
+
+  const updateMeasuredWallAspectRatio = useCallback((imgEl) => {
+    const naturalWidth = Number(imgEl?.naturalWidth || 0);
+    const naturalHeight = Number(imgEl?.naturalHeight || 0);
+    if (!naturalWidth || !naturalHeight) return;
+    const nextAspectRatio = naturalWidth / naturalHeight;
+    setMeasuredWallAspectRatio((prev) =>
+      prev !== null && Math.abs(prev - nextAspectRatio) < 0.0001 ? prev : nextAspectRatio
+    );
+  }, []);
+
+  useEffect(() => {
+    setMeasuredWallAspectRatio(null);
+  }, [wallImage?.src]);
+
+  useEffect(() => {
+    const imgEl = wallImageRef.current;
+    if (!imgEl?.complete) return;
+    updateMeasuredWallAspectRatio(imgEl);
+  }, [wallImage?.src, updateMeasuredWallAspectRatio]);
 
   // --- SNAPSHOT ---
   const onSnapshot = useCallback((msg) => {
@@ -402,11 +453,9 @@ export default function RoomView({ mode = "solo" }) {
     }
 
     setGameState((prev) => {
-      const next = { ...prev };
-      Object.keys(msg.diff).forEach((key) => {
-        if (key !== "activeWidget") next[key] = msg.diff[key];
-      });
-      return next;
+      const nextDiff = { ...msg.diff };
+      delete nextDiff.activeWidget;
+      return mergePublicState(prev, nextDiff);
     });
 
     // Clear specific pending flags if server confirms action
@@ -440,7 +489,7 @@ export default function RoomView({ mode = "solo" }) {
     if (diff.viewIndex !== undefined) setViewIndex(diff.viewIndex);
     if (diff.roomType) setRoomType(diff.roomType);
     if (Array.isArray(diff.views)) loadImages(diff.views);
-    setGameState((prev) => ({ ...prev, ...diff }));
+    setGameState((prev) => mergePublicState(prev, diff));
   }, [loadImages]);
 
   const onRoomState = useCallback((snapshot) => {
@@ -678,8 +727,6 @@ export default function RoomView({ mode = "solo" }) {
 
   // --- RENDER ---
   const WidgetTag = activeWidget ? WIDGET_REGISTRY[activeWidget] : null;
-  const baseWallImage = images[viewIndex];
-  const wallImage = resolveWallImage(baseWallImage, { roomType, viewIndex, gameState });
   const corridorUnlocked = !!gameState?.corridorUnlocked;
   const isSoloMode = (gameState?.mode === "solo" || mode === "solo");
   const canSwitchRoom =
@@ -698,7 +745,7 @@ export default function RoomView({ mode = "solo" }) {
   const elapsedMs = startedAtMs ? (endedAtMs || timerNow) - startedAtMs : null;
   const timerLabel = startedAtMs ? `Time ${formatElapsed(elapsedMs)}` : null;
   const wallImageFitClass = wallImage?.fit === "cover" ? "object-cover" : "object-contain";
-  const wallImageAspectRatio = wallImage?.aspectRatio || 1920 / 1080;
+  const wallImageAspectRatio = measuredWallAspectRatio || wallImage?.aspectRatio || 1920 / 1080;
   const wallImageFit = wallImage?.fit || "contain";
   const canTurn = roomType !== "corridor";
 
@@ -737,12 +784,23 @@ export default function RoomView({ mode = "solo" }) {
       />
 
       {/* Background & Click Layer */}
+      {wallImage?.src && wallImageFit === "contain" && (
+        <img
+          src={wallImage.src}
+          className="absolute inset-0 w-full h-full object-cover scale-105 blur-xl opacity-55 brightness-110 saturate-90 select-none z-0 pointer-events-none"
+          alt=""
+          draggable={false}
+          aria-hidden="true"
+        />
+      )}
       {wallImage?.src && (
         <img
+          ref={wallImageRef}
           src={wallImage.src}
           className={`absolute inset-0 w-full h-full ${wallImageFitClass} select-none z-0`}
           alt=""
           draggable={false}
+          onLoad={(event) => updateMeasuredWallAspectRatio(event.currentTarget)}
         />
       )}
       <div className="absolute inset-0 z-10 pointer-events-none">

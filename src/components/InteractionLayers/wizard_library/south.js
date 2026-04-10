@@ -10,7 +10,7 @@ export const renderWizardLibrarySouthWall = (app, { roomId, socket, normX, normY
       scaleX(60), 
       scaleY(40)
     ) 
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
     frameHint.eventMode = "static";
     frameHint.cursor = "pointer";
@@ -31,7 +31,7 @@ export const renderWizardLibrarySouthWall = (app, { roomId, socket, normX, normY
       scaleX(315), 
       scaleY(333)
     ) 
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
     mrelinPuzzle.eventMode = "static";
     mrelinPuzzle.cursor = "pointer";
@@ -52,7 +52,7 @@ export const renderWizardLibrarySouthWall = (app, { roomId, socket, normX, normY
       scaleX(97), 
       scaleY(265)
     ) 
-    .fill({ color: 0x00ff00, alpha: 0.3 });
+    .fill({ color: 0xffffff, alpha: 0.001 });
 
     candleHint.eventMode = "static";
     candleHint.cursor = "pointer";
