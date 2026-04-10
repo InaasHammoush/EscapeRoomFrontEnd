@@ -302,6 +302,9 @@ export default function RoomView({ mode = "solo" }) {
   const { sessionId, roomId, role } = useParams();
   const navigate = useNavigate();
 
+  const INTRO_AUTO_HIDE_MS = 2500;
+  const INTRO_FADE_MS = 600;
+
   const [socketReady, setSocketReady] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -313,12 +316,15 @@ export default function RoomView({ mode = "solo" }) {
   const [timerNow, setTimerNow] = useState(Date.now());
   const [activeWidget, setActiveWidget] = useState(null);
   const [eastDoorSolved, setEastDoorSolved] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
+  const [introFading, setIntroFading] = useState(false);
   const statueFeatherPlaced = DEFAULT_STATUE_FEATHER_PLACED;
   const statueFeatherSide = DEFAULT_STATUE_FEATHER_SIDE;
   
   // Inventory State
   const [inventory, setInventory] = useState([]);
   const pendingFlags = useRef({}); // Generic pending flags
+  const completedNavRef = useRef(false);
   const [musicEnabled, setMusicEnabled] = useState(() => readMusicSettings().enabled);
   const westRoseRewardGranted = useRef(false);
 
@@ -331,6 +337,37 @@ export default function RoomView({ mode = "solo" }) {
     if (!confirm("Leave the room and return to home?")) return;
     navigate("/");
   };
+
+  const dismissIntro = useCallback(() => {
+    if (!showIntro || introFading) return;
+    setIntroFading(true);
+    // Notify backend that intro is dismissed – timer should now start
+    if (roomId) {
+      getSocket()?.emit('intro:dismissed', { roomId });
+    }
+    setTimeout(() => setShowIntro(false), INTRO_FADE_MS);
+  }, [showIntro, introFading, roomId]);
+
+  const handleVideoEnded = useCallback(() => {
+    setTimeout(dismissIntro, 1500);
+  }, [dismissIntro]);
+
+  useEffect(() => {
+    if (!showIntro) return;
+    const onKey = (event) => {
+      if (event.key === "Enter" || event.key === " " || event.key === "Escape") {
+        dismissIntro();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showIntro, dismissIntro]);
+
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("music:intro", { detail: { blocked: showIntro } })
+    );
+  }, [showIntro]);
 
   const loadImages = useCallback((files) => {
     if (!Array.isArray(files) || files.length === 0) return setLoading(false);
@@ -474,6 +511,13 @@ export default function RoomView({ mode = "solo" }) {
     s.on("puzzle_update", onPuzzleUpdate);
     s.on("state:viewChanged", onViewChanged);
     s.on("state:roomChanged", onRoomChanged);
+    const onCompleted = (payload) => {
+      if (completedNavRef.current) return;
+      if (payload?.roomId && payload.roomId !== roomId) return;
+      completedNavRef.current = true;
+      navigate("/credits", { state: payload || {} });
+    };
+    s.on("room_completed", onCompleted);
 
     return () => {
       s.off("state:snapshot", onSnapshot);
@@ -481,8 +525,9 @@ export default function RoomView({ mode = "solo" }) {
       s.off("puzzle_update", onPuzzleUpdate);
       s.off("state:viewChanged", onViewChanged);
       s.off("state:roomChanged", onRoomChanged);
+      s.off("room_completed", onCompleted);
     };
-  }, [mode, sessionId, roomId, onSnapshot, onRoomState, onPuzzleUpdate, onViewChanged, onRoomChanged]);
+  }, [mode, sessionId, roomId, navigate, onSnapshot, onRoomState, onPuzzleUpdate, onViewChanged, onRoomChanged]);
 
   // --- JOIN & READY ---
   useEffect(() => {
@@ -706,6 +751,26 @@ export default function RoomView({ mode = "solo" }) {
 
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
+      {showIntro && (
+        <div
+          className={`absolute inset-0 z-[70] flex items-center justify-center bg-black transition-opacity duration-700 ${
+            introFading ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+          onClick={dismissIntro}
+        >
+          <video
+                autoPlay
+                playsInline
+                onEnded={handleVideoEnded}
+                className="fixed inset-0 w-full h-full object-cover -z-10"
+              >
+                <source src="/intro.mp4" type="video/mp4" />
+        </video>
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white text-xs uppercase tracking-[0.35em] bg-black/60 px-4 py-2 rounded-full border border-white/20">
+            Click to skip
+          </div>
+        </div>
+      )}
       <HUD 
         onHome={exitToHome} 
         onTurnLeft={canTurn ? () => turn("LEFT") : null} 

@@ -7,7 +7,7 @@ export default function Join() {
   const [code, setCode] = useState("");
   const [role, setRole] = useState("B"); // default B
   const navigate = useNavigate();
-  const { setMode, setSessionId } = useGameMode();
+  const { setMode, setSessionId, setRole: setGameRole } = useGameMode();
 
   const join = (e) => {
     e.preventDefault();
@@ -15,6 +15,7 @@ export default function Join() {
     if (!trimmed) return;
     setMode("coop");
     setSessionId(trimmed);
+    setGameRole(role);
     navigate(`/waiting/${trimmed}?role=${role}`);
   };
 
@@ -25,28 +26,36 @@ export default function Join() {
 
         <form onSubmit={join} className="space-y-6">
           <label className="form-control">
-            <span className="label label-text ">Lobby ID</span>
+            <span className="label label-text">Lobby ID</span>
             <input
-              className="input input-bordered rounded-2xl w-xs m-4 text-black"
+              className="input input-bordered rounded-2xl text-black"
               value={code}
-              onChange={e=>setCode(e.target.value)}
+              onChange={(e) => setCode(e.target.value)}
               placeholder="COOP-ABC123"
             />
           </label>
 
-          <label className="form-control">
-            <span className="label label-text indent-1">Role</span>
-            <select
-              className="select select-bordered rounded-2xl w-xs m-4 text-black"
-              value={role}
-              onChange={e=>setRole(e.target.value)}
-            >
-              <option value="A">A (Library)</option>
-              <option value="B">B (Laboratory)</option>
-            </select>
-          </label>
+          <div>
+            <div className="text-sm mb-2">Choose your role</div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className={`btn btn-sm ${role === "A" ? "btn-outline" : "btn-ghost"} rounded-2xl`}
+                onClick={() => setRole("A")}
+              >
+                A (Library)
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${role === "B" ? "btn-outline" : "btn-ghost"} rounded-2xl`}
+                onClick={() => setRole("B")}
+              >
+                B (Laboratory)
+              </button>
+            </div>
+          </div>
 
-          <button className="btn btn-outline rounded-2xl w-xs" type="submit">
+          <button className="btn btn-outline rounded-2xl" type="submit">
             Join
           </button>
         </form>

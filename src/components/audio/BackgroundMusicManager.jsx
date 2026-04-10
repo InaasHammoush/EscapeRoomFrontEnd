@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { MUSIC_TRACKS, getRoomTrack, isRoomRoute } from "../../config/audioTracks";
+import { MUSIC_TRACKS, getRoomTrack, isCreditsRoute, isRoomRoute } from "../../config/audioTracks";
 import { readMusicSettings } from "../../state/musicSettings";
 
 function trackForPath(pathname, roomKey) {
+  if (isCreditsRoute(pathname)) return MUSIC_TRACKS.credits;
   if (isRoomRoute(pathname)) return getRoomTrack(roomKey) || MUSIC_TRACKS.inRoom;
   return MUSIC_TRACKS.mainWebsite;
 }
@@ -15,6 +16,7 @@ export default function BackgroundMusicManager() {
   const [needsGesture, setNeedsGesture] = useState(false);
   const [settings, setSettings] = useState(() => readMusicSettings());
   const [roomKey, setRoomKey] = useState(null);
+  const [introBlocked, setIntroBlocked] = useState(false);
   const track = useMemo(() => trackForPath(pathname, roomKey), [pathname, roomKey]);
 
   const tryPlay = useCallback(async () => {
@@ -72,6 +74,11 @@ export default function BackgroundMusicManager() {
       return;
     }
 
+    if (inRoom && introBlocked) {
+      audio.pause();
+      return;
+    }
+
     void tryPlay();
     window.addEventListener("pointerdown", tryPlay);
     window.addEventListener("touchstart", tryPlay);
@@ -84,7 +91,7 @@ export default function BackgroundMusicManager() {
       window.removeEventListener("keydown", tryPlay);
       audio.removeEventListener("error", onError);
     };
-  }, [pathname, settings.enabled, settings.volume, track, tryPlay]);
+  }, [pathname, settings.enabled, settings.volume, track, tryPlay, introBlocked]);
 
   useEffect(() => {
     const onSettings = (event) => {
@@ -110,6 +117,16 @@ export default function BackgroundMusicManager() {
     window.addEventListener("music:room", onRoom);
     return () => {
       window.removeEventListener("music:room", onRoom);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onIntro = (event) => {
+      setIntroBlocked(Boolean(event?.detail?.blocked));
+    };
+    window.addEventListener("music:intro", onIntro);
+    return () => {
+      window.removeEventListener("music:intro", onIntro);
     };
   }, []);
 

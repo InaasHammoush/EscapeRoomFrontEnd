@@ -52,13 +52,13 @@
         {hasAshKey ? "Insert Ash Key" : "Ash Key Required"}
       </button>
     {:else if isOpenable}
-      <p class="status">The seal breaks. Close this view and click the door.</p>
+      <p class="status">The seal breaks.</p>
     {:else}
       <p class="status">The key fits, but something still blocks the door.</p>
     {/if}
 
     {#if showCoopHint}
-      <p class="coop-hint">Co-op: open both doors at the same time.</p>
+      <p class="coop-hint">Neither before the other, nor one without its twin. The way forward demands a single, unified act</p>
     {/if}
   </div>
 </div>
