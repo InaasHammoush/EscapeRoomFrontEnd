@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
-import { useAuthUser } from "../../state/authUser";
+import { useSession } from "../../state/session";
 
 // Auth Bar
 function AuthStatusBar() {
-  const { user, logout } = useAuthUser();
+  const { status, user, logout } = useSession();
 
   return (
     <div className="w-full flex justify-end px-6 py-4">
       <div className="bg-base-100/10 backdrop-blur rounded-2xl px-4 py-2 shadow flex items-center gap-3">
-        {user ? (
+        {status === "loading" ? (
+          <span className="text-sm opacity-70">Checking session...</span>
+        ) : user ? (
           <>
             <span className="text-sm">
               Logged in as <span className="font-semibold">{user.username}</span>

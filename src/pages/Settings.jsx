@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Page from "../components/Layout/Page";
 import { api } from "../state/api";
-import { useAuthUser } from "../state/authUser";
+import { useSession } from "../state/session";
 import { useNavigate } from "react-router-dom";
 import { readMusicSettings, writeMusicSettings } from "../state/musicSettings";
 
@@ -9,7 +9,7 @@ export default function Settings() {
   const applyTheme = (name) =>
     document.documentElement.setAttribute("data-theme", name);
 
-  const { user } = useAuthUser();
+  const { user } = useSession();
   const navigate = useNavigate();
 
   const [musicEnabled, setMusicEnabled] = useState(true);

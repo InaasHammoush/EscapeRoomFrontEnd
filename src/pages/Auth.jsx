@@ -2,13 +2,12 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Page from "../components/Layout/Page";
 import { api } from "../state/api";
-import { setToken } from "../state/token";
-import { useAuthUser } from "../state/authUser";
+import { useSession } from "../state/session";
 
 export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setUser } = useAuthUser();
+  const { login } = useSession();
 
   const initialMode =
     location.state?.mode === "register" ? "register" : "login";
@@ -32,8 +31,7 @@ export default function Auth() {
           email,
           password,
         });
-        setToken(accessToken);
-        setUser(user);
+        login({ accessToken, user });
         navigate("/home");
       } else {
         //  REGISTER

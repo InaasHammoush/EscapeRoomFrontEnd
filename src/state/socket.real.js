@@ -51,6 +51,6 @@ export function disconnectSocket() {
   if (socket) {
     socket.disconnect();
     socket = null;
-    current = { ns: "/", sessionId: null, role: null };
+    current = { ns: null, sessionId: null, role: null, token: null };
   }
 }

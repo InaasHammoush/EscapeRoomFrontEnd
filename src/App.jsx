@@ -23,9 +23,11 @@ import RecoverAccount from "./pages/RecoverAccount";
 import Credits from "./pages/Credits";
 import BackgroundMusicManager from "./components/audio/BackgroundMusicManager";
 import { isRoomRoute } from "./config/audioTracks";
+import { useSession } from "./state/session";
 
 export default function App() {
   const { pathname } = useLocation();
+  const { status } = useSession();
 
   // Hide TopBar inside room views (solo + coop)
   const hideTopBar = isRoomRoute(pathname);
@@ -38,22 +40,14 @@ export default function App() {
       return () => s.off("welcome", onWelcome);
     }, []);
 
-
-  return (
-    <div className="relative min-h-screen">
-        <BackgroundMusicManager />
-        <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="fixed inset-0 w-full h-full object-cover -z-10"
-              >
-                <source src="/Loop door.mp4" type="video/mp4" />
-        </video>
-        <div className="fixed inset-0 bg-black/50 -z-10"></div>
-
-          {!hideTopBar && <TopBar />}
+  const content =
+    status === "loading" ? (
+      <div className="min-h-[70vh] grid place-items-center px-6 text-center">
+        <div className="bg-base-100/10 backdrop-blur rounded-2xl px-6 py-4 shadow">
+          Restoring session...
+        </div>
+      </div>
+    ) : (
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
@@ -72,7 +66,6 @@ export default function App() {
         <Route path="/credits" element={<Credits />} />
         <Route path="/404" element={<NotFound />} />
 
-
         {/* Single Player Mode */}
         <Route path="/solo/select" element={<SoloSelect />} />
         <Route path="/solo" element={<SoloRound />} />
@@ -82,6 +75,24 @@ export default function App() {
         {/* Multiplayer Mode */}
         <Route path="/coop/:sessionId/room/:roomId/role/:role" element={<RoomView mode="coop" />} />
       </Routes>
+    );
+
+  return (
+    <div className="relative min-h-screen">
+        <BackgroundMusicManager />
+        <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="fixed inset-0 w-full h-full object-cover -z-10"
+              >
+                <source src="/Loop door.mp4" type="video/mp4" />
+        </video>
+        <div className="fixed inset-0 bg-black/50 -z-10"></div>
+
+          {!hideTopBar && <TopBar />}
+      {content}
     </div>
   );
 }

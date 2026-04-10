@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef, createElement } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSocket, connectSocket } from "../state/socket";
-import { getToken } from "../state/token";
+import { useSession } from "../state/session";
 import InteractionLayer from "../components/InteractionLayers/InteractionLayerManager.jsx";
 
 // Import Widget Registry
@@ -302,6 +302,7 @@ function getPuzzleStateByWidget(gameState, activeWidget) {
 export default function RoomView({ mode = "solo" }) {
   const { sessionId, roomId, role } = useParams();
   const navigate = useNavigate();
+  const { accessToken, status } = useSession();
 
   const INTRO_AUTO_HIDE_MS = 2500;
   const INTRO_FADE_MS = 600;
@@ -500,12 +501,16 @@ export default function RoomView({ mode = "solo" }) {
 
   // --- SOCKET SETUP ---
   useEffect(() => {
-    let s = getSocket();
-    if (!s) s = connectSocket({ mode, sessionId, role, roomType: initialSoloChoice });
-    
+    if (status === "loading") return;
+
+    setSocketReady(false);
+    const s = connectSocket({ mode, sessionId, role, roomType: initialSoloChoice });
+
     const onConnect = () => setSocketReady(true);
+    const onDisconnect = () => setSocketReady(false);
     if (s.connected) setSocketReady(true);
-    else s.on("connect", onConnect);
+    s.on("connect", onConnect);
+    s.on("disconnect", onDisconnect);
 
     s.on("state:snapshot", onSnapshot);
     s.on("room_state", onRoomState);
@@ -521,6 +526,8 @@ export default function RoomView({ mode = "solo" }) {
     s.on("room_completed", onCompleted);
 
     return () => {
+      s.off("connect", onConnect);
+      s.off("disconnect", onDisconnect);
       s.off("state:snapshot", onSnapshot);
       s.off("room_state", onRoomState);
       s.off("puzzle_update", onPuzzleUpdate);
@@ -528,30 +535,33 @@ export default function RoomView({ mode = "solo" }) {
       s.off("state:roomChanged", onRoomChanged);
       s.off("room_completed", onCompleted);
     };
-  }, [mode, sessionId, roomId, navigate, onSnapshot, onRoomState, onPuzzleUpdate, onViewChanged, onRoomChanged]);
+  }, [status, accessToken, mode, sessionId, role, roomId, navigate, onSnapshot, onRoomState, onPuzzleUpdate, onViewChanged, onRoomChanged]);
 
   // --- JOIN & READY ---
   useEffect(() => {
-    if (!socketReady || !roomId) return;
+    if (status === "loading" || !socketReady || !roomId) return;
+
     const s = getSocket();
+    if (!s) return;
+
     pendingFlags.current = {};
     const name = mode === "solo" ? "Solo Player" : "Player";
     const normalizedRole =
       role ? String(role).trim().toUpperCase() : null;
-    const accessToken = getToken();
     const payload = {
       roomId,
       name,
       ...(normalizedRole ? { role: normalizedRole } : {}),
       ...(accessToken ? { accessToken } : {}),
     };
+
     s.emit("join_room", payload, (res) => {
       if (res?.ok && res.snapshot) onSnapshot(res);
       else setLoading(false);
     });
-    // Auto-ready for solo mode
+
     if (mode === "solo") s.emit("ready", { roomId });
-  }, [socketReady, roomId, mode, onSnapshot]);
+  }, [status, socketReady, roomId, mode, role, accessToken, onSnapshot]);
 
 
   // --- PUSH STATE TO WIDGETS ---
