@@ -313,14 +313,16 @@ export default function RoomView({ mode = "solo" }) {
   const dismissIntro = useCallback(() => {
     if (!showIntro || introFading) return;
     setIntroFading(true);
+    // Notify backend that intro is dismissed – timer should now start
+    if (roomId) {
+      getSocket()?.emit('intro:dismissed', { roomId });
+    }
     setTimeout(() => setShowIntro(false), INTRO_FADE_MS);
-  }, [showIntro, introFading]);
+  }, [showIntro, introFading, roomId]);
 
-  useEffect(() => {
-    if (!showIntro) return;
-    const timer = setTimeout(dismissIntro, INTRO_AUTO_HIDE_MS);
-    return () => clearTimeout(timer);
-  }, [showIntro, dismissIntro]);
+  const handleVideoEnded = useCallback(() => {
+    setTimeout(dismissIntro, 1500);
+  }, [dismissIntro]);
 
   useEffect(() => {
     if (!showIntro) return;
@@ -704,17 +706,19 @@ export default function RoomView({ mode = "solo" }) {
     <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
       {showIntro && (
         <div
-          className={`absolute inset-0 z-[60] flex items-center justify-center bg-black transition-opacity duration-700 ${
+          className={`absolute inset-0 z-[70] flex items-center justify-center bg-black transition-opacity duration-700 ${
             introFading ? "opacity-0 pointer-events-none" : "opacity-100"
           }`}
           onClick={dismissIntro}
         >
-          <img
-            src="/ritual.png"
-            alt="Ritual"
-            className="max-w-full max-h-full object-contain select-none"
-            draggable={false}
-          />
+          <video
+                autoPlay
+                playsInline
+                onEnded={handleVideoEnded}
+                className="fixed inset-0 w-full h-full object-cover -z-10"
+              >
+                <source src="/intro.mp4" type="video/mp4" />
+        </video>
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white text-xs uppercase tracking-[0.35em] bg-black/60 px-4 py-2 rounded-full border border-white/20">
             Click to skip
           </div>

@@ -91,13 +91,13 @@
     {:else if keyInserted && !runesActivated}
       <p class="status-text">The key settles into place, but the runes remain dormant.</p>
     {:else if keyInserted}
-      <p class="status-text">The key locks in place. Close this view and touch the door.</p>
+      <p class="status-text">The key locks in place and the Door can be opened.</p>
     {:else}
       <p class="status-text">A heavy lock plate blocks the way.</p>
     {/if}
 
     {#if showCoopHint}
-      <p class="coop-hint">Co-op: open both doors at the same time.</p>
+      <p class="coop-hint">Neither before the other, nor one without its twin. The way forward demands a single, unified act</p>
     {/if}
   </div>
 </div>
