@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef, createElement } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSocket, connectSocket } from "../state/socket";
+import { getToken } from "../state/token";
 import InteractionLayer from "../components/InteractionLayers/InteractionLayerManager.jsx";
 
 // Import Widget Registry
@@ -537,9 +538,13 @@ export default function RoomView({ mode = "solo" }) {
     const name = mode === "solo" ? "Solo Player" : "Player";
     const normalizedRole =
       role ? String(role).trim().toUpperCase() : null;
-    const payload = normalizedRole
-      ? { roomId, name, role: normalizedRole }
-      : { roomId, name };
+    const accessToken = getToken();
+    const payload = {
+      roomId,
+      name,
+      ...(normalizedRole ? { role: normalizedRole } : {}),
+      ...(accessToken ? { accessToken } : {}),
+    };
     s.emit("join_room", payload, (res) => {
       if (res?.ok && res.snapshot) onSnapshot(res);
       else setLoading(false);
