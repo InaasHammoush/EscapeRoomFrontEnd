@@ -535,7 +535,7 @@ export default function RoomView({ mode = "solo" }) {
       s.off("state:roomChanged", onRoomChanged);
       s.off("room_completed", onCompleted);
     };
-  }, [status, accessToken, mode, sessionId, role, roomId, navigate, onSnapshot, onRoomState, onPuzzleUpdate, onViewChanged, onRoomChanged]);
+  }, [status, mode, sessionId, role, roomId, navigate, onSnapshot, onRoomState, onPuzzleUpdate, onViewChanged, onRoomChanged]);
 
   // --- JOIN & READY ---
   useEffect(() => {
@@ -561,7 +561,7 @@ export default function RoomView({ mode = "solo" }) {
     });
 
     if (mode === "solo") s.emit("ready", { roomId });
-  }, [status, socketReady, roomId, mode, role, accessToken, onSnapshot]);
+  }, [status, socketReady, roomId, mode, role, onSnapshot]);
 
 
   // --- PUSH STATE TO WIDGETS ---
