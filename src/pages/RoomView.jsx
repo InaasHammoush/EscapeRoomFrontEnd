@@ -35,6 +35,7 @@ import InventoryBar from "../components/inventory/InventoryBar.jsx";
 import { normalizeInventory, applyInventoryIntent } from "../state/inventoryAdapter.js";
 import { resolveWallImage } from "../config/wallImageOverrides.js";
 import { readMusicSettings, writeMusicSettings } from "../state/musicSettings.js";
+import { useAuthUser } from "../state/authUser";
 
 const initialSoloChoice = sessionStorage.getItem("soloChoice");
 const DEFAULT_STATUE_FEATHER_PLACED = false;
@@ -302,6 +303,7 @@ function getPuzzleStateByWidget(gameState, activeWidget) {
 export default function RoomView({ mode = "solo" }) {
   const { sessionId, roomId, role } = useParams();
   const navigate = useNavigate();
+  const { authReady, ensureAuthReady } = useAuthUser();
 
   const INTRO_AUTO_HIDE_MS = 2500;
   const INTRO_FADE_MS = 600;
@@ -500,8 +502,8 @@ export default function RoomView({ mode = "solo" }) {
 
   // --- SOCKET SETUP ---
   useEffect(() => {
-    let s = getSocket();
-    if (!s) s = connectSocket({ mode, sessionId, role, roomType: initialSoloChoice });
+    if (!authReady) return;
+    const s = connectSocket({ mode, sessionId, role, roomType: initialSoloChoice });
     
     const onConnect = () => setSocketReady(true);
     if (s.connected) setSocketReady(true);
@@ -528,30 +530,46 @@ export default function RoomView({ mode = "solo" }) {
       s.off("state:roomChanged", onRoomChanged);
       s.off("room_completed", onCompleted);
     };
-  }, [mode, sessionId, roomId, navigate, onSnapshot, onRoomState, onPuzzleUpdate, onViewChanged, onRoomChanged]);
+  }, [authReady, mode, sessionId, roomId, role, navigate, onSnapshot, onRoomState, onPuzzleUpdate, onViewChanged, onRoomChanged]);
 
   // --- JOIN & READY ---
   useEffect(() => {
-    if (!socketReady || !roomId) return;
-    const s = getSocket();
-    pendingFlags.current = {};
-    const name = mode === "solo" ? "Solo Player" : "Player";
-    const normalizedRole =
-      role ? String(role).trim().toUpperCase() : null;
-    const accessToken = getToken();
-    const payload = {
-      roomId,
-      name,
-      ...(normalizedRole ? { role: normalizedRole } : {}),
-      ...(accessToken ? { accessToken } : {}),
+    if (!socketReady || !roomId || !authReady) return;
+
+    let cancelled = false;
+
+    const joinRoom = async () => {
+      await ensureAuthReady();
+      if (cancelled) return;
+
+      const s = getSocket();
+      if (!s) return;
+
+      pendingFlags.current = {};
+      const name = mode === "solo" ? "Solo Player" : "Player";
+      const normalizedRole =
+        role ? String(role).trim().toUpperCase() : null;
+      const accessToken = getToken();
+      const payload = {
+        roomId,
+        name,
+        ...(normalizedRole ? { role: normalizedRole } : {}),
+        ...(accessToken ? { accessToken } : {}),
+      };
+      s.emit("join_room", payload, (res) => {
+        if (cancelled) return;
+        if (res?.ok && res.snapshot) onSnapshot(res);
+        else setLoading(false);
+      });
+      if (mode === "solo") s.emit("ready", { roomId });
     };
-    s.emit("join_room", payload, (res) => {
-      if (res?.ok && res.snapshot) onSnapshot(res);
-      else setLoading(false);
-    });
-    // Auto-ready for solo mode
-    if (mode === "solo") s.emit("ready", { roomId });
-  }, [socketReady, roomId, mode, onSnapshot]);
+
+    joinRoom();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [socketReady, roomId, mode, role, authReady, ensureAuthReady, onSnapshot]);
 
 
   // --- PUSH STATE TO WIDGETS ---

@@ -75,3 +75,5 @@ export const api = {
   del: (p, opts) => request(p, { method: "DELETE", ...opts }),
   patch: (p, body, opts) => request(p, { method: "PATCH", body, ...opts }),
 };
+
+export { refreshAccessToken };
