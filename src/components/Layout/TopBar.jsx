@@ -42,7 +42,8 @@ export default function TopBar() {
     <div className="sticky top-0 z-50 bg-base-100/10 backdrop-blur border-b border-base-100/10">
       <div className="px-6">
         <div className="navbar min-h-14">
-          <div className="flex-1">
+          <div className="flex-1 flex items-center gap-3">
+            <img src="/icon.png" alt="Arcane Descent logo" className="w-8 h-8 rounded-md" />
             <Link to="/" className="text-xl font-extrabold tracking-wide">
               Arcane Descent
             </Link>
