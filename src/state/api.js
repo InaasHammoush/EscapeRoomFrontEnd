@@ -1,6 +1,8 @@
 import { getToken, setToken, clearToken } from "./token";
 
 const BASE = "/api"; // proxied to backend
+const DEFAULT_CREDENTIALS = "include";
+let refreshPromise = null;
 
 async function doFetch(path, { method = "GET", body, headers, credentials } = {}) {
   const upperMethod = (method || "GET").toUpperCase();
@@ -8,7 +10,7 @@ async function doFetch(path, { method = "GET", body, headers, credentials } = {}
 
   const res = await fetch(BASE + path, {
     method: upperMethod,
-    credentials,
+    credentials: credentials ?? DEFAULT_CREDENTIALS,
     redirect: isDeleteAccount ? "manual" : "follow",
     headers: {
       "Content-Type": "application/json",
@@ -40,16 +42,29 @@ async function doFetch(path, { method = "GET", body, headers, credentials } = {}
 }
 
 export async function refreshSession() {
-  const res = await fetch(BASE + "/token/refresh", {
-    method: "POST",
-    credentials: "include",
-  });
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const res = await fetch(BASE + "/token/refresh", {
+        method: "POST",
+        credentials: DEFAULT_CREDENTIALS,
+      });
 
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.accessToken) throw new Error("REFRESH_FAILED");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.accessToken) {
+        clearToken();
+        const err = new Error(data?.error || data?.message || "REFRESH_FAILED");
+        err.status = res.status;
+        throw err;
+      }
 
-  setToken(data.accessToken);
-  return data;
+      setToken(data.accessToken);
+      return data;
+    })().finally(() => {
+      refreshPromise = null;
+    });
+  }
+
+  return refreshPromise;
 }
 
 export async function refreshAccessToken() {
@@ -61,12 +76,12 @@ async function request(path, opts = {}) {
   try {
     return await doFetch(path, opts);
   } catch (err) {
-    if (err.status === 401 || err.status === 403) {
+    if ((err.status === 401 || err.status === 403) && path !== "/token/refresh") {
       try {
         await refreshAccessToken();
         return await doFetch(path, opts); // retry once
       } catch {
-        clearToken();
+        // refreshSession already cleared the token when recovery failed
       }
     }
     throw err;

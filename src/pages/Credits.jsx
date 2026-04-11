@@ -41,17 +41,20 @@ export default function Credits() {
             Credits
           </div>
           <h2 className="text-3xl md:text-4xl font-semibold">Thank you for playing</h2>
-          <p className="text-white/80">
-            This is a project by students of the DHBW.
-          </p>
-
           <div className="text-left space-y-4 bg-black/60 border border-white/10 rounded-2xl p-6">
             <div>
               <h2 className="text-sm uppercase tracking-[0.3em] text-white/70">
                 Project
               </h2>
               <p className="mt-2 text-white/80">
-                Escape Room experience built as a student project at the DHBW.
+                Escape Room experience built as a student project at the <a href="https://www.mannheim.dhbw.de/" target="_blank" rel="noopener noreferrer" className="underline">DHBW Mannheim</a>.
+                <br/>
+                We hope you enjoyed playing it as much as we enjoyed creating it! if you want to see more of our work, check out our GitHub profiles:
+                <ul className="list-disc list-inside">
+                  <li>Finn Jakob <a href="https://github.com/MindDaemon" target="_blank" rel="noopener noreferrer" className="underline">Github</a></li>
+                  <li>Inaas Hammoush <a href="https://github.com/inaashammoush" target="_blank" rel="noopener noreferrer" className="underline">Github</a></li>
+                  <li>Zubaria Qureshi <a href="https://github.com/ZubariaQureshi" target="_blank" rel="noopener noreferrer" className="underline">Github</a></li>
+                </ul>
               </p>
             </div>
             <div>
@@ -59,7 +62,10 @@ export default function Credits() {
                 Visuals
               </h2>
               <p className="mt-2 text-white/80">
-                All images are created by AI.
+              <ul className="list-disc list-inside">
+                <li>All images are created by AI.</li>
+                <li>Intro video created using Veo and edited by Yahia Mohy (<a href="https://www.linkedin.com/in/yahiamohy/" target="_blank" rel="noopener noreferrer" className="underline">LinkedIn</a>)</li>
+              </ul>
               </p>
             </div>
             <div>
@@ -67,7 +73,26 @@ export default function Credits() {
                 Audio
               </h2>
               <p className="mt-2 text-white/80">
-                Placeholder: audio track credits to be added.
+                <ul className="list-disc list-inside">
+                  <li>
+                    Main Site Music: "Timeliner" by Juanjo_sound (<a href="https://juanjosound.itch.io/fantasy-music-and-ambience-dark-and-emotional" target="_blank" rel="noopener noreferrer" className="underline">itch.io</a>)
+                  </li>
+                  <li>
+                    Alchemist Lab: "Distorted Core" by Juanjo_sound (<a href="https://juanjosound.itch.io/fantasy-music-and-ambience-dark-and-emotional" target="_blank" rel="noopener noreferrer" className="underline">itch.io</a>)
+                  </li>
+                  <li>
+                    Wizard Library: "Wander" by Innlydian (<a href="https://innlydian.itch.io/basic-classical-music-pack" target="_blank" rel="noopener noreferrer" className="underline">itch.io</a>)
+                  </li>
+                  <li>
+                    Final Corridor: "Grindhouse" by TurtleBox (<a href="https://theturtlebox.itch.io/grindhouse" target="_blank" rel="noopener noreferrer" className="underline">itch.io</a>)
+                  </li>
+                  <li>
+                    Credits theme: "End" by Juanjo_sound (<a href="https://juanjosound.itch.io/fantasy-music-and-ambience-dark-and-emotional" target="_blank" rel="noopener noreferrer" className="underline">itch.io</a>)
+                  </li>
+                  <li>
+                    Mixing and Sound Design for Intro Video: Yahia Mohy (<a href="https://www.linkedin.com/in/yahiamohy/" target="_blank" rel="noopener noreferrer" className="underline">LinkedIn</a>)
+                  </li>
+                </ul>
               </p>
             </div>
           </div>
