@@ -4,6 +4,14 @@ This repository contains the browser client for Arcane Descent, a cooperative es
 
 The project combines a classic React application shell with real-time game communication and a more playful presentation layer. React handles routing and shared state, Pixi.js powers the room view, and several puzzle widgets are implemented as Svelte custom elements.
 
+## Live Deployment
+
+Arcane Descent is also available online at:
+
+`https://arcanedescent.vercel.app`
+
+This means the game can be played directly in the browser without setting up the local development environment first.
+
 ## What This Frontend Does
 
 - provides the landing flow for solo and co-op play
