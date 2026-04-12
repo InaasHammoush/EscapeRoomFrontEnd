@@ -1,6 +1,6 @@
 import { getToken, setToken, clearToken } from "./token";
 
-const BASE = import.meta.env.VITE_BACKEND_URL || "/api";
+const BASE = process.env.REDIS_URL?.trim() || "/api";
 const DEFAULT_CREDENTIALS = "include";
 let refreshPromise = null;
 
