@@ -1,6 +1,6 @@
 import { getToken, setToken, clearToken } from "./token";
 
-const BASE = import.meta.env.VITE_BACKEND_URL || "/api";
+const BASE = import.meta.env.VITE_BACKEND_URL ? `${import.meta.env.VITE_BACKEND_URL}/api` : '/api';
 const DEFAULT_CREDENTIALS = "include";
 let refreshPromise = null;
 
