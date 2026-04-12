@@ -1,9 +1,56 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Page from "../components/Layout/Page";
+import FieldErrorList from "../components/auth/FieldErrorList";
+import PasswordRuleChecklist from "../components/auth/PasswordRuleChecklist";
+import { filterPasswordRuleMessages } from "../components/auth/passwordRules";
 import { api } from "../state/api";
 import { useSession } from "../state/session";
-import { useNavigate } from "react-router-dom";
 import { readMusicSettings, writeMusicSettings } from "../state/musicSettings";
+
+function createEmptyPasswordFieldErrors() {
+  return {
+    oldPassword: [],
+    newPassword: [],
+    confirmPassword: [],
+  };
+}
+
+function groupPasswordFieldErrors(details = []) {
+  const next = createEmptyPasswordFieldErrors();
+
+  for (const issue of Array.isArray(details) ? details : []) {
+    const field = Array.isArray(issue?.path) ? String(issue.path[0] || "") : "";
+    const message = typeof issue?.message === "string" ? issue.message.trim() : "";
+
+    if (!message) continue;
+    if (!Object.prototype.hasOwnProperty.call(next, field)) continue;
+    if (!next[field].includes(message)) {
+      next[field].push(message);
+    }
+  }
+
+  return next;
+}
+
+function inferPasswordFieldFromMessage(message = "") {
+  const normalized = String(message).trim().toLowerCase();
+  if (!normalized) return null;
+
+  if (
+    normalized.includes("current password") ||
+    normalized.includes("aktuelles passwort") ||
+    normalized.includes("password incorrect")
+  ) {
+    return "oldPassword";
+  }
+
+  if (normalized.includes("new password") || normalized.includes("passwort")) {
+    return "newPassword";
+  }
+
+  return null;
+}
 
 export default function Settings() {
   const applyTheme = (name) =>
@@ -23,6 +70,9 @@ export default function Settings() {
   const [pwdBusy, setPwdBusy] = useState(false);
   const [pwdMsg, setPwdMsg] = useState("");
   const [pwdErr, setPwdErr] = useState("");
+  const [pwdFieldErrors, setPwdFieldErrors] = useState(() =>
+    createEmptyPasswordFieldErrors()
+  );
 
   // change-email form state
   const [showChangeEmail, setShowChangeEmail] = useState(false);
@@ -68,15 +118,26 @@ export default function Settings() {
     writeMusicSettings({ enabled: musicEnabled, volume: nextVolume });
   };
 
+  const clearPasswordFieldError = (field) => {
+    setPwdFieldErrors((prev) => {
+      if (!prev[field]?.length) return prev;
+      return { ...prev, [field]: [] };
+    });
+  };
+
   const submitChangePassword = async (e) => {
     e.preventDefault();
     if (pwdBusy) return;
 
     setPwdErr("");
     setPwdMsg("");
+    setPwdFieldErrors(createEmptyPasswordFieldErrors());
 
     if (newPwd !== confirmPwd) {
-      setPwdErr("New passwords do not match.");
+      setPwdFieldErrors((prev) => ({
+        ...prev,
+        confirmPassword: ["New passwords do not match."],
+      }));
       return;
     }
 
@@ -91,9 +152,32 @@ export default function Settings() {
       setOldPwd("");
       setNewPwd("");
       setConfirmPwd("");
+      setPwdFieldErrors(createEmptyPasswordFieldErrors());
       setShowChangePwd(false);
     } catch (e) {
-      setPwdErr(e.message || "Password change failed.");
+      const nextFieldErrors = groupPasswordFieldErrors(e?.details);
+      const hasFieldErrors = Object.values(nextFieldErrors).some(
+        (messages) => messages.length > 0
+      );
+
+      if (hasFieldErrors) {
+        setPwdFieldErrors(nextFieldErrors);
+      }
+
+      const fallbackMessage = e?.message || "Password change failed.";
+      if (!hasFieldErrors || !Array.isArray(e?.details) || e.details.length === 0) {
+        const inferredField = inferPasswordFieldFromMessage(fallbackMessage);
+        if (inferredField) {
+          setPwdFieldErrors((prev) => ({
+            ...prev,
+            [inferredField]: prev[inferredField].includes(fallbackMessage)
+              ? prev[inferredField]
+              : [...prev[inferredField], fallbackMessage],
+          }));
+        } else {
+          setPwdErr(fallbackMessage);
+        }
+      }
     } finally {
       setPwdBusy(false);
     }
@@ -122,6 +206,10 @@ export default function Settings() {
     }
   };
 
+  const passwordChangeMessages = filterPasswordRuleMessages(
+    pwdFieldErrors.newPassword
+  );
+
   return (
     <Page>
       <h2 className="text-3xl font-bold mb-10">Settings</h2>
@@ -140,6 +228,7 @@ export default function Settings() {
                 setShowChangePwd((v) => !v);
                 setPwdErr("");
                 setPwdMsg("");
+                setPwdFieldErrors(createEmptyPasswordFieldErrors());
               }}
             >
               Change Password
@@ -154,36 +243,58 @@ export default function Settings() {
                   <span className="label label-text">Current password</span>
                   <input
                     type="password"
-                    className="input input-bordered rounded-2xl w-full mt-2 text-black"
+                    className={`input input-bordered rounded-2xl w-full mt-2 text-black ${
+                      pwdFieldErrors.oldPassword.length ? "input-error" : ""
+                    }`}
                     value={oldPwd}
-                    onChange={(e) => setOldPwd(e.target.value)}
+                    onChange={(e) => {
+                      setOldPwd(e.target.value);
+                      clearPasswordFieldError("oldPassword");
+                    }}
                     required
                     disabled={pwdBusy}
+                    autoComplete="current-password"
                   />
+                  <FieldErrorList messages={pwdFieldErrors.oldPassword} />
                 </label>
 
                 <label className="form-control">
                   <span className="label label-text">New password</span>
                   <input
                     type="password"
-                    className="input input-bordered rounded-2xl w-full mt-2 text-black"
+                    className={`input input-bordered rounded-2xl w-full mt-2 text-black ${
+                      pwdFieldErrors.newPassword.length ? "input-error" : ""
+                    }`}
                     value={newPwd}
-                    onChange={(e) => setNewPwd(e.target.value)}
+                    onChange={(e) => {
+                      setNewPwd(e.target.value);
+                      clearPasswordFieldError("newPassword");
+                    }}
                     required
                     disabled={pwdBusy}
+                    autoComplete="new-password"
                   />
+                  <PasswordRuleChecklist password={newPwd} />
+                  <FieldErrorList messages={passwordChangeMessages} />
                 </label>
 
                 <label className="form-control">
                   <span className="label label-text">Confirm new password</span>
                   <input
                     type="password"
-                    className="input input-bordered rounded-2xl w-full mt-2 text-black"
+                    className={`input input-bordered rounded-2xl w-full mt-2 text-black ${
+                      pwdFieldErrors.confirmPassword.length ? "input-error" : ""
+                    }`}
                     value={confirmPwd}
-                    onChange={(e) => setConfirmPwd(e.target.value)}
+                    onChange={(e) => {
+                      setConfirmPwd(e.target.value);
+                      clearPasswordFieldError("confirmPassword");
+                    }}
                     required
                     disabled={pwdBusy}
+                    autoComplete="new-password"
                   />
+                  <FieldErrorList messages={pwdFieldErrors.confirmPassword} />
                 </label>
 
                 {pwdMsg && <p className="text-success text-sm">{pwdMsg}</p>}
@@ -194,7 +305,7 @@ export default function Settings() {
                   className="btn btn-outline rounded-2xl mt-2"
                   disabled={pwdBusy || !oldPwd || !newPwd || !confirmPwd}
                 >
-                  {pwdBusy ? "Please wait…" : "Save new password"}
+                  {pwdBusy ? "Please wait..." : "Save new password"}
                 </button>
               </form>
             )}
@@ -237,7 +348,7 @@ export default function Settings() {
                   className="btn btn-outline rounded-2xl mt-2"
                   disabled={emailBusy || !newEmail}
                 >
-                  {emailBusy ? "Please wait…" : "Send verification email"}
+                  {emailBusy ? "Please wait..." : "Send verification email"}
                 </button>
               </form>
             )}
@@ -297,7 +408,6 @@ export default function Settings() {
           />
         </div>
       </section>
-
     </Page>
   );
 }

@@ -1,17 +1,63 @@
 import { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import Page from "../components/Layout/Page";
+import FieldErrorList from "../components/auth/FieldErrorList";
+import PasswordRuleChecklist from "../components/auth/PasswordRuleChecklist";
+import { filterPasswordRuleMessages } from "../components/auth/passwordRules";
 import { api } from "../state/api";
+
+function createEmptyFieldErrors() {
+  return {
+    newPassword: [],
+    confirmPassword: [],
+  };
+}
+
+function groupFieldErrors(details = []) {
+  const next = createEmptyFieldErrors();
+
+  for (const issue of Array.isArray(details) ? details : []) {
+    const field = Array.isArray(issue?.path) ? String(issue.path[0] || "") : "";
+    const message = typeof issue?.message === "string" ? issue.message.trim() : "";
+
+    if (!message) continue;
+    if (!Object.prototype.hasOwnProperty.call(next, field)) continue;
+    if (!next[field].includes(message)) {
+      next[field].push(message);
+    }
+  }
+
+  return next;
+}
+
+function inferFieldFromMessage(message = "") {
+  const normalized = String(message).trim().toLowerCase();
+  if (!normalized) return null;
+  if (normalized.includes("passwort") || normalized.includes("password")) {
+    return "newPassword";
+  }
+  return null;
+}
 
 export default function ResetPassword() {
   const { token } = useParams();
-  const navigate = useNavigate();
 
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
+  const [fieldErrors, setFieldErrors] = useState(() => createEmptyFieldErrors());
+  const newPasswordFieldMessages = filterPasswordRuleMessages(
+    fieldErrors.newPassword
+  );
+
+  const clearFieldError = (field) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]?.length) return prev;
+      return { ...prev, [field]: [] };
+    });
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -19,9 +65,13 @@ export default function ResetPassword() {
 
     setMsg("");
     setErr("");
+    setFieldErrors(createEmptyFieldErrors());
 
     if (newPwd !== confirmPwd) {
-      setErr("Passwords do not match.");
+      setFieldErrors((prev) => ({
+        ...prev,
+        confirmPassword: ["Passwords do not match."],
+      }));
       return;
     }
 
@@ -34,11 +84,31 @@ export default function ResetPassword() {
       setMsg("Your password has been reset successfully. You can now log in.");
       setNewPwd("");
       setConfirmPwd("");
-
-      // Optionally redirect after a short delay
-      // navigate("/auth", { replace: true });
+      setFieldErrors(createEmptyFieldErrors());
     } catch (e) {
-      setErr(e.message || "Could not reset password.");
+      const nextFieldErrors = groupFieldErrors(e?.details);
+      const hasFieldErrors = Object.values(nextFieldErrors).some(
+        (messages) => messages.length > 0
+      );
+
+      if (hasFieldErrors) {
+        setFieldErrors(nextFieldErrors);
+      }
+
+      const fallbackMessage = e?.message || "Could not reset password.";
+      if (!hasFieldErrors || !Array.isArray(e?.details) || e.details.length === 0) {
+        const inferredField = inferFieldFromMessage(fallbackMessage);
+        if (inferredField) {
+          setFieldErrors((prev) => ({
+            ...prev,
+            [inferredField]: prev[inferredField].includes(fallbackMessage)
+              ? prev[inferredField]
+              : [...prev[inferredField], fallbackMessage],
+          }));
+        } else {
+          setErr(fallbackMessage);
+        }
+      }
     } finally {
       setBusy(false);
     }
@@ -55,26 +125,39 @@ export default function ResetPassword() {
               <span className="label label-text">New password</span>
               <input
                 type="password"
-                className="input input-bordered rounded-2xl w-full mt-2 text-black"
+                className={`input input-bordered rounded-2xl w-full mt-2 text-black ${
+                  fieldErrors.newPassword.length ? "input-error" : ""
+                }`}
                 value={newPwd}
-                onChange={(e) => setNewPwd(e.target.value)}
+                onChange={(e) => {
+                  setNewPwd(e.target.value);
+                  clearFieldError("newPassword");
+                }}
                 required
                 disabled={busy}
                 autoComplete="new-password"
               />
+              <PasswordRuleChecklist password={newPwd} />
+              <FieldErrorList messages={newPasswordFieldMessages} />
             </label>
 
             <label className="form-control">
               <span className="label label-text">Confirm new password</span>
               <input
                 type="password"
-                className="input input-bordered rounded-2xl w-full mt-2 text-black"
+                className={`input input-bordered rounded-2xl w-full mt-2 text-black ${
+                  fieldErrors.confirmPassword.length ? "input-error" : ""
+                }`}
                 value={confirmPwd}
-                onChange={(e) => setConfirmPwd(e.target.value)}
+                onChange={(e) => {
+                  setConfirmPwd(e.target.value);
+                  clearFieldError("confirmPassword");
+                }}
                 required
                 disabled={busy}
                 autoComplete="new-password"
               />
+              <FieldErrorList messages={fieldErrors.confirmPassword} />
             </label>
 
             {msg && <p className="text-success text-sm whitespace-pre-wrap">{msg}</p>}
@@ -85,7 +168,7 @@ export default function ResetPassword() {
               className="btn btn-outline rounded-2xl w-full mt-4"
               disabled={busy || !newPwd || !confirmPwd}
             >
-              {busy ? "Please wait…" : "Reset password"}
+              {busy ? "Please wait..." : "Reset password"}
             </button>
           </form>
 
@@ -99,4 +182,3 @@ export default function ResetPassword() {
     </Page>
   );
 }
-

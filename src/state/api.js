@@ -4,6 +4,66 @@ const BASE = import.meta.env.VITE_BACKEND_URL ? `${import.meta.env.VITE_BACKEND_
 const DEFAULT_CREDENTIALS = "include";
 let refreshPromise = null;
 
+function normalizeIssueMessages(value) {
+  if (!Array.isArray(value)) return [];
+
+  return [...new Set(
+    value
+      .map((entry) => (typeof entry?.message === "string" ? entry.message.trim() : ""))
+      .filter(Boolean)
+  )];
+}
+
+function tryParseStructuredMessage(value) {
+  if (typeof value !== "string") return null;
+
+  const trimmed = value.trim();
+  if (!trimmed || (!trimmed.startsWith("[") && !trimmed.startsWith("{"))) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+}
+
+function formatMessageValue(value) {
+  const directIssueMessages = normalizeIssueMessages(value);
+  if (directIssueMessages.length > 0) {
+    return directIssueMessages.join("\n");
+  }
+
+  if (value && typeof value === "object") {
+    const nestedIssueMessages = normalizeIssueMessages(value.details || value.issues || value.errors);
+    if (nestedIssueMessages.length > 0) {
+      return nestedIssueMessages.join("\n");
+    }
+  }
+
+  if (typeof value === "string") {
+    const parsed = tryParseStructuredMessage(value);
+    if (parsed && parsed !== value) {
+      const structuredMessage = formatMessageValue(parsed);
+      if (structuredMessage) return structuredMessage;
+    }
+
+    return value.trim();
+  }
+
+  return "";
+}
+
+function extractErrorMessage(data, status) {
+  const formatted =
+    formatMessageValue(data?.details) ||
+    formatMessageValue(data?.error) ||
+    formatMessageValue(data?.message);
+
+  return formatted || `HTTP ${status}`;
+}
+
 async function doFetch(path, { method = "GET", body, headers, credentials } = {}) {
   const upperMethod = (method || "GET").toUpperCase();
   const isDeleteAccount = upperMethod === "DELETE" && path === "/auth/delete-account";
@@ -33,8 +93,10 @@ async function doFetch(path, { method = "GET", body, headers, credentials } = {}
   const data = isJson ? await res.json().catch(() => ({})) : {};
 
   if (!res.ok) {
-    const err = new Error(data?.error || data?.message || `HTTP ${res.status}`);
+    const err = new Error(extractErrorMessage(data, res.status));
     err.status = res.status;
+    err.details = Array.isArray(data?.details) ? data.details : [];
+    err.payload = data;
     throw err;
   }
 
@@ -52,8 +114,10 @@ export async function refreshSession() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data?.accessToken) {
         clearToken();
-        const err = new Error(data?.error || data?.message || "REFRESH_FAILED");
+        const err = new Error(extractErrorMessage(data, res.status));
         err.status = res.status;
+        err.details = Array.isArray(data?.details) ? data.details : [];
+        err.payload = data;
         throw err;
       }
 
